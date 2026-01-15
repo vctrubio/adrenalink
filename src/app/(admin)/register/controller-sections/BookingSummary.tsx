@@ -40,6 +40,7 @@ export function BookingSummary({
     const hasDates = !!(dateRange.startDate && dateRange.endDate);
     const hasPackage = !!selectedPackage;
     const hasCorrectStudentCount = selectedPackage && selectedStudents.length === selectedPackage.capacityStudents;
+    const exceedsCapacity = hasPackage && selectedStudents.length > selectedPackage.capacityStudents;
 
     // Calculate Progress
     let progress = 0;
@@ -137,7 +138,13 @@ export function BookingSummary({
                             {/* 1/1 Format and Leader Name */}
                             <div className="flex items-center gap-2 font-bold text-sm text-foreground">
                                 {hasPackage && (
-                                    <span className="tabular-nums text-muted-foreground/60 font-medium">
+                                    <span
+                                        className={
+                                            exceedsCapacity
+                                                ? "tabular-nums bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded font-bold text-[10px]"
+                                                : "tabular-nums text-muted-foreground/60 font-medium"
+                                        }
+                                    >
                                         {selectedStudents.length}/{selectedPackage.capacityStudents}
                                     </span>
                                 )}

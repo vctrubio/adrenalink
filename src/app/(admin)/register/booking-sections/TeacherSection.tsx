@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
@@ -12,7 +11,6 @@ import TeacherForm, { teacherFormSchema, type TeacherFormData } from "@/src/comp
 import { createAndLinkTeacher } from "@/supabase/server/register";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface Commission {
@@ -49,9 +47,7 @@ export function TeacherSection({
     isLast = false,
 }: TeacherSectionProps) {
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
-    const pathname = usePathname();
-    const router = useRouter();
-    const { addToQueue, refreshData } = useRegisterActions();
+    const { addToQueue, refreshData, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { setFormValidity } = useFormRegistration();
     // Refetch teachers from hook to get updated commission data when new commission is added
@@ -103,6 +99,22 @@ export function TeacherSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
+    // Reset form when dialog opens
+    useEffect(() => {
+        if (isDialogOpen) {
+            setFormData({
+                firstName: "",
+                lastName: "",
+                username: "",
+                passport: "",
+                country: "",
+                phone: "",
+                languages: ["English"],
+                commissions: [],
+            });
+        }
+    }, [isDialogOpen]);
+
     const title =
         selectedTeacher && selectedCommission ? (
             <div className="flex items-center gap-2">
@@ -141,21 +153,33 @@ export function TeacherSection({
                     })),
                 ),
             onSuccess: async (data) => {
+                const newTeacher: TeacherProvider = {
+                    schema: {
+                        ...data.teacher,
+                        commissions: (data.commissions || []).map((c: any) => ({
+                            id: c.id,
+                            commissionType: c.commission_type,
+                            cph: c.cph,
+                            description: c.description,
+                        })),
+                    },
+                    lessonStats: { totalLessons: 0, completedLessons: 0 },
+                };
+
                 await handlePostCreation({
-                    pathname,
                     entityId: data.teacher.id,
                     closeDialog: () => setIsDialogOpen(false),
-                    onRefresh: refreshData,
+                    onSelectId: () => onSelectTeacher(newTeacher),
+                    onRefresh: async () => {
+                        await Promise.all([refreshData(), refetchTeachers()]);
+                    },
                     onAddToQueue: () => {
                         addToQueue("teachers", {
                             id: data.teacher.id,
                             name: data.teacher.username,
                             timestamp: Date.now(),
                             type: "teacher",
-                            metadata: {
-                                ...data.teacher,
-                                commissions: data.teacher.commissions || [],
-                            },
+                            metadata: newTeacher,
                         });
                     },
                     setFormData,
@@ -174,7 +198,7 @@ export function TeacherSection({
             successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
         });
         setSubmitLoading(false);
-    }, [isFormValid, formData, addToQueue, refreshData, pathname, router]);
+    }, [isFormValid, formData, addToQueue, refreshData, handleEntityCreation, handlePostCreation]);
 
     return (
         <>

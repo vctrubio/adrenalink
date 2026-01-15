@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
 import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/supabase/server/register";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import toast from "react-hot-toast";
 
 const defaultTeacherForm: TeacherFormData = {
@@ -19,7 +18,7 @@ const defaultTeacherForm: TeacherFormData = {
 };
 
 export default function TeacherPage() {
-    const { addToQueue } = useRegisterActions();
+    const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<TeacherFormData>(contextForm || defaultTeacherForm);
@@ -65,7 +64,6 @@ export default function TeacherPage() {
                 ),
             onSuccess: async (data) => {
                 await handlePostCreation({
-                    pathname: "/register/teacher",
                     entityId: data.teacher.id,
                     closeDialog: () => {},
                     onSelectId: () => {},
@@ -77,8 +75,16 @@ export default function TeacherPage() {
                             timestamp: Date.now(),
                             type: "teacher",
                             metadata: {
-                                ...data.teacher,
-                                commissions: data.teacher.commissions || [],
+                                schema: {
+                                    ...data.teacher,
+                                    commissions: (data.commissions || []).map((c: any) => ({
+                                        id: c.id,
+                                        commissionType: c.commission_type,
+                                        cph: c.cph,
+                                        description: c.description,
+                                    })),
+                                },
+                                lessonStats: { totalLessons: 0, completedLessons: 0 },
                             },
                         });
                     },
@@ -89,7 +95,7 @@ export default function TeacherPage() {
             successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
         });
         setLoading(false);
-    }, [isFormValid, formData, addToQueue]);
+    }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);
 
     // Register submit handler in context
     useEffect(() => {

@@ -10,6 +10,7 @@ import type { PackageFormData } from "@/src/components/forms/school/Package4Scho
 import { masterBookingAdd } from "@/supabase/server/register";
 import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
 import RegisterController from "@/src/app/(admin)/register/RegisterController";
+import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 
 interface QueueItem {
     id: string;
@@ -38,44 +39,56 @@ interface BookingFormState {
 }
 
 interface RegisterContextValue {
-    // School context
     school: any;
-
-    // Data
-    data: RegisterTables;
-    refreshData: () => Promise<void>;
-    isRefreshing: boolean;
-    updateDataStats: (updates: Partial<RegisterTables>) => void;
-
-    // Queue - for recently added items
-    queues: EntityQueues;
-    addToQueue: (type: keyof EntityQueues, item: QueueItem) => void;
-    removeFromQueue: (type: keyof EntityQueues, id: string) => void;
-
-    // Booking form state
-    bookingForm: {
-        form: BookingFormState;
-        setForm: (updates: Partial<BookingFormState>) => void;
-        reset: () => void;
+    data: {
+        tables: RegisterTables;
+        refresh: () => Promise<void>;
+        isRefreshing: boolean;
+        queues: EntityQueues;
+        addToQueue: (type: keyof EntityQueues, item: QueueItem) => void;
+        removeFromQueue: (type: keyof EntityQueues, id: string) => void;
     };
-
-    // Entity form states (for persistence across navigation)
-    studentForm: StudentFormData | null;
-    setStudentForm: (form: StudentFormData | null) => void;
-    teacherForm: TeacherFormData | null;
-    setTeacherForm: (form: TeacherFormData | null) => void;
-    packageForm: PackageFormData | null;
-    setPackageForm: (form: PackageFormData | null) => void;
-
-    // Form submission coordination
-    submitHandler: (() => Promise<void>) | undefined;
-    registerSubmitHandler: (handler: () => Promise<void>) => void;
-    isFormValid: boolean;
-    setFormValidity: (valid: boolean) => void;
-
-    // Section state
-    shouldOpenAllSections: boolean;
-    setShouldOpenAllSections: (open: boolean) => void;
+    forms: {
+        booking: {
+            state: BookingFormState;
+            update: (updates: Partial<BookingFormState>) => void;
+            reset: () => void;
+            submit: {
+                handler: (() => Promise<void>) | undefined;
+                register: (handler: () => Promise<void>) => void;
+                isValid: boolean;
+                setValidity: (valid: boolean) => void;
+            };
+        };
+        entities: {
+            student: { state: StudentFormData | null; update: (form: StudentFormData | null) => void };
+            teacher: { state: TeacherFormData | null; update: (form: TeacherFormData | null) => void };
+            package: { state: PackageFormData | null; update: (form: PackageFormData | null) => void };
+        };
+    };
+    actions: {
+        handlePostCreation: (args: {
+            entityId: string;
+            closeDialog: () => void;
+            onSelectId: () => void;
+            onRefresh: () => Promise<void>;
+            onAddToQueue: () => void;
+            setFormData: (data: any) => void;
+            defaultForm: any;
+        }) => Promise<void>;
+        handleEntityCreation: (args: {
+            isFormValid: boolean;
+            entityName: string;
+            createFn: () => Promise<{ success: boolean; data?: any; error?: string }>;
+            onSuccess: (data: any) => Promise<void>;
+            successMessage: string;
+            onError?: (error: string) => void;
+        }) => Promise<{ success: boolean; data?: any }>;
+    };
+    ui: {
+        shouldOpenAllSections: boolean;
+        setShouldOpenAllSections: (open: boolean) => void;
+    };
 }
 
 const RegisterContext = createContext<RegisterContextValue | undefined>(undefined);
@@ -91,17 +104,14 @@ const defaultBookingForm: BookingFormState = {
     leaderStudentId: "",
 };
 
-// Update stats after booking: increment bookingCount and set allBookingsCompleted to false
 const updateStatsAfterBooking = (currentData: RegisterTables, studentIds: string[]) => {
     const updated = { ...currentData };
-
     studentIds.forEach((studentId) => {
         if (updated.studentBookingStats?.[studentId]) {
             updated.studentBookingStats[studentId].bookingCount += 1;
             updated.studentBookingStats[studentId].allBookingsCompleted = false;
         }
     });
-
     return updated;
 };
 
@@ -128,42 +138,19 @@ export function RegisterProvider({
         bookings: [],
     });
 
-    // Booking form state
     const [bookingForm, setBookingFormState] = useState<BookingFormState>(defaultBookingForm);
-
-    // Entity form states
     const [studentForm, setStudentForm] = useState<StudentFormData | null>(null);
     const [teacherForm, setTeacherForm] = useState<TeacherFormData | null>(null);
     const [packageForm, setPackageForm] = useState<PackageFormData | null>(null);
 
-    // Generic Form Coordination
     const [submitHandler, setSubmitHandlerState] = useState<(() => Promise<void>) | undefined>();
     const [isFormValid, setFormValidity] = useState(false);
-
-    // Section state
     const [shouldOpenAllSections, setShouldOpenAllSections] = useState(false);
-
-    // Booking submission state
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Wrap setSubmitHandler to ensure stable reference if needed,
-    // but React's setState is already stable.
-    // We expose it as registerSubmitHandler for semantic clarity.
-    const registerSubmitHandler = useCallback((handler: () => Promise<void>) => {
-        setSubmitHandlerState(() => handler);
-    }, []);
-
-    const previousPathname = useRef(pathname);
+    const { refetch: refetchTeachers } = useSchoolTeachers();
     const handleBookingSubmitRef = useRef<(() => Promise<void>) | null>(null);
-
-    // Re-fetch on route transitions (not on page reload)
-    useEffect(() => {
-        if (previousPathname.current !== pathname && pathname.startsWith("/register")) {
-            refreshData();
-            previousPathname.current = pathname;
-        }
-    }, [pathname]);
 
     const refreshData = useCallback(async () => {
         setIsRefreshing(true);
@@ -177,40 +164,108 @@ export function RegisterProvider({
         }
     }, [refreshAction]);
 
-    const updateDataStats = useCallback((updates: Partial<RegisterTables>) => {
-        setData((prev) => ({
-            ...prev,
-            ...updates,
-        }));
-    }, []);
+    useEffect(() => {
+        if (pathname.startsWith("/register")) {
+            refreshData();
+        }
+    }, [pathname, refreshData]);
 
-    // Queue management
     const addToQueue = useCallback((type: keyof EntityQueues, item: QueueItem) => {
-        setQueues((prev) => ({
-            ...prev,
-            [type]: [...prev[type], item],
-        }));
+        setQueues((prev) => ({ ...prev, [type]: [...prev[type], item] }));
     }, []);
 
     const removeFromQueue = useCallback((type: keyof EntityQueues, id: string) => {
-        setQueues((prev) => ({
-            ...prev,
-            [type]: prev[type].filter((item) => item.id !== id),
-        }));
+        setQueues((prev) => ({ ...prev, [type]: prev[type].filter((item) => item.id !== id) }));
     }, []);
 
     const setBookingForm = useCallback((updates: Partial<BookingFormState>) => {
         setBookingFormState((prev) => ({ ...prev, ...updates }));
     }, []);
 
-    const resetBookingForm = useCallback(() => {
-        setBookingFormState(defaultBookingForm);
+    const resetBookingForm = useCallback(() => setBookingFormState(defaultBookingForm), []);
+
+    const registerSubmitHandler = useCallback((handler: () => Promise<void>) => {
+        setSubmitHandlerState(() => handler);
     }, []);
 
-    // Get selected students
-    const selectedStudents = data.students.filter((s) => bookingForm.selectedStudentIds.includes(s.student?.id)).map((s) => s.student);
+    const handlePostCreation = useCallback(
+        async ({
+            entityId,
+            closeDialog,
+            onSelectId,
+            onRefresh,
+            onAddToQueue,
+            setFormData,
+            defaultForm,
+        }: {
+            entityId: string;
+            closeDialog: () => void;
+            onSelectId: () => void;
+            onRefresh: () => Promise<void>;
+            onAddToQueue: () => void;
+            setFormData: (data: any) => void;
+            defaultForm: any;
+        }) => {
+            if (pathname === "/register") {
+                await onRefresh();
+                setFormData(defaultForm);
+                closeDialog();
+                onSelectId();
+            } else {
+                onAddToQueue();
+                await onRefresh();
+                setFormData(defaultForm);
+            }
+        },
+        [pathname],
+    );
 
-    // Determine active form based on pathname
+    const handleEntityCreation = useCallback(
+        async ({
+            isFormValid,
+            entityName,
+            createFn,
+            onSuccess,
+            successMessage,
+            onError,
+        }: {
+            isFormValid: boolean;
+            entityName: string;
+            createFn: () => Promise<{ success: boolean; data?: any; error?: string }>;
+            onSuccess: (data: any) => Promise<void>;
+            successMessage: string;
+            onError?: (error: string) => void;
+        }) => {
+            if (!isFormValid) {
+                toast.error("Please fill all required fields");
+                return { success: false };
+            }
+            try {
+                const result = await createFn();
+                if (!result.success) {
+                    const error = result.error || `Failed to create ${entityName}`;
+                    toast.error(error);
+                    onError?.(error);
+                    return { success: false };
+                }
+                toast.success(successMessage);
+                await onSuccess(result.data);
+                return { success: true, data: result.data };
+            } catch (error) {
+                console.error(`${entityName} creation error:`, error);
+                const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+                toast.error(errorMessage);
+                onError?.(errorMessage);
+                return { success: false };
+            }
+        },
+        [],
+    );
+
+    const selectedStudents = useMemo(() => 
+        data.students.filter((s) => bookingForm.selectedStudentIds.includes(s.student?.id)).map((s) => s.student),
+    [data.students, bookingForm.selectedStudentIds]);
+
     const activeForm: ActiveForm = useMemo(() => {
         if (pathname === "/register") return "booking";
         if (pathname === "/register/student") return "student";
@@ -219,7 +274,6 @@ export function RegisterProvider({
         return "booking";
     }, [pathname]);
 
-    // Determine if we can create booking
     const canCreateBooking = useMemo(() => {
         const f = bookingForm;
         return !!(
@@ -237,11 +291,9 @@ export function RegisterProvider({
         return leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "";
     }, [selectedStudents, bookingForm.leaderStudentId]);
 
-    // Handle booking submission
     const handleBookingSubmit = useCallback(async () => {
         setLoading(true);
         setError(null);
-
         try {
             const leaderStudentName = getLeaderStudentName();
             const result = await masterBookingAdd(
@@ -254,7 +306,6 @@ export function RegisterProvider({
                 bookingForm.selectedReferral?.id,
                 leaderStudentName,
             );
-
             if (!result.success) {
                 const errorMessage = result.error || "Failed to create booking";
                 setError(errorMessage);
@@ -262,79 +313,84 @@ export function RegisterProvider({
                 setLoading(false);
                 return;
             }
-
-            // Update stats locally (booking count +1, mark as not all completed)
-            const updatedData = updateStatsAfterBooking(data, bookingForm.selectedStudentIds);
-            setData(updatedData);
-
-            // Add to queue
+            setData(prev => updateStatsAfterBooking(prev, bookingForm.selectedStudentIds));
             addToQueue("bookings", {
                 id: result.data.booking.id,
                 name: leaderStudentName,
                 timestamp: Date.now(),
                 type: "booking",
             });
-
-            // Success toast
+            if (bookingForm.selectedTeacher) refetchTeachers();
             toast.success(`Booking created: ${leaderStudentName}`);
-
-            // Signal to open all sections
             setShouldOpenAllSections(true);
-
-            // Reset form
             resetBookingForm();
             setLoading(false);
         } catch (err) {
-            const errorMessage = "An unexpected error occurred";
-            setError(errorMessage);
-            toast.error(errorMessage);
+            setError("An unexpected error occurred");
+            toast.error("An unexpected error occurred");
             setLoading(false);
         }
-    }, [bookingForm, data, getLeaderStudentName, addToQueue]);
+    }, [bookingForm, getLeaderStudentName, addToQueue, refetchTeachers, resetBookingForm]);
 
-    // Keep ref updated with latest handler
     useEffect(() => {
         handleBookingSubmitRef.current = handleBookingSubmit;
     }, [handleBookingSubmit]);
 
-    // Register booking submission handler when on booking page
     useEffect(() => {
         if (activeForm === "booking") {
-            registerSubmitHandler(() => handleBookingSubmitRef.current());
+            registerSubmitHandler(() => handleBookingSubmitRef.current?.() || Promise.resolve());
             setFormValidity(canCreateBooking);
         }
-    }, [activeForm, canCreateBooking]);
+    }, [activeForm, canCreateBooking, registerSubmitHandler]);
 
-    const value: RegisterContextValue = {
-        school,
-        data,
-        refreshData,
+    const dataValue = useMemo(() => ({
+        tables: data,
+        refresh: refreshData,
         isRefreshing,
-        updateDataStats,
         queues,
         addToQueue,
         removeFromQueue,
-        bookingForm: {
-            form: bookingForm,
-            setForm: setBookingForm,
+    }), [data, refreshData, isRefreshing, queues, addToQueue, removeFromQueue]);
+
+    const formsValue = useMemo(() => ({
+        booking: {
+            state: bookingForm,
+            update: setBookingForm,
             reset: resetBookingForm,
+            submit: {
+                handler: submitHandler,
+                register: registerSubmitHandler,
+                isValid: isFormValid,
+                setValidity: setFormValidity,
+            },
         },
-        studentForm,
-        setStudentForm,
-        teacherForm,
-        setTeacherForm,
-        packageForm,
-        setPackageForm,
-        submitHandler,
-        registerSubmitHandler,
-        isFormValid,
-        setFormValidity,
+        entities: {
+            student: { state: studentForm, update: setStudentForm },
+            teacher: { state: teacherForm, update: setTeacherForm },
+            package: { state: packageForm, update: setPackageForm },
+        },
+    }), [bookingForm, setBookingForm, resetBookingForm, submitHandler, registerSubmitHandler, isFormValid, studentForm, teacherForm, packageForm]);
+
+    const actionsValue = useMemo(() => ({
+        handlePostCreation,
+        handleEntityCreation,
+    }), [handlePostCreation, handleEntityCreation]);
+
+    const uiValue = useMemo(() => ({
         shouldOpenAllSections,
         setShouldOpenAllSections,
-    };
+    }), [shouldOpenAllSections]);
+
+    const contextValue: RegisterContextValue = useMemo(() => ({
+        school,
+        data: dataValue,
+        forms: formsValue,
+        actions: actionsValue,
+        ui: uiValue,
+    }), [school, dataValue, formsValue, actionsValue, uiValue]);
 
     return (
-        <RegisterContext.Provider value={value}>
+        <RegisterContext.Provider value={contextValue}>
             <RegisterFormLayout
                 controller={
                     <RegisterController
@@ -361,43 +417,47 @@ export function RegisterProvider({
     );
 }
 
-// ... hooks ...
-
 export function useRegisterData(): RegisterTables {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useRegisterData must be used within RegisterProvider");
-    return context.data;
+    return context.data.tables;
 }
 
 export function useRegisterActions() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useRegisterActions must be used within RegisterProvider");
     return {
-        addToQueue: context.addToQueue,
-        removeFromQueue: context.removeFromQueue,
-        refreshData: context.refreshData,
-        isRefreshing: context.isRefreshing,
+        addToQueue: context.data.addToQueue,
+        removeFromQueue: context.data.removeFromQueue,
+        refreshData: context.data.refresh,
+        isRefreshing: context.data.isRefreshing,
+        handlePostCreation: context.actions.handlePostCreation,
+        handleEntityCreation: context.actions.handleEntityCreation,
     };
 }
 
 export function useRegisterQueues() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useRegisterQueues must be used within RegisterProvider");
-    return context.queues;
+    return context.data.queues;
 }
 
 export function useBookingForm() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useBookingForm must be used within RegisterProvider");
-    return context.bookingForm;
+    return {
+        form: context.forms.booking.state,
+        setForm: context.forms.booking.update,
+        reset: context.forms.booking.reset,
+    };
 }
 
 export function useStudentFormState() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useStudentFormState must be used within RegisterProvider");
     return {
-        form: context.studentForm,
-        setForm: context.setStudentForm,
+        form: context.forms.entities.student.state,
+        setForm: context.forms.entities.student.update,
     };
 }
 
@@ -405,8 +465,8 @@ export function useTeacherFormState() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useTeacherFormState must be used within RegisterProvider");
     return {
-        form: context.teacherForm,
-        setForm: context.setTeacherForm,
+        form: context.forms.entities.teacher.state,
+        setForm: context.forms.entities.teacher.update,
     };
 }
 
@@ -414,22 +474,19 @@ export function usePackageFormState() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("usePackageFormState must be used within RegisterProvider");
     return {
-        form: context.packageForm,
-        setForm: context.setPackageForm,
+        form: context.forms.entities.package.state,
+        setForm: context.forms.entities.package.update,
     };
 }
 
-/**
- * Hook for pages to register their form submission logic
- */
 export function useFormRegistration() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useFormRegistration must be used within RegisterProvider");
     return {
-        submitHandler: context.submitHandler,
-        registerSubmitHandler: context.registerSubmitHandler,
-        isFormValid: context.isFormValid,
-        setFormValidity: context.setFormValidity,
+        submitHandler: context.forms.booking.submit.handler,
+        registerSubmitHandler: context.forms.booking.submit.register,
+        isFormValid: context.forms.booking.submit.isValid,
+        setFormValidity: context.forms.booking.submit.setValidity,
     };
 }
 
@@ -437,15 +494,9 @@ export function useShouldOpenSections() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useShouldOpenSections must be used within RegisterProvider");
     return {
-        shouldOpenAllSections: context.shouldOpenAllSections,
-        setShouldOpenAllSections: context.setShouldOpenAllSections,
+        shouldOpenAllSections: context.ui.shouldOpenAllSections,
+        setShouldOpenAllSections: context.ui.setShouldOpenAllSections,
     };
-}
-
-export function useUpdateDataStats() {
-    const context = useContext(RegisterContext);
-    if (!context) throw new Error("useUpdateDataStats must be used within RegisterProvider");
-    return context.updateDataStats;
 }
 
 export function useRegisterSchool() {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
@@ -10,7 +9,6 @@ import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import StudentForm, { studentFormSchema, type StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
 import { createAndLinkStudent } from "@/supabase/server/register";
 import { useStudentFormState, useFormRegistration, useRegisterActions } from "../RegisterContext";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 
 interface Student {
     id: string;
@@ -78,12 +76,10 @@ export function StudentsSection({
     studentStatsMap,
     selectedPackage,
 }: StudentsSectionProps) {
-    const pathname = usePathname();
-    const router = useRouter();
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
     const { setFormValidity } = useFormRegistration();
-    const { refreshData } = useRegisterActions();
+    const { refreshData, addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
 
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,23 +101,26 @@ export function StudentsSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
+    // Reset form when dialog opens
+    useEffect(() => {
+        if (isDialogOpen) {
+            setFormData(defaultStudentForm);
+        }
+    }, [isDialogOpen]);
+
     const selectedStudentNames = selectedStudentIds
         .map((id) => students.find((s) => s.student.id === id)?.student.firstName)
         .filter(Boolean)
         .join(", ");
 
     const title =
-        selectedPackage && selectedStudentIds.length > 0
-            ? `${selectedStudentNames} (${selectedStudentIds.length}/${selectedPackage.capacityStudents})`
+        selectedStudentIds.length > 0
+            ? selectedStudentNames
             : selectedPackage
               ? `Select Students (${selectedPackage.capacityStudents})`
-              : capacity && selectedStudentIds.length > 0
-                ? `${selectedStudentNames} (${selectedStudentIds.length}/${capacity})`
-                : capacity
-                  ? `Select Students (${capacity})`
-                  : selectedStudentIds.length > 0
-                    ? `${selectedStudentNames} (${selectedStudentIds.length})`
-                    : "Select Students";
+              : capacity
+                ? `Select Students (${capacity})`
+                : "Select Students";
 
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
@@ -143,12 +142,20 @@ export function StudentsSection({
                 ),
             onSuccess: async (data) => {
                 await handlePostCreation({
-                    pathname,
                     entityId: data.student.id,
                     closeDialog: () => setIsDialogOpen(false),
                     onSelectId: () => onToggle(data.student.id),
                     onRefresh: refreshData,
-                    onAddToQueue: () => {},
+                    onAddToQueue: () => {
+                        const { student } = data;
+                        addToQueue("students", {
+                            id: student.id,
+                            name: `${student.firstName} ${student.lastName}`,
+                            timestamp: Date.now(),
+                            type: "student",
+                            metadata: data, // contains student and schoolStudent
+                        });
+                    },
                     setFormData,
                     defaultForm: defaultStudentForm,
                 });
@@ -156,7 +163,7 @@ export function StudentsSection({
             successMessage: `Student created: ${formData.firstName} ${formData.lastName}`,
         });
         setSubmitLoading(false);
-    }, [isFormValid, formData, onToggle, refreshData, pathname, router]);
+    }, [isFormValid, formData, onToggle, refreshData, handleEntityCreation, handlePostCreation, addToQueue]);
 
     return (
         <>

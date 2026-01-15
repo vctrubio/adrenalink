@@ -5,11 +5,10 @@ import { useRegisterActions, useStudentFormState, useFormRegistration } from "..
 import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
 import { defaultStudentForm } from "@/types/form-entities";
 import { createAndLinkStudent } from "@/supabase/server/register";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import toast from "react-hot-toast";
 
 export default function StudentPage() {
-    const { addToQueue } = useRegisterActions();
+    const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<StudentFormData>(contextForm || defaultStudentForm);
@@ -51,7 +50,6 @@ export default function StudentPage() {
                 ),
             onSuccess: async (data) => {
                 await handlePostCreation({
-                    pathname: "/register/student",
                     entityId: data.student.id,
                     closeDialog: () => {},
                     onSelectId: () => {},
@@ -71,7 +69,7 @@ export default function StudentPage() {
             successMessage: `Student created: ${formData.firstName} ${formData.lastName}`,
         });
         setLoading(false);
-    }, [isFormValid, formData, addToQueue]);
+    }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);
 
     // Register submit handler in context
     useEffect(() => {

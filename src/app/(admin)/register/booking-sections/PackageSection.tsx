@@ -1,19 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Section } from "./Section";
 import { ENTITY_DATA } from "@/config/entities";
 import { PackageTable } from "@/src/components/tables/PackageTable";
-import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
 import { defaultPackageForm } from "@/types/form-entities";
 import { createSchoolPackage } from "@/supabase/server/register";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 
 interface Package {
     id: string;
@@ -51,10 +47,8 @@ export function PackageSection({
     previousSectionSelected = false,
     isLast = false,
 }: PackageSectionProps) {
-    const pathname = usePathname();
-    const router = useRouter();
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
-    const { refreshData } = useRegisterActions();
+    const { refreshData, addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { setFormValidity } = useFormRegistration();
 
@@ -79,25 +73,14 @@ export function PackageSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
-    const title = selectedPackage
-        ? (() => {
-              const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === selectedPackage.categoryEquipment);
-              const EquipmentIcon = equipmentConfig?.icon;
+    // Reset form when dialog opens
+    useEffect(() => {
+        if (isDialogOpen) {
+            setFormData(defaultPackageForm);
+        }
+    }, [isDialogOpen]);
 
-              return (
-                  <div className="flex items-center gap-3">
-                      <span>{selectedPackage.description}</span>
-                      {EquipmentIcon && (
-                          <EquipmentStudentCapacityBadge
-                              categoryIcon={EquipmentIcon}
-                              equipmentCapacity={selectedPackage.capacityEquipment}
-                              studentCapacity={selectedPackage.capacityStudents}
-                          />
-                      )}
-                  </div>
-              );
-          })()
-        : "Select Package";
+    const title = selectedPackage ? selectedPackage.description : "Select Package";
 
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
@@ -128,12 +111,19 @@ export function PackageSection({
                 };
 
                 await handlePostCreation({
-                    pathname,
                     entityId: data.id,
                     closeDialog: () => setIsDialogOpen(false),
                     onSelectId: () => onSelect(newPackage),
                     onRefresh: refreshData,
-                    onAddToQueue: () => {},
+                    onAddToQueue: () => {
+                        addToQueue("packages", {
+                            id: data.id,
+                            name: data.description,
+                            timestamp: Date.now(),
+                            type: "package",
+                            metadata: newPackage,
+                        });
+                    },
                     setFormData,
                     defaultForm: defaultPackageForm,
                 });
@@ -141,7 +131,7 @@ export function PackageSection({
             successMessage: `Package created: ${formData.description}`,
         });
         setSubmitLoading(false);
-    }, [isFormValid, formData, onSelect, refreshData, pathname, router]);
+    }, [isFormValid, formData, onSelect, refreshData, addToQueue, handleEntityCreation, handlePostCreation]);
 
     return (
         <>

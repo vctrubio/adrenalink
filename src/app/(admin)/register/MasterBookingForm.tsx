@@ -21,19 +21,11 @@ type SectionId =
     | "commission-section";
 
 interface BookingFormProps {
-    school: any;
-    schoolPackages: any[];
-    students: any[];
     teachers: any[];
-    referrals: any[];
-    studentStats?: Record<
-        string,
-        { bookingCount: number; totalEventCount: number; totalEventDuration: number; allBookingsCompleted?: boolean }
-    >;
 }
 
 const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(function BookingForm(
-    { school, schoolPackages, students, teachers, referrals, studentStats }: BookingFormProps,
+    { teachers }: BookingFormProps,
     ref,
 ) {
     const searchParams = useSearchParams();
@@ -49,12 +41,15 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     // Use context data (updated by refreshData) or fall back to props for initial load
     const { currentStudents, currentTeachers, currentPackages } = useMemo(
         () => ({
-            currentStudents: contextData.students || students,
-            currentTeachers: contextData.teachers || teachers,
-            currentPackages: contextData.packages || schoolPackages,
+            currentStudents: contextData.students,
+            currentTeachers: teachers,
+            currentPackages: contextData.packages,
         }),
-        [contextData.students, contextData.teachers, contextData.packages, students, teachers, schoolPackages],
+        [contextData.students, teachers, contextData.packages],
     );
+
+    // Memoize stats map for performance
+    const studentStatsMap = useMemo(() => contextData.studentBookingStats || {}, [contextData.studentBookingStats]);
 
     useEffect(() => {
         console.log("[MasterBookingForm] data changed:", {
@@ -132,6 +127,38 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         }
     }, [shouldOpenAllSections, setShouldOpenAllSections]);
 
+    // Ensure sections are expanded if their value is empty/null
+    useEffect(() => {
+        if (addParam) return;
+
+        setExpandedSections((prev) => {
+            const next = new Set(prev);
+            let changed = false;
+
+            if (!selectedEquipmentCategory && !next.has("equipment-section")) {
+                next.add("equipment-section");
+                changed = true;
+            }
+
+            if (!selectedPackage && !next.has("package-section")) {
+                next.add("package-section");
+                changed = true;
+            }
+
+            if (!studentIdParam && selectedStudentIds.length === 0 && !next.has("students-section")) {
+                next.add("students-section");
+                changed = true;
+            }
+
+            if (!selectedTeacher && !next.has("teacher-section")) {
+                next.add("teacher-section");
+                changed = true;
+            }
+
+            return changed ? next : prev;
+        });
+    }, [selectedEquipmentCategory, selectedPackage, selectedStudentIds.length, selectedTeacher, studentIdParam]);
+
     // Track if we've processed the add param to avoid infinite loops
     const processedParamRef = useRef<string | null>(null);
     // Track if we've initiated refresh for the add param
@@ -156,6 +183,8 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             bookingForm.setForm({ leaderStudentId: "" });
         }
     }, [selectedStudentIds]);
+
+
 
     // Refresh data when add param is detected for the first time
     useEffect(() => {
@@ -182,17 +211,33 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             if (!selectedStudentIds.includes(entityId)) {
                 bookingForm.setForm({ selectedStudentIds: [...selectedStudentIds, entityId] });
             }
+            setExpandedSections((prev) => {
+                const next = new Set(prev);
+                next.delete("students-section");
+                return next;
+            });
             removeFromQueue("students", entityId);
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
             const queueItem = queues.teachers.find((item: any) => item.id === entityId);
-            const teacher = queueItem?.metadata || currentTeachers.find((t) => t.id === entityId);
+            let teacher = queueItem?.metadata || currentTeachers.find((t) => t.schema.id === entityId);
+
             if (teacher) {
+                // Robustness: ensure schema property exists (handle legacy queue items)
+                if (!teacher.schema && teacher.id) {
+                    teacher = { schema: teacher, lessonStats: { totalLessons: 0, completedLessons: 0 } };
+                }
+
                 bookingForm.setForm({ selectedTeacher: teacher });
                 if (extraId) {
-                    const commission = teacher.commissions?.find((c: any) => c.id === extraId);
+                    const commission = teacher.schema.commissions?.find((c: any) => c.id === extraId);
                     if (commission) {
                         bookingForm.setForm({ selectedCommission: commission });
+                        setExpandedSections((prev) => {
+                            const next = new Set(prev);
+                            next.delete("teacher-section");
+                            return next;
+                        });
                     }
                 }
             }
@@ -202,7 +247,16 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             const queueItem = queues.packages.find((item: any) => item.id === entityId);
             const pkg = queueItem?.metadata || currentPackages.find((p) => p.id === entityId);
             if (pkg) {
-                bookingForm.setForm({ selectedPackage: pkg });
+                bookingForm.setForm({
+                    selectedPackage: pkg,
+                    selectedEquipmentCategory: pkg.categoryEquipment,
+                });
+                setExpandedSections((prev) => {
+                    const next = new Set(prev);
+                    next.delete("package-section");
+                    next.delete("equipment-section");
+                    return next;
+                });
             }
             removeFromQueue("packages", entityId);
             router.replace("/register", { scroll: false });
@@ -237,6 +291,13 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         });
     }, []);
 
+    // Auto-collapse students section if capacity is met
+    useEffect(() => {
+        if (selectedPackage && selectedStudentIds.length >= selectedPackage.capacityStudents) {
+            closeSection("students-section");
+        }
+    }, [selectedPackage, selectedStudentIds.length, closeSection]);
+
     const openSection = useCallback((sectionId: SectionId) => {
         setExpandedSections((prev) => {
             const newSet = new Set(prev);
@@ -254,8 +315,16 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     };
 
     const handlePackageSelect = (pkg: any) => {
-        bookingForm.setForm({ selectedPackage: pkg });
-        closeSection("package-section");
+        if (pkg) {
+            bookingForm.setForm({
+                selectedPackage: pkg,
+                selectedEquipmentCategory: pkg.categoryEquipment,
+            });
+            closeSection("package-section");
+            closeSection("equipment-section");
+        } else {
+            bookingForm.setForm({ selectedPackage: null });
+        }
     };
 
     const handleStudentToggle = (studentId: string) => {
@@ -358,7 +427,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onSectionToggle={() => toggleSection("students-section")}
                 onExpand={() => openSection("students-section")}
                 selectedPackage={selectedPackage}
-                studentStatsMap={studentStats}
+                studentStatsMap={studentStatsMap}
             />
 
             <TeacherSection
@@ -372,12 +441,12 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 onToggle={() => toggleSection("teacher-section")}
                 onExpand={() => openSection("teacher-section")}
                 onClose={() => closeSection("teacher-section")}
-                isLast={!(referrals && referrals.length > 0)}
+                isLast={!(contextData.referrals && contextData.referrals.length > 0)}
             />
 
-            {referrals && referrals.length > 0 && (
+            {contextData.referrals && contextData.referrals.length > 0 && (
                 <ReferralSection
-                    referrals={referrals}
+                    referrals={contextData.referrals}
                     selectedReferral={selectedReferral}
                     onSelect={handleReferralSelect}
                     isExpanded={expandedSections.has("referral-section")}

@@ -51,7 +51,10 @@ export function EquipmentSection({
                         <button
                             key={cat.id}
                             type="button"
-                            onClick={() => onSelect(cat.id)}
+                            onClick={() => {
+                                onSelect(cat.id);
+                                onToggle();
+                            }}
                             className={`
                                 flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all duration-300
                                 ${

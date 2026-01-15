@@ -16,6 +16,7 @@ function RegisterQueueComponent() {
     const queues = useRegisterQueues();
 
     const queueItems = useMemo(() => {
+        if (!queues) return [];
         const allItems = Object.values(queues)
             .flat()
             .sort((a, b) => b.timestamp - a.timestamp);

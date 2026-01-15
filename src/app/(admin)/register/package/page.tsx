@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
 import { createSchoolPackage } from "@/supabase/server/register";
-import { handleEntityCreation, handlePostCreation } from "@/backend/RegisterSection";
 import toast from "react-hot-toast";
 
 const defaultPackageForm: PackageFormData = {
@@ -19,7 +18,7 @@ const defaultPackageForm: PackageFormData = {
 };
 
 export default function PackagePage() {
-    const { addToQueue } = useRegisterActions();
+    const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
@@ -59,7 +58,6 @@ export default function PackagePage() {
                 }),
             onSuccess: async (data) => {
                 await handlePostCreation({
-                    pathname: "/register/package",
                     entityId: data.id,
                     closeDialog: () => {},
                     onSelectId: () => {},
@@ -90,7 +88,7 @@ export default function PackagePage() {
             successMessage: `Package created: ${formData.description}`,
         });
         setLoading(false);
-    }, [isFormValid, formData, addToQueue]);
+    }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);
 
     // Register submit handler in context
     useEffect(() => {
