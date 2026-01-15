@@ -53,15 +53,15 @@ export function LandingDescription() {
                 }
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 viewport={{ once: true, amount: 0.3 }}
-                className="relative z-10 h-full flex flex-col items-center justify-center px-4"
+                className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6"
             >
-                <div className="w-full max-w-5xl space-y-12 text-center">
+                <div className="w-full max-w-5xl space-y-6 sm:space-y-8 md:space-y-12 text-center">
                     <JoinForcesHeading />
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <UserRoleSelection selectedRole={selectedRole} setSelectedRole={setSelectedRole} />
                         <SportSelection selectedSport={selectedSport} onSelectSport={setSelectedSport} variant="landing" />
-                        <div className="text-base text-white/40 font-light tracking-[0.5em] uppercase">Who are you?</div>
+                        <div className="text-xs sm:text-sm md:text-base text-white/40 font-light tracking-[0.3em] sm:tracking-[0.5em] uppercase px-2">Who are you?</div>
                     </div>
                 </div>
             </motion.div>
@@ -75,17 +75,17 @@ function PhotoCredit() {
             href="https://unsplash.com/@kristapsungurs"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/30 hover:bg-black/50 text-white/70 hover:text-white transition-all duration-300 backdrop-blur-sm group"
+            className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-black/30 hover:bg-black/50 text-white/70 hover:text-white transition-all duration-300 backdrop-blur-sm group"
         >
-            <Camera className="w-4 h-4" />
-            <span className="text-xs font-medium">Kristaps Ungurs</span>
+            <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs font-medium">Kristaps Ungurs</span>
         </Link>
     );
 }
 
 function JoinForcesHeading() {
     return (
-        <div className="space-y-6 flex flex-col items-center">
+        <div className="space-y-4 sm:space-y-6 flex flex-col items-center">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -93,7 +93,7 @@ function JoinForcesHeading() {
                 viewport={{ once: true, amount: 0.5 }}
             >
                 <div
-                    className="w-[240px] h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
+                    className="w-[160px] h-[160px] sm:w-[200px] sm:h-[200px] md:w-[240px] md:h-[240px] bg-white drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
                     style={{
                         maskImage: "url(/ADR.webp)",
                         maskSize: "contain",
@@ -106,7 +106,7 @@ function JoinForcesHeading() {
                     }}
                 />
             </motion.div>
-            <h2 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black italic tracking-tighter text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] uppercase px-4">
                 Join Forces
             </h2>
         </div>
@@ -123,7 +123,7 @@ function UserRoleSelection({
     const [hoveredRole, setHoveredRole] = useState<string | null>(null);
 
     return (
-        <div className="grid grid-cols-3 md:flex md:flex-row gap-4 h-[100px] md:h-[140px] w-full items-stretch justify-center">
+        <div className="grid grid-cols-3 md:flex md:flex-row gap-2 sm:gap-3 md:gap-4 h-[90px] sm:h-[100px] md:h-[140px] w-full items-stretch justify-center max-w-2xl mx-auto">
             {USER_ROLES.map((role) => {
                 const isSelected = selectedRole === role.id;
                 const isHovered = hoveredRole === role.id;
@@ -138,12 +138,13 @@ function UserRoleSelection({
                             flex: isHovered ? 2 : 1,
                         }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="hidden md:block"
                     >
                         <motion.button
                             onClick={() => setSelectedRole(isSelected ? null : role.id)}
                             onHoverStart={() => setHoveredRole(role.id)}
                             onHoverEnd={() => setHoveredRole(null)}
-                            className={`relative rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg backdrop-blur-lg text-white ${
+                            className={`relative rounded-2xl overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-2 w-full h-full shadow-lg backdrop-blur-lg text-white ${
                                 isSelected
                                     ? "bg-white/20 border-white/60 z-10"
                                     : "bg-slate-950/60 border-white/10 hover:bg-slate-950/70 hover:border-white/40"
@@ -159,15 +160,35 @@ function UserRoleSelection({
                             >
                                 <Icon size={42} className="transition-all duration-300 text-white" />
                             </motion.div>
-
                             <motion.span
                                 layout="position"
-                                className="hidden md:block text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 text-white"
+                                className="text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 text-white"
                             >
                                 {role.label}
                             </motion.span>
                         </motion.button>
                     </motion.div>
+                );
+            })}
+            {/* Mobile buttons - simpler without hover effects */}
+            {USER_ROLES.map((role) => {
+                const isSelected = selectedRole === role.id;
+                const Icon = role.icon;
+                return (
+                    <button
+                        key={`${role.id}-mobile`}
+                        onClick={() => setSelectedRole(isSelected ? null : role.id)}
+                        className={`relative rounded-xl overflow-hidden border transition-all duration-500 flex flex-col items-center justify-center gap-1 w-full h-full shadow-lg backdrop-blur-lg text-white md:hidden ${
+                            isSelected
+                                ? "bg-white/20 border-white/60 z-10"
+                                : "bg-slate-950/60 border-white/10 active:bg-slate-950/80"
+                        }`}
+                    >
+                        <Icon size={32} className="transition-all duration-300 text-white" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] transition-colors duration-300 text-white">
+                            {role.label}
+                        </span>
+                    </button>
                 );
             })}
         </div>

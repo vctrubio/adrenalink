@@ -17,7 +17,6 @@ export const BackgroundImage = ({ src, position = "fixed", overlay, priority = t
     return (
         <div className={`inset-0 z-0 pointer-events-none ${positionClass}`} style={transform ? { transform } : undefined}>
             {/* Background Image */}
-            {/* Next.js Image with priority={true} automatically adds preload links server-side */}
             <Image
                 src={src}
                 alt="Background"

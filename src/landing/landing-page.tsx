@@ -6,7 +6,7 @@ export function LandingPage() {
     return (
         <div className="flex min-h-screen text-white">
             <main className="flex-1">
-                <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
+                <div className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth overscroll-none">
                     <LandingHero />
                     <LandingDescription />
                     <div id="footer">
