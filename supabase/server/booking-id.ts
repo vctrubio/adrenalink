@@ -50,6 +50,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                         last_name
                     ),
                     teacher_commission(
+                        id,
                         cph,
                         commission_type
                     ),
@@ -84,9 +85,11 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
         }
 
         // Map Relations
+        const students = (booking.booking_student || []).map((bs: any) => bs.student).filter(Boolean);
+
         const relations: BookingRelations = {
             school_package: booking.school_package,
-            students: (booking.booking_student || []).map((bs: any) => bs.student).filter(Boolean),
+            students,
             lessons: (booking.lesson || []).map((l: any) => {
                 // Convert event times if timezone is available
                 const events = (l.event || []).map((evt: any) => {
@@ -100,7 +103,17 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                 return {
                     ...l,
                     teacher: l.teacher,
+                    teacher_commission: l.teacher_commission,
                     events: events,
+                    booking: {
+                        id: booking.id,
+                        date_start: booking.date_start,
+                        date_end: booking.date_end,
+                        leader_student_name: booking.leader_student_name,
+                        status: booking.status,
+                        school_package: booking.school_package,
+                        students,
+                    },
                 };
             }),
             student_booking_payment: (booking.student_booking_payment || []).map((p: any) => ({

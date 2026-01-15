@@ -219,13 +219,11 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     // Use standardized snake_case relation
     const lessons = teacher.relations?.lesson || [];
-    const schoolPackage = lessons[0]?.booking?.school_package;
-    const students = lessons.flatMap((l: any) => l.booking?.students || []).filter((v: any, i: number, a: any) => a.findIndex((t: any) => t.id === v.id) === i);
 
     // Single source of truth: Transform lessons to TransactionEventData once
     const transactionEvents = useMemo(() => {
-        return lessonsToTransactionEvents(lessons, schoolPackage, students, teacher.schema.first_name || "", currency);
-    }, [lessons, schoolPackage, students, teacher.schema.first_name, currency]);
+        return lessonsToTransactionEvents(lessons, currency);
+    }, [lessons, currency]);
 
     // Handle equipment assignment and status update, then revalidate
     const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
@@ -278,47 +276,39 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         return sorted;
     }, [filteredEvents, sort]);
 
-    // Group events by lesson
+    // Build lesson rows from lessons + filtered events
     const lessonRows: LessonRow[] = useMemo(() => {
-        const lessonMap = new Map<string, TransactionEventData[]>();
-        for (const event of sortedEvents) {
-            const lessonId = event.event.lessonId || "unknown";
-            if (!lessonMap.has(lessonId)) {
-                lessonMap.set(lessonId, []);
-            }
-            lessonMap.get(lessonId)!.push(event);
-        }
+        return lessons.map((lesson: any) => {
+            const lessonEvents = sortedEvents.filter((event) => event.event.lessonId === lesson.id);
 
-        return Array.from(lessonMap.entries()).reduce((acc, [lessonId, lessonEvents]) => {
-            if (lessonEvents.length === 0) return acc;
+            if (lessonEvents.length === 0) return null;
 
-            const firstEvent = lessonEvents[0];
+            const booking = lesson.booking;
+            const commission = lesson.teacher_commission;
             const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
             const totalHours = totalDuration / 60;
             const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
 
-            acc.push({
-                lessonId,
-                bookingId: "",
-                leaderName: firstEvent.leaderStudentName,
-                dateStart: firstEvent.event.date,
-                dateEnd: firstEvent.event.date,
-                lessonStatus: "active",
-                bookingStatus: "active",
-                commissionType: firstEvent.commission.type,
-                cph: firstEvent.commission.cph,
+            return {
+                lessonId: lesson.id,
+                bookingId: booking?.id || "",
+                leaderName: booking?.leader_student_name || "",
+                dateStart: booking?.date_start || "",
+                dateEnd: booking?.date_end || "",
+                lessonStatus: lesson.status || "",
+                bookingStatus: booking?.status || "",
+                commissionType: (commission?.commission_type as "fixed" | "percentage") || "fixed",
+                cph: commission ? parseFloat(commission.cph) : 0,
                 totalDuration,
                 totalHours,
                 totalEarning,
                 eventCount: lessonEvents.length,
-                events: lessonEvents,
-                equipmentCategory: firstEvent.packageData.categoryEquipment,
-                studentCapacity: firstEvent.packageData.capacityStudents,
-            });
-
-            return acc;
-        }, [] as LessonRow[]);
-    }, [sortedEvents]);
+                events: lessonEvents.map(transactionEventToTimelineEvent),
+                equipmentCategory: lessonEvents[0]?.packageData.categoryEquipment || "",
+                studentCapacity: lessonEvents[0]?.packageData.capacityStudents || 0,
+            };
+        }).filter((row): row is LessonRow => row !== null);
+    }, [lessons, sortedEvents]);
 
     // Adapt TransactionEventData to TimelineEvent for timeline view
     const timelineEvents = useMemo(() => {

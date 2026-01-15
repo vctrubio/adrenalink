@@ -16,7 +16,7 @@ import { TeacherBookingLessonTable } from "@/src/components/ids/TeacherBookingLe
 import { type LessonRow } from "@/backend/data/TeacherLessonData";
 import type { TransactionEventData } from "@/types/transaction-event";
 
-type ViewMode = "timeline" | "by-teacher" | "table" | "receipt";
+type ViewMode = "timeline" | "by-lesson" | "table" | "receipt";
 
 interface BookingRightColumnProps {
     booking: BookingData;
@@ -34,7 +34,6 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
 
     const lessons = booking.relations?.lessons || [];
     const schoolPackage = booking.relations?.school_package;
-    const students = booking.relations?.students || [];
 
     const formatCurrency = (num: number): string => {
         const rounded = Math.round(num * 100) / 100;
@@ -47,8 +46,8 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
 
     // Single source of truth: Transform lessons to TransactionEventData once
     const transactionEvents = useMemo(() => {
-        return lessonsToTransactionEvents(lessons, schoolPackage, students, booking.schema.leader_student_name, currency);
-    }, [lessons, schoolPackage, students, booking.schema.leader_student_name, currency]);
+        return lessonsToTransactionEvents(lessons, currency);
+    }, [lessons, currency]);
 
     // Adapt TransactionEventData to TimelineEvent for timeline view
     const timelineEvents = useMemo(() => {
@@ -100,7 +99,7 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
                 onChange={(v) => setViewMode(v as ViewMode)}
                 options={[
                     { id: "timeline", label: "Timeline", icon: Calendar },
-                    { id: "by-teacher", label: "By Teacher", icon: Handshake },
+                    { id: "by-lesson", label: "By Lesson", icon: Handshake },
                     { id: "table", label: "Table", icon: Table },
                     { id: "receipt", label: "Receipt", icon: List },
                 ]}
@@ -117,8 +116,9 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
                         onEquipmentUpdate={handleEquipmentUpdate}
                     />
                 )}
-                {viewMode === "by-teacher" && (
-                    <ByTeacherView
+                {viewMode === "by-lesson" && (
+                    <ByLessonView
+                        lessons={lessons}
                         transactionEvents={transactionEvents}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
@@ -154,8 +154,9 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
     );
 }
 
-// Sub-component: By Teacher View
-function ByTeacherView({
+// Sub-component: By Lesson View
+function ByLessonView({
+    lessons,
     transactionEvents,
     expandedLesson,
     setExpandedLesson,
@@ -165,6 +166,7 @@ function ByTeacherView({
     currency,
     onEquipmentUpdate,
 }: {
+    lessons: any[];
     transactionEvents: TransactionEventData[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
@@ -174,108 +176,111 @@ function ByTeacherView({
     currency: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
 }) {
-    // Group transaction events by teacher
-    const lessonsByTeacher = useMemo(() => {
+    // Create a map of lesson ID to transaction events for quick lookup
+    const eventsByLessonId = useMemo(() => {
         const map = new Map<string, TransactionEventData[]>();
         for (const event of transactionEvents) {
-            const username = event.teacher.username;
-            if (!map.has(username)) {
-                map.set(username, []);
+            const lessonId = event.event.lessonId || "unknown";
+            if (!map.has(lessonId)) {
+                map.set(lessonId, []);
             }
-            map.get(username)!.push(event);
+            map.get(lessonId)!.push(event);
         }
-
-        return Array.from(map.entries()).map(([username, events]) => {
-            const totalEvents = events.length;
-            const totalDuration = events.reduce((sum, e) => sum + e.event.duration, 0);
-            const totalHours = totalDuration / 60;
-            const totalEarning = events.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
-
-            // Group by lesson
-            const lessonMap = new Map<string, TransactionEventData[]>();
-            for (const event of events) {
-                const lessonId = event.event.lessonId || "unknown";
-                if (!lessonMap.has(lessonId)) {
-                    lessonMap.set(lessonId, []);
-                }
-                lessonMap.get(lessonId)!.push(event);
-            }
-
-            const lessons = Array.from(lessonMap.entries()).map(([lessonId, lessonEvents]) => {
-                const lessonDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
-                const lessonHours = lessonDuration / 60;
-                const lessonEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
-
-                return {
-                    lessonId,
-                    events: lessonEvents,
-                    totalDuration: lessonDuration,
-                    totalHours: lessonHours,
-                    totalEarning: lessonEarning,
-                };
-            });
-
-            return { username, totalEvents, totalHours, totalEarning, lessons };
-        });
+        return map;
     }, [transactionEvents]);
+
+    // Group lessons directly (including those without events)
+    const lessonsGrouped = useMemo(() => {
+        if (!lessons || lessons.length === 0) {
+            return [];
+        }
+        
+        return lessons.map((lesson) => {
+            const lessonId = lesson.id;
+            const lessonEvents = eventsByLessonId.get(lessonId) || [];
+            
+            const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
+            const totalHours = totalDuration / 60;
+            const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+
+            // Get lesson data from first event if available, otherwise from lesson object
+            const firstEvent = lessonEvents[0];
+            const teacher = lesson.teacher;
+            const commission = lesson.teacher_commission;
+            const booking = lesson.booking;
+            const schoolPackage = booking?.school_package;
+
+            // Ensure we have all required data even when there are no events
+            const hasEvents = lessonEvents.length > 0;
+            
+            return {
+                lessonId,
+                lesson,
+                events: lessonEvents,
+                totalDuration,
+                totalHours,
+                totalEarning,
+                teacherUsername: teacher?.username || "",
+                commissionType: commission?.commission_type || "fixed",
+                cph: commission?.cph || "0",
+                leaderName: booking?.leader_student_name || "",
+                equipmentCategory: schoolPackage?.category_equipment || "",
+                studentCapacity: schoolPackage?.capacity_students || 0,
+                firstEventDate: hasEvents 
+                    ? firstEvent.event.date 
+                    : (booking?.date_start || ""),
+                hasEvents,
+            };
+        });
+    }, [lessons, eventsByLessonId]);
 
     return (
         <motion.div
-            key="by-teacher"
+            key="by-lesson"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
         >
-            {lessonsByTeacher.map(({ username, totalEvents, totalHours, totalEarning, lessons }) => (
-                <div key={username} className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-border/40">
-                        <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">{username}</span>
-                            <span className="text-sm text-muted-foreground">
-                                ({totalEvents} {totalEvents === 1 ? "event" : "events"})
-                            </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                            {totalHours.toFixed(1)}h • {formatCurrency(totalEarning)} {currency}
-                        </div>
-                    </div>
-                    {lessons.map(({ lessonId, events, totalDuration, totalHours, totalEarning }) => {
-                        const firstEvent = events[0];
-                        const lessonRow: LessonRow = {
-                            lessonId,
-                            bookingId: "",
-                            leaderName: firstEvent.leaderStudentName,
-                            dateStart: firstEvent.event.date,
-                            dateEnd: firstEvent.event.date,
-                            lessonStatus: "active",
-                            bookingStatus: "active",
-                            commissionType: firstEvent.commission.type,
-                            cph: firstEvent.commission.cph,
-                            totalDuration,
-                            totalHours,
-                            totalEarning,
-                            eventCount: events.length,
-                            events,
-                            equipmentCategory: firstEvent.packageData.categoryEquipment,
-                            studentCapacity: firstEvent.packageData.capacityStudents,
-                        };
-
-                        return (
-                            <TeacherBookingLessonTable
-                                key={lessonId}
-                                lesson={lessonRow}
-                                isExpanded={expandedLesson === lessonId}
-                                onToggle={() => setExpandedLesson(expandedLesson === lessonId ? null : lessonId)}
-                                bookingEntity={bookingEntity}
-                                studentEntity={studentEntity}
-                                teacherUsername={username}
-                                onEquipmentUpdate={onEquipmentUpdate}
-                            />
-                        );
-                    })}
+            {lessonsGrouped.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                    No lessons found for this booking.
                 </div>
-            ))}
+            ) : (
+                lessonsGrouped.map(({ lessonId, lesson, events, totalDuration, totalHours, totalEarning, teacherUsername, commissionType, cph, leaderName, equipmentCategory, studentCapacity, firstEventDate, hasEvents }) => {
+                    const lessonRow: LessonRow = {
+                        lessonId,
+                        bookingId: lesson.booking_id || "",
+                        leaderName,
+                        dateStart: firstEventDate,
+                        dateEnd: firstEventDate,
+                        lessonStatus: lesson.status || "active",
+                        bookingStatus: "active",
+                        commissionType: commissionType as "fixed" | "percentage",
+                        cph: parseFloat(cph),
+                        totalDuration,
+                        totalHours,
+                        totalEarning,
+                        eventCount: events.length,
+                        events: hasEvents ? events.map(transactionEventToTimelineEvent) : [],
+                        equipmentCategory,
+                        studentCapacity,
+                    };
+
+                    return (
+                        <TeacherBookingLessonTable
+                            key={lessonId}
+                            lesson={lessonRow}
+                            isExpanded={expandedLesson === lessonId}
+                            onToggle={() => setExpandedLesson(expandedLesson === lessonId ? null : lessonId)}
+                            bookingEntity={bookingEntity}
+                            studentEntity={studentEntity}
+                            teacherUsername={teacherUsername}
+                            onEquipmentUpdate={onEquipmentUpdate}
+                        />
+                    );
+                })
+            )}
         </motion.div>
     );
 }

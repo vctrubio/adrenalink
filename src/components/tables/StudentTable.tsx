@@ -46,11 +46,18 @@ type SortColumn = "firstName" | "lastName" | "status" | null;
 type SortDirection = "asc" | "desc";
 type StatusFilter = "All" | "New" | "Available";
 
-function StudentTable({ students, selectedStudentIds, onToggle, capacity, studentStatsMap = {} }: StudentTableProps) {
+function StudentTable({ 
+    students, 
+    selectedStudentIds, 
+    onToggle, 
+    capacity, 
+    studentStatsMap = {}
+}: StudentTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [sortColumn, setSortColumn] = useState<SortColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+    
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
     const accentColor = studentEntity?.color || "rgb(var(--primary))";
     const selectedCount = selectedStudentIds.length;

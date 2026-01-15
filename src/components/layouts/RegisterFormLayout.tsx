@@ -32,20 +32,18 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden lg:block p-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-12 gap-8">
-                        {/* Controller Sidebar - Static */}
-                        <div className="col-span-4">
-                            <div className="sticky top-8">{controller}</div>
-                        </div>
+            <div className="hidden lg:flex lg:fixed lg:inset-0 lg:top-16 lg:overflow-hidden">
+                <div className="max-w-7xl mx-auto w-full h-full flex gap-8 p-8">
+                    {/* Controller Sidebar - Fixed, Scrollable if needed */}
+                    <aside className="w-1/3 flex-shrink-0 h-full overflow-y-auto">
+                        {controller}
+                    </aside>
 
-                        {/* Form Content */}
-                        <div className="col-span-8">
-                            <motion.div key={pathname} {...formAnimation} className="space-y-6">
-                                {form}
-                            </motion.div>
-                        </div>
+                    {/* Form Content - Scrollable */}
+                    <div className="flex-1 h-full overflow-y-auto">
+                        <motion.div key={pathname} {...formAnimation} className="space-y-6">
+                            {form}
+                        </motion.div>
                     </div>
                 </div>
             </div>

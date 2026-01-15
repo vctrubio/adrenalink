@@ -7,12 +7,11 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { PackageTableData } from "@/config/tables";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
-import { Calendar, LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { filterPackages } from "@/types/searching-entities";
-import { useMemo } from "react";
 import { TableActions } from "../MasterTable";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTablesController } from "../layout";

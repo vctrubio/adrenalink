@@ -1,6 +1,6 @@
 import type { DataboardFilterByDate, DataboardGroupByDate } from "@/types/databoard";
 
-export const DATABOARD_DATE_FILTERS: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
+export const DATABOARD_DATE_FILTERS: DataboardFilterByDate[] = ["All", "Last 72 days", "Last 30 days"];
 
 export const DATABOARD_DATE_GROUPS: DataboardGroupByDate[] = ["All", "Daily", "Weekly", "Monthly"];
 

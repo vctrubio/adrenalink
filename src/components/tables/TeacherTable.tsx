@@ -194,7 +194,6 @@ function TeacherTable({
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const credentials = useSchoolCredentials();
     const currency = credentials.currency || "YEN";
-    const commissionEntity = ENTITY_DATA.find((e) => e.id === "commission");
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher");
 
     const handleSort = (column: SortColumn) => {

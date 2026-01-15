@@ -24,7 +24,7 @@ export const NavCenter = () => {
 
     // Check if we're on the register route
     const isRegisterRoute = pathname.startsWith("/register");
-    const displayText = isRegisterRoute ? "Check zn" : "Adrenalink";
+    const displayText = isRegisterRoute ? "Check in" : "Adrenalink";
 
     return (
         <>

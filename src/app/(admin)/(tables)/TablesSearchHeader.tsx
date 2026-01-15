@@ -11,7 +11,6 @@ import { ENTITY_SORT_OPTIONS } from "@/types/sort";
 import type { DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 import type { SortConfig } from "@/types/sort";
 import { Settings2 } from "lucide-react";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Weekly", "Monthly"];
 
@@ -48,15 +47,6 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
     if (!entity) return null;
 
     const statusOptions = getStatusOptions(entity.id);
-
-    // Get equipment icons for equipment filters
-    const getEquipmentIcon = (option: string) => {
-        if (entity.id === "equipment" && option !== "All") {
-            const category = EQUIPMENT_CATEGORIES.find((cat) => cat.name === option);
-            return category?.icon;
-        }
-        return null;
-    };
 
     return (
         <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
@@ -107,7 +97,6 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                         options={statusOptions}
                         value={controller.status}
                         onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
-                        getIcon={entity.id === "equipment" ? getEquipmentIcon : undefined}
                     />
                 )}
 

@@ -19,7 +19,7 @@ export interface LessonRow {
     totalHours: number;
     totalEarning: number;
     eventCount: number;
-    events: TransactionEventData[];
+    events: TimelineEvent[];
     equipmentCategory: string;
     studentCapacity: number;
 }

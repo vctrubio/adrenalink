@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { EquipmentFulfillmentCell } from "@/src/components/equipment/EquipmentFulfillmentCell";
-import type { EventModel } from "@/backend/data/EventModel";
+import type { TimelineEvent } from "@/src/components/timeline/types";
 
 interface LessonEventRowProps {
-    events: EventModel[];
+    events: TimelineEvent[];
     isExpanded: boolean;
     equipmentCategory?: string;
     teacherId?: string;

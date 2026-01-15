@@ -18,6 +18,9 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
 
     const equipment: EquipmentData = result.data;
 
+    const lessonDurationMinutes = EquipmentTableGetters.getTotalUsageMinutes(equipment);
+    const rentalDurationMinutes = EquipmentTableGetters.getTotalRentalMinutes(equipment);
+
     const stats: TableStat[] = [
         {
             type: "equipment",
@@ -39,6 +42,12 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
             type: "repairs",
             value: EquipmentTableGetters.getRepairCount(equipment),
             desc: "Total maintenance logs",
+        },
+        {
+            type: "duration",
+            value: rentalDurationMinutes + lessonDurationMinutes,
+            label: "Flying Time",
+            desc: "Total rental duration",
         },
     ];
 

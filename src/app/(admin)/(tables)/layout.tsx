@@ -20,6 +20,8 @@ interface TablesController {
     onStatusChange: (value: DataboardActivityFilter) => void;
     sort: SortConfig;
     onSortChange: (value: SortConfig) => void;
+    showActions: boolean;
+    onShowActionsChange: (value: boolean) => void;
 }
 
 const TablesContext = createContext<TablesController | null>(null);
@@ -41,6 +43,7 @@ export function TablesProvider({ children }: { children: ReactNode }) {
     const [group, setGroup] = useState<DataboardGroupByDate>("All");
     const [status, setStatus] = useState<DataboardActivityFilter>("All");
     const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
+    const [showActions, setShowActions] = useState(false);
 
     const handleStatsChange = useCallback((newStats: TableStat[]) => {
         setStats(newStats);
@@ -60,8 +63,10 @@ export function TablesProvider({ children }: { children: ReactNode }) {
             onStatusChange: setStatus,
             sort,
             onSortChange: setSort,
+            showActions,
+            onShowActionsChange: setShowActions,
         }),
-        [stats, search, filter, group, status, sort, handleStatsChange],
+        [stats, search, filter, group, status, sort, showActions, handleStatsChange],
     );
 
     // Keyboard Shortcut for Search

@@ -55,10 +55,7 @@ export function EquipmentStudentPackagePriceBadge({
                     <StudentIcon size={16} rental={isRental} />
                 </div>
 
-                <div className="flex items-baseline gap-0.5">
-                    <span className="text-sm text-foreground">{studentCapacity}</span>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/S</span>
-                </div>
+                {studentCapacity > 1 && <span className="text-sm text-foreground">{studentCapacity}</span>}
             </div>
 
             {/* Package Duration */}

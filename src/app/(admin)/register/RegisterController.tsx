@@ -103,7 +103,7 @@ export default function RegisterController({
     const isActionLoading = loading || isSubmitting;
 
     return (
-        <div className={`flex flex-col gap-6 ${isMobile ? "" : "lg:sticky lg:top-6"}`}>
+        <div className="flex flex-col gap-6">
             {/* 1. School Header Card */}
             <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-sm relative group">
                 <div className="p-8 pb-10 bg-muted/20 border-b border-border relative overflow-hidden">

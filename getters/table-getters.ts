@@ -27,6 +27,10 @@ export const EquipmentTableGetters = {
         return equipment.relations.events.reduce((sum, e) => sum + (e.duration || 0), 0);
     },
 
+    getTotalRentalMinutes: (equipment: EquipmentData): number => {
+        return equipment.relations.rentals.reduce((sum, r) => sum + (r.duration || 0), 0);
+    },
+
     getRevenue: (equipment: EquipmentData): number => {
         return equipment.relations.events.reduce((total, event) => {
             const pkg = event.lesson?.booking?.school_package;
