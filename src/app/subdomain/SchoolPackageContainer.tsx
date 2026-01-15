@@ -204,22 +204,46 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
     const handleSeedPackages = async () => {
         setIsSeeding(true);
         try {
-            const response = await fetch("/api/beta", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ type: "package", schoolId }),
-            });
+            // Call package, student, and teacher seeding in parallel
+            const [packageResponse, studentResponse, teacherResponse] = await Promise.all([
+                fetch("/api/beta", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type: "package", schoolId }),
+                }),
+                fetch("/api/beta", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type: "student", schoolId }),
+                }),
+                fetch("/api/beta", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type: "teacher", schoolId }),
+                }),
+            ]);
 
-            if (!response.ok) {
+            // Check all responses
+            if (!packageResponse.ok) {
                 throw new Error("Failed to populate packages");
+            }
+            if (!studentResponse.ok) {
+                throw new Error("Failed to populate students");
+            }
+            if (!teacherResponse.ok) {
+                throw new Error("Failed to populate teachers");
             }
 
             // Revalidate the page to show new packages
             router.refresh();
         } catch (error) {
-            console.error("Error populating packages:", error);
+            console.error("Error populating data:", error);
             setIsSeeding(false);
         }
     };
