@@ -2,12 +2,13 @@
 
 import { useMemo } from "react";
 import { ENTITY_DATA } from "@/config/entities";
-import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
+import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupingType, type GroupStats } from "../MasterTable";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { type TeacherTableData } from "@/config/tables";
 import { SportEquipmentDurationList } from "@/src/components/ui/badge/sport-equipment-duration";
 import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { ActiveTeacherLessonBadge } from "@/src/components/ui/badge/active-teacher-lesson";
+import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import ReactCountryFlag from "react-country-flag";
 import Link from "next/link";
@@ -16,8 +17,10 @@ import { Calendar } from "lucide-react";
 
 import { filterTeachers } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
-import { useTeacherSortOrder } from "@/src/hooks/useTeacherSortOrder";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { TableActions } from "../MasterTable";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTablesController } from "../layout";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -29,48 +32,23 @@ const HEADER_CLASSES = {
 } as const;
 
 export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] }) {
+    const { showActions } = useTablesController();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
-    // const savedSortOrder = useTeacherSortOrder();
-
-    // // Sort teachers according to saved order
-    // const sortedTeachers = useMemo(() => {
-    //     if (savedSortOrder.length === 0) return teachers;
-
-    //     return [...teachers].sort((a, b) => {
-    //         const aIndex = savedSortOrder.indexOf(a.id);
-    //         const bIndex = savedSortOrder.indexOf(b.id);
-
-    //         // If both are in the order, sort by order
-    //         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-    //         // If only a is in the order, it comes first
-    //         if (aIndex !== -1) return -1;
-    //         // If only b is in the order, it comes first
-    //         if (bIndex !== -1) return 1;
-    //         // If neither is in the order, maintain original order
-    //         return 0;
-    //     });
-    // }, [teachers, savedSortOrder]);
 
     const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
         data: teachers,
         filterSearch: filterTeachers,
         filterStatus: (teacher, status) => {
-            if (status === "Active") return teacher.active;
-            if (status === "Inactive") return !teacher.active;
-            return true;
+            if (status === "Free") return teacher.stats.totalLessons === 0;
+            return true; // "All"
         },
-        // We don't use dateField here because we have custom grouping logic
     });
 
-    console.log("TeachersTable Debug:", { masterTableGroupBy, teachersCount: teachers.length });
-
-    // 2. Transform rows based on grouping (Activity-based grouping)
+    // Transform rows based on grouping (Activity-based grouping)
     const displayRows = useMemo(() => {
         if (masterTableGroupBy === "all") return filteredTeachers;
 
         const activityRows: (TeacherTableData & { period: string; periodStats: any })[] = [];
-
-        console.log("Starting transformation for teachers:", filteredTeachers.length);
 
         filteredTeachers.forEach((teacher) => {
             const periods: Record<
@@ -80,7 +58,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
             teacher.lessons.forEach((lesson) => {
                 const date = lesson.dateCreated || (teacher as any).createdAt;
-                // console.log("Processing lesson:", { id: lesson.id, date, masterTableGroupBy });
                 if (!date) return;
 
                 const periodKey = getPeriodKey(date, masterTableGroupBy);
@@ -99,8 +76,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                 periods[periodKey].categoryStats[cat].count += 1;
                 periods[periodKey].categoryStats[cat].duration += lesson.events.totalDuration;
             });
-
-            // console.log(`Teacher ${teacher.username} periods:`, Object.keys(periods));
 
             Object.entries(periods).forEach(([period, stats]) => {
                 activityRows.push({
@@ -123,7 +98,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             });
         });
 
-        console.log("Generated activityRows:", activityRows.length);
         return activityRows;
     }, [filteredTeachers, masterTableGroupBy]);
 
@@ -143,7 +117,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                     categoryStats: { ...acc.categoryStats },
                 };
 
-                // Aggregate category stats
                 Object.entries(curr.activityStats).forEach(([category, stats]: [string, any]) => {
                     if (!newStats.categoryStats[category]) {
                         newStats.categoryStats[category] = { count: 0, durationMinutes: 0 };
@@ -169,7 +142,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             <StatItemUI type="teachers" value={stats.teacherCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI type="lessons" value={stats.totalLessons} hideLabel={hideLabel} iconColor={false} />
 
-            {/* Category Breakdowns */}
             {Object.entries(stats.categoryStats as Record<string, { count: number }>).map(([catId, stat]) => {
                 const config = EQUIPMENT_CATEGORIES.find((c) => c.id === catId);
                 const Icon = config?.icon || Calendar;
@@ -257,8 +229,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             header: "Lessons",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                // If we are in a period-specific row, we should only show lessons for that period
-                // But for now, showing all active lessons is fine as the Stats column will show period totals
                 const activeTeacherLessons = data.lessons.filter((l) => l.status === "active" || l.status === "rest");
 
                 return (
@@ -284,77 +254,77 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             },
         },
         {
-            header: "Stats",
+            header: "Status",
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <div className="flex items-center gap-4">
-                    <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
-                    {masterTableGroupBy === "all" && (
-                        <StatItemUI
-                            type="teacherPayments"
-                            value={data.stats.totalPayments}
-                            labelOverride="Paid"
-                            iconColor={true}
-                            hideLabel={true}
-                        />
-                    )}
+                <div className="flex items-center justify-center min-w-[140px]">
+                    <AnimatePresence mode="wait">
+                        {showActions ? (
+                            <motion.div
+                                key="actions"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1.1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <TableActions id={data.id} type="teacher" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="status"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.15 }}
+                                className="flex items-center gap-5 scale-110"
+                            >
+                                <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
+                                <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
+                                <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ),
         },
     ];
 
     const mobileColumns: MobileColumnDef<TeacherTableData>[] = [
+// ... existing ...
         {
-            label: "Teacher",
-            headerClassName: HEADER_CLASSES.green,
-            render: (data) => (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
-                        <div className="font-bold text-sm">
-                            {data.firstName} {data.lastName}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
-                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
-                        <span className="opacity-20 text-foreground">|</span>
-                        <span>@{data.username}</span>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            label: "Activity",
+            label: "Status",
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => {
-                const activeTeacherLessons = data.lessons.filter((l) => l.status === "active" || l.status === "rest");
-
-                if (activeTeacherLessons.length > 0) {
-                    return (
-                        <div className="flex flex-col gap-1.5 scale-90 origin-right items-end max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                            {activeTeacherLessons.map((l) => (
-                                <ActiveTeacherLessonBadge
-                                    key={l.id}
-                                    bookingId={l.bookingId}
-                                    category={l.category}
-                                    leaderName={l.leaderStudentName}
-                                    capacity={l.capacityStudents}
-                                    status={l.status}
-                                    commission={l.commission}
-                                />
-                            ))}
-                        </div>
-                    );
-                }
-
                 return (
-                    <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
-                        <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
-                        <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
-                        <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
-                        <StatItemUI type="teacherPayments" value={data.stats.totalPayments} iconColor={true} hideLabel={true} />
+                    <div className="scale-90 origin-right flex justify-end min-w-[100px]">
+                        <AnimatePresence mode="wait">
+                            {showActions ? (
+                                <motion.div
+                                    key="actions"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <TableActions id={data.id} type="teacher" />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="status"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="flex flex-col items-end gap-2"
+                                >
+                                    <div className="flex gap-3">
+                                        <StatItemUI type="lessons" value={data.stats.totalLessons} iconColor={true} hideLabel={true} />
+                                        <StatItemUI type="duration" value={data.stats.totalDurationMinutes} iconColor={true} hideLabel={true} />
+                                    </div>
+                                    <StatItemUI type="commission" value={data.stats.totalCommissions} iconColor={true} hideLabel={true} />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 );
             },
@@ -413,7 +383,6 @@ function getPeriodKey(dateStr: string, groupBy: GroupingType) {
     return "";
 }
 
-// Helper to attempt mapping country name to code (simple fallback)
 function getCountryCode(countryName: string): string {
     const country = COUNTRIES.find(
         (c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase(),

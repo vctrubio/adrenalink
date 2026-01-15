@@ -214,6 +214,7 @@ export interface StudentTableStats {
     totalDurationMinutes: number;
     totalRevenue: number;
     totalPayments: number;
+    allBookingsCompleted: boolean;
 }
 
 export interface TeacherTableStats {

@@ -1,18 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { createCommission } from "@/supabase/server/commissions";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
-import { X } from "lucide-react";
 
-interface AddCommissionDropdownProps {
+interface AddCommissionFormProps {
     teacherId: string;
     currency: string;
-    color: string;
     onAdd: (commission: any) => void;
+    onCancel?: () => void;
 }
 
 const commissionSchema = z.object({
@@ -23,8 +20,7 @@ const commissionSchema = z.object({
 
 type CommissionFormData = z.infer<typeof commissionSchema>;
 
-export function AddCommissionDropdown({ teacherId, currency, color, onAdd }: AddCommissionDropdownProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+export function AddCommissionForm({ teacherId, currency, onAdd, onCancel }: AddCommissionFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState<CommissionFormData>({
         commissionType: "fixed",
@@ -49,7 +45,8 @@ export function AddCommissionDropdown({ teacherId, currency, color, onAdd }: Add
             if (result.success && result.data) {
                 onAdd(result.data);
                 setFormData({ commissionType: "fixed", cph: "", description: "" });
-                setIsExpanded(false);
+                setErrors({});
+                onCancel?.();
             } else {
                 setErrors({ submit: result.error || "Failed to create commission" });
             }
@@ -66,130 +63,97 @@ export function AddCommissionDropdown({ teacherId, currency, color, onAdd }: Add
         } finally {
             setIsSubmitting(false);
         }
-    }, [formData, teacherId, onAdd]);
+    }, [formData, teacherId, onAdd, onCancel]);
 
     const handleCancel = useCallback(() => {
         setFormData({ commissionType: "fixed", cph: "", description: "" });
         setErrors({});
-        setIsExpanded(false);
-    }, []);
+        onCancel?.();
+    }, [onCancel]);
+
+    const canSubmit = formData.cph.trim() !== "" && !isSubmitting;
 
     return (
-        <div className="mb-4">
-            <div className="rounded-xl bg-muted/10 border border-border/30 overflow-hidden">
-                {/* Header/Trigger - Always visible */}
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-all"
+        <div className="rounded-xl bg-muted/10 border border-border/30 p-3 space-y-3">
+            {errors.submit && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+                    {errors.submit}
+                </div>
+            )}
+
+            {/* Type Selection */}
+            <div className="flex items-center gap-3">
+                <div
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 transition-colors ${
+                        canSubmit ? "bg-primary/20" : "bg-muted"
+                    }`}
                 >
-                    <div
-                        className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
-                        style={{ backgroundColor: `${color}20`, color }}
+                    <HandshakeIcon
+                        size={16}
+                        className={canSubmit ? "text-primary" : ""}
+                    />
+                </div>
+                <div className="flex gap-4">
+                {(["fixed", "percentage"] as const).map((type) => (
+                    <button
+                        key={type}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, commissionType: type })}
+                        className={`text-sm font-medium pb-1 transition-colors ${
+                            formData.commissionType === type
+                                ? "text-foreground border-b-2 border-foreground"
+                                : "text-muted-foreground hover:text-foreground border-b border-transparent"
+                        }`}
                     >
-                        <HandshakeIcon size={16} />
-                    </div>
-                    <span className="font-medium text-sm flex-1">Add Commission</span>
-                    <ToggleAdranalinkIcon isOpen={isExpanded} color={color} />
+                        {type === "fixed" ? `Fixed (${currency}/hr)` : "Percentage (%)"}
+                    </button>
+                ))}
+                </div>
+            </div>
+
+            {/* Value and Description */}
+            <div className="flex gap-2">
+                <div className="relative w-32">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
+                        {formData.commissionType === "fixed" ? currency : "%"}
+                    </span>
+                    <input
+                        type="number"
+                        value={formData.cph}
+                        onChange={(e) => setFormData({ ...formData, cph: e.target.value })}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        disabled={isSubmitting}
+                        className="w-full pl-12 pr-3 py-2.5 h-10 rounded-xl bg-muted/30 border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                    />
+                </div>
+                <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onKeyDown={(e) => {
+                        if (e.shiftKey && e.key === "Enter") {
+                            e.preventDefault();
+                            handleSubmit();
+                        }
+                    }}
+                    placeholder="Notes (optional)"
+                    disabled={isSubmitting}
+                    className="flex-1 px-3 py-2.5 h-10 rounded-xl bg-muted/30 border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                />
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !formData.cph}
+                    className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isSubmitting ? "Adding..." : "Add"}
                 </button>
-
-                {/* Form Content - Expandable */}
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.div
-                            key="form"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden border-t border-border/30"
-                        >
-                            {/* Form Fields */}
-                            <div className="px-4 py-3 space-y-3">
-                                {errors.submit && (
-                                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
-                                        {errors.submit}
-                                    </div>
-                                )}
-
-                                {/* Type Selection */}
-                                <div className="flex gap-4">
-                                    {(["fixed", "percentage"] as const).map((type) => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setFormData({ ...formData, commissionType: type })}
-                                            className={`text-sm font-medium pb-1 transition-colors ${
-                                                formData.commissionType === type
-                                                    ? "text-foreground border-b-2 border-foreground"
-                                                    : "text-muted-foreground hover:text-foreground border-b border-transparent"
-                                            }`}
-                                        >
-                                            {type === "fixed" ? `Fixed (${currency}/hr)` : "Percentage (%)"}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Value and Description */}
-                                <div className="flex gap-2">
-                                    <div className="relative w-32">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
-                                            {formData.commissionType === "fixed" ? currency : "%"}
-                                        </span>
-                                        <input
-                                            type="number"
-                                            value={formData.cph}
-                                            onChange={(e) => setFormData({ ...formData, cph: e.target.value })}
-                                            placeholder="0"
-                                            min="0"
-                                            step="0.01"
-                                            disabled={isSubmitting}
-                                            className="w-full pl-12 pr-3 py-2.5 h-10 rounded-xl bg-muted/30 border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                                        />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        onKeyDown={(e) => {
-                                            if (e.shiftKey && e.key === "Enter") {
-                                                e.preventDefault();
-                                                handleSubmit();
-                                            }
-                                        }}
-                                        placeholder="Notes (optional)"
-                                        disabled={isSubmitting}
-                                        className="flex-1 px-3 py-2.5 h-10 rounded-xl bg-muted/30 border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Footer Actions */}
-                            <div className="flex gap-2 px-4 py-3 border-t border-border/30">
-                                <button
-                                    onClick={handleCancel}
-                                    disabled={isSubmitting}
-                                    className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 text-sm font-medium"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting || !formData.cph}
-                                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/90 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-primary-foreground dark:border-secondary-foreground dark:border-t-transparent border-t-transparent rounded-full animate-spin" />
-                                            Adding...
-                                        </>
-                                    ) : (
-                                        "Add"
-                                    )}
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
         </div>
     );
 }
+
+// Keep the old export for backward compatibility
+export const AddCommissionDropdown = AddCommissionForm;

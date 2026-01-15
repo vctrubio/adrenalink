@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import type { TeacherData } from "@/backend/data/TeacherData";
 import { type LessonRow } from "@/backend/data/TeacherLessonData";
-import { buildEventModels, groupEventsByLesson, groupLessonsByCommission, eventModelToTimelineEvent, filterEvents, sortEvents, type EventModel, type LessonGroup, type CommissionGroup } from "@/backend/data/EventModel";
+import { lessonsToTransactionEvents, transactionEventToTimelineEvent } from "@/getters/transaction-event-getter";
 import { ENTITY_DATA } from "@/config/entities";
+import type { TransactionEventData } from "@/types/transaction-event";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
@@ -60,7 +61,7 @@ function CommissionHeader({ commission, formatCurrency }: { commission: Commissi
 
 // Sub-component: Commissions View
 function CommissionsView({
-    lessonGroups,
+    lessonRows,
     expandedLesson,
     setExpandedLesson,
     formatCurrency,
@@ -69,8 +70,9 @@ function CommissionsView({
     teacherId,
     teacherUsername,
     onEquipmentUpdate,
+    credentials,
 }: {
-    lessonGroups: LessonGroup[];
+    lessonRows: LessonRow[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
     formatCurrency: (num: number) => string;
@@ -79,9 +81,34 @@ function CommissionsView({
     teacherId?: string;
     teacherUsername?: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
+    credentials?: any;
 }) {
-    // Group lessons by commission using centralized function
-    const commissionGroups = groupLessonsByCommission(lessonGroups);
+    // Group lessons by commission
+    const commissionGroups = useMemo(() => {
+        const map = new Map<string, LessonRow[]>();
+        for (const lesson of lessonRows) {
+            const key = `${lesson.commissionType}-${lesson.cph}`;
+            if (!map.has(key)) {
+                map.set(key, []);
+            }
+            map.get(key)!.push(lesson);
+        }
+
+        return Array.from(map.entries()).map(([key, lessons]) => {
+            const firstLesson = lessons[0];
+            const totalHours = lessons.reduce((sum, l) => sum + l.totalHours, 0);
+            const totalEarning = lessons.reduce((sum, l) => sum + l.totalEarning, 0);
+
+            return {
+                type: firstLesson.commissionType as "fixed" | "percentage",
+                cph: firstLesson.cph,
+                lessonCount: lessons.length,
+                hours: totalHours,
+                earning: totalEarning,
+                lessons,
+            };
+        });
+    }, [lessonRows]);
 
     return (
         <motion.div
@@ -93,42 +120,30 @@ function CommissionsView({
         >
             {commissionGroups.map((commission, idx) => (
                 <div key={idx} className="space-y-2">
-                    <CommissionHeader commission={commission} formatCurrency={formatCurrency} />
+                    <div className="flex items-center justify-between py-3 border-b border-border/40">
+                        <div className="flex items-center gap-3">
+                            <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={credentials?.currency || "YEN"} />
+                        </div>
+                        <div className="flex items-center gap-x-6 gap-y-2 opacity-80">
+                            <StatItemUI type="lessons" value={commission.lessonCount} hideLabel={false} iconColor={false} />
+                            <StatItemUI type="duration" value={commission.hours * 60} hideLabel={false} iconColor={false} />
+                            <StatItemUI type="commission" value={commission.earning} hideLabel={false} variant="primary" iconColor={false} />
+                        </div>
+                    </div>
                     <div className="space-y-3">
-                        {commission.lessons.map((lesson) => {
-                            // Convert LessonGroup to LessonRow format for TeacherBookingLessonTable
-                            const lessonRow: LessonRow = {
-                                lessonId: lesson.lessonId,
-                                bookingId: lesson.bookingId,
-                                leaderName: lesson.leaderName,
-                                dateStart: lesson.dateStart,
-                                dateEnd: lesson.dateEnd,
-                                lessonStatus: lesson.lessonStatus,
-                                bookingStatus: lesson.bookingStatus,
-                                commissionType: lesson.commissionType,
-                                cph: lesson.cph,
-                                totalDuration: lesson.totalDuration,
-                                totalHours: lesson.totalHours,
-                                totalEarning: lesson.totalEarning,
-                                eventCount: lesson.eventCount,
-                                events: lesson.events,
-                                equipmentCategory: lesson.equipmentCategory,
-                                studentCapacity: lesson.studentCapacity,
-                            };
-                            return (
-                                <TeacherBookingLessonTable
-                                    key={lesson.lessonId}
-                                    lesson={lessonRow}
-                                    isExpanded={expandedLesson === lesson.lessonId}
-                                    onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                                    bookingEntity={bookingEntity}
-                                    studentEntity={studentEntity}
-                                    teacherId={teacherId}
-                                    teacherUsername={teacherUsername}
-                                    onEquipmentUpdate={onEquipmentUpdate}
-                                />
-                            );
-                        })}
+                        {commission.lessons.map((lesson) => (
+                            <TeacherBookingLessonTable
+                                key={lesson.lessonId}
+                                lesson={lesson}
+                                isExpanded={expandedLesson === lesson.lessonId}
+                                onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
+                                bookingEntity={bookingEntity}
+                                studentEntity={studentEntity}
+                                teacherId={teacherId}
+                                teacherUsername={teacherUsername}
+                                onEquipmentUpdate={onEquipmentUpdate}
+                            />
+                        ))}
                     </div>
                 </div>
             ))}
@@ -204,62 +219,110 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     // Use standardized snake_case relation
     const lessons = teacher.relations?.lesson || [];
+    const schoolPackage = lessons[0]?.booking?.school_package;
+    const students = lessons.flatMap((l: any) => l.booking?.students || []).filter((v: any, i: number, a: any) => a.findIndex((t: any) => t.id === v.id) === i);
 
-    // Build centralized event models (single source of truth)
-    const eventModels = useMemo(() => {
-        return buildEventModels(lessons, {
-            id: teacher.schema.id,
-            first_name: teacher.schema.first_name,
-            username: teacher.schema.username,
-        });
-    }, [lessons, teacher.schema.id, teacher.schema.first_name, teacher.schema.username]);
+    // Single source of truth: Transform lessons to TransactionEventData once
+    const transactionEvents = useMemo(() => {
+        return lessonsToTransactionEvents(lessons, schoolPackage, students, teacher.schema.first_name || "", currency);
+    }, [lessons, schoolPackage, students, teacher.schema.first_name, currency]);
 
     // Handle equipment assignment and status update, then revalidate
     const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
-        // Revalidate the page to refresh data
         router.refresh();
     }, [router]);
 
-    // Apply global search/filter to events (single source of truth)
+    // Filter events by search and status
     const filteredEvents = useMemo(() => {
-        return filterEvents(eventModels, searchQuery, filter);
-    }, [eventModels, searchQuery, filter]);
+        let filtered = transactionEvents;
+        if (filter !== "all") {
+            filtered = filtered.filter((event) => event.event.status === filter);
+        }
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (event) =>
+                    event.leaderStudentName.toLowerCase().includes(query) ||
+                    event.event.location?.toLowerCase().includes(query) ||
+                    event.teacher.username.toLowerCase().includes(query),
+            );
+        }
+        return filtered;
+    }, [transactionEvents, searchQuery, filter]);
 
-    // Apply sort to events
+    // Sort events
     const sortedEvents = useMemo(() => {
-        return sortEvents(filteredEvents, { field: sort.field || "date", direction: sort.direction });
+        const sorted = [...filteredEvents];
+        sorted.sort((a, b) => {
+            let aValue: any;
+            let bValue: any;
+            switch (sort.field) {
+                case "date":
+                    aValue = new Date(a.event.date).getTime();
+                    bValue = new Date(b.event.date).getTime();
+                    break;
+                case "duration":
+                    aValue = a.event.duration;
+                    bValue = b.event.duration;
+                    break;
+                default:
+                    aValue = new Date(a.event.date).getTime();
+                    bValue = new Date(b.event.date).getTime();
+            }
+            if (sort.direction === "asc") {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+        return sorted;
     }, [filteredEvents, sort]);
 
-    // Group events by lesson for lessons view
-    const lessonGroups = useMemo(() => {
-        return groupEventsByLesson(sortedEvents);
+    // Group events by lesson
+    const lessonRows: LessonRow[] = useMemo(() => {
+        const lessonMap = new Map<string, TransactionEventData[]>();
+        for (const event of sortedEvents) {
+            const lessonId = event.event.lessonId || "unknown";
+            if (!lessonMap.has(lessonId)) {
+                lessonMap.set(lessonId, []);
+            }
+            lessonMap.get(lessonId)!.push(event);
+        }
+
+        return Array.from(lessonMap.entries()).reduce((acc, [lessonId, lessonEvents]) => {
+            if (lessonEvents.length === 0) return acc;
+
+            const firstEvent = lessonEvents[0];
+            const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
+            const totalHours = totalDuration / 60;
+            const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+
+            acc.push({
+                lessonId,
+                bookingId: "",
+                leaderName: firstEvent.leaderStudentName,
+                dateStart: firstEvent.event.date,
+                dateEnd: firstEvent.event.date,
+                lessonStatus: "active",
+                bookingStatus: "active",
+                commissionType: firstEvent.commission.type,
+                cph: firstEvent.commission.cph,
+                totalDuration,
+                totalHours,
+                totalEarning,
+                eventCount: lessonEvents.length,
+                events: lessonEvents,
+                equipmentCategory: firstEvent.packageData.categoryEquipment,
+                studentCapacity: firstEvent.packageData.capacityStudents,
+            });
+
+            return acc;
+        }, [] as LessonRow[]);
     }, [sortedEvents]);
 
-    // Convert lesson groups to legacy LessonRow format for backward compatibility
-    const lessonRows: LessonRow[] = useMemo(() => {
-        return lessonGroups.map((group) => ({
-            lessonId: group.lessonId,
-            bookingId: group.bookingId,
-            leaderName: group.leaderName,
-            dateStart: group.dateStart,
-            dateEnd: group.dateEnd,
-            lessonStatus: group.lessonStatus,
-            bookingStatus: group.bookingStatus,
-            commissionType: group.commissionType,
-            cph: group.cph,
-            totalDuration: group.totalDuration,
-            totalHours: group.totalHours,
-            totalEarning: group.totalEarning,
-            eventCount: group.eventCount,
-            events: group.events,
-            equipmentCategory: group.equipmentCategory,
-            studentCapacity: group.studentCapacity,
-        }));
-    }, [lessonGroups]);
-
-    // Convert events to timeline format
+    // Adapt TransactionEventData to TimelineEvent for timeline view
     const timelineEvents = useMemo(() => {
-        return sortedEvents.map(eventModelToTimelineEvent);
+        return sortedEvents.map(transactionEventToTimelineEvent);
     }, [sortedEvents]);
 
     if (lessonRows.length === 0) {
@@ -314,7 +377,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 )}
                 {viewMode === "commissions" && (
                     <CommissionsView
-                        lessonGroups={lessonGroups}
+                        lessonRows={lessonRows}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
                         formatCurrency={formatCurrency}
@@ -323,6 +386,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                         teacherId={teacher.schema.id}
                         teacherUsername={teacher.schema.username}
                         onEquipmentUpdate={handleEquipmentUpdate}
+                        credentials={credentials}
                     />
                 )}
                 {viewMode === "timeline" && (

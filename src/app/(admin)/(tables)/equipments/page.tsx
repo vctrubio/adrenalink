@@ -28,7 +28,7 @@ export default async function EquipmentsMasterTablePage() {
 
     return (
         <TableLayout stats={stats}>
-            <EquipmentsTable equipments={equipments} />
+            <EquipmentsTable equipments={equipments} showActions={true} />
         </TableLayout>
     );
 }

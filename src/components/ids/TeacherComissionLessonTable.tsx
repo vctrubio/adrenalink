@@ -3,7 +3,7 @@
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { LessonEventRow } from "@/src/components/ids/LessonEventRow";
-import type { EventModel } from "@/backend/data/EventModel";
+import type { TransactionEventData } from "@/types/transaction-event";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 
@@ -16,7 +16,7 @@ export interface TeacherComissionLessonData {
     eventCount: number;
     duration: number;
     earned: number;
-    events: EventModel[];
+    events: TransactionEventData[];
 }
 
 interface TeacherComissionLessonTableProps {

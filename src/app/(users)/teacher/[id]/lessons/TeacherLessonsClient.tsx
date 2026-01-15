@@ -1,91 +1,59 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { type TeacherData } from "@/backend/data/TeacherData";
-import { buildEventModels, groupEventsByLesson, sortEvents, filterEvents } from "@/backend/data/EventModel";
-import { ENTITY_DATA } from "@/config/entities";
-import { TeacherBookingLessonTable } from "@/src/components/ids/TeacherBookingLessonTable";
-import { type LessonRow } from "@/backend/data/TeacherLessonData";
+import { useState, useMemo } from "react";
+import { useTeacherUser } from "@/src/providers/teacher-user-provider";
+import type { TransactionEventData } from "@/types/transaction-event";
+import { EventUserCard } from "@/src/components/events/EventUserCard";
+import { CardList } from "@/src/components/ui/card/card-list";
+import { EquipmentStudentCommissionBadge } from "@/src/components/ui/badge/equipment-student-commission";
+import { MapPin } from "lucide-react";
 import { SearchInput } from "@/src/components/SearchInput";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
-import type { SortConfig, SortOption } from "@/types/sort";
-import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
+import { ENTITY_DATA } from "@/config/entities";
 
-interface TeacherLessonsClientProps {
-    teacher: TeacherData;
-    currency: string;
-}
-
-const SORT_OPTIONS: SortOption[] = [
-    { field: "date", direction: "desc", label: "Newest" },
-    { field: "date", direction: "asc", label: "Oldest" },
+const SORT_OPTIONS = [
+    { field: "date", direction: "desc" as const, label: "Newest" },
+    { field: "date", direction: "asc" as const, label: "Oldest" },
 ];
 
 const FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted"] as const;
 
-export function TeacherLessonsClient({ teacher, currency }: TeacherLessonsClientProps) {
-    const router = useRouter();
-    const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
+export function TeacherLessonsClient() {
+    const { data: teacherUser, currency } = useTeacherUser();
     const [searchQuery, setSearchQuery] = useState("");
-    const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
-    const [filter, setFilter] = useState<EventStatusFilter>("all");
+    const [sort, setSort] = useState<{ field: string; direction: "asc" | "desc" }>({ field: "date", direction: "desc" });
+    const [filter, setFilter] = useState<string>("All");
 
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
-    // Build event models
-    const eventModels = useMemo(() => {
-        const lessons = teacher.relations?.lesson || [];
-        return buildEventModels(lessons, {
-            id: teacher.schema.id,
-            first_name: teacher.schema.first_name,
-            username: teacher.schema.username,
+    // Filter lessons
+    const filteredLessons = useMemo(() => {
+        return teacherUser.lessons.filter((lesson) => {
+            // Search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const matchesLeader = lesson.leaderStudentName.toLowerCase().includes(query);
+                const matchesLocation = lesson.event.location?.toLowerCase().includes(query);
+                const matchesStudent = lesson.studentNames.some((name) => name.toLowerCase().includes(query));
+                if (!matchesLeader && !matchesLocation && !matchesStudent) return false;
+            }
+
+            // Status filter
+            if (filter !== "All" && lesson.event.status !== filter) return false;
+
+            return true;
         });
-    }, [teacher]);
+    }, [teacherUser.lessons, searchQuery, filter]);
 
-    // Handle equipment update
-    const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
-        router.refresh();
-    }, [router]);
-
-    // Filter and Sort
-    const filteredEvents = useMemo(() => {
-        return filterEvents(eventModels, searchQuery, filter);
-    }, [eventModels, searchQuery, filter]);
-
-    const sortedEvents = useMemo(() => {
-        return sortEvents(filteredEvents, { field: sort.field || "date", direction: sort.direction });
-    }, [filteredEvents, sort]);
-
-    // Group by lesson
-    const lessonGroups = useMemo(() => {
-        return groupEventsByLesson(sortedEvents);
-    }, [sortedEvents]);
-
-    // Convert to LessonRow
-    const lessonRows: LessonRow[] = useMemo(() => {
-        return lessonGroups.map((group) => ({
-            lessonId: group.lessonId,
-            bookingId: group.bookingId,
-            leaderName: group.leaderName,
-            dateStart: group.dateStart,
-            dateEnd: group.dateEnd,
-            lessonStatus: group.lessonStatus,
-            bookingStatus: group.bookingStatus,
-            commissionType: group.commissionType,
-            cph: group.cph,
-            totalDuration: group.totalDuration,
-            totalHours: group.totalHours,
-            totalEarning: group.totalEarning,
-            eventCount: group.eventCount,
-            events: group.events,
-            equipmentCategory: group.equipmentCategory,
-            studentCapacity: group.studentCapacity,
-        }));
-    }, [lessonGroups]);
+    // Sort lessons
+    const sortedLessons = useMemo(() => {
+        return [...filteredLessons].sort((a, b) => {
+            const dateA = new Date(a.event.date).getTime();
+            const dateB = new Date(b.event.date).getTime();
+            return sort.direction === "desc" ? dateB - dateA : dateA - dateB;
+        });
+    }, [filteredLessons, sort]);
 
     return (
         <div className="space-y-4">
@@ -96,49 +64,72 @@ export function TeacherLessonsClient({ teacher, currency }: TeacherLessonsClient
             <div className="flex flex-wrap items-center gap-2">
                 <div className="flex-1 min-w-64">
                     <SearchInput
-                        placeholder="Search by leader name or location..."
+                        placeholder="Search by leader name, student, or location..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         entityColor={teacherEntity.color}
                     />
                 </div>
-                <SortDropdown
-                    value={sort}
-                    options={SORT_OPTIONS}
-                    onChange={setSort}
-                    entityColor={teacherEntity.color}
-                    toggleMode={true}
-                />
+                <SortDropdown value={sort} options={SORT_OPTIONS} onChange={setSort} entityColor={teacherEntity.color} toggleMode={true} />
                 <FilterDropdown
                     label="Status"
-                    value={filter === "all" ? "All" : filter}
+                    value={filter}
                     options={[...FILTER_OPTIONS]}
-                    onChange={(value) => setFilter(value === "All" ? "all" : (value as EventStatusFilter))}
+                    onChange={(value) => setFilter(value)}
                     entityColor={teacherEntity.color}
                 />
             </div>
 
             <div className="space-y-3">
-                {lessonRows.length === 0 ? (
+                {sortedLessons.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
                         No lessons found.
                     </div>
                 ) : (
-                    lessonRows.map((lesson) => (
-                        <TeacherBookingLessonTable
-                            key={lesson.lessonId}
-                            lesson={lesson}
-                            isExpanded={expandedLesson === lesson.lessonId}
-                            onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                            bookingEntity={bookingEntity}
-                            studentEntity={studentEntity}
-                            teacherId={teacher.schema.id}
-                            teacherUsername={teacher.schema.username}
-                            onEquipmentUpdate={handleEquipmentUpdate}
-                        />
-                    ))
+                    sortedLessons.map((lesson) => <TransactionLessonCard key={lesson.event.id} lesson={lesson} currency={currency} />)
                 )}
             </div>
         </div>
+    );
+}
+
+// Sub-component: Transaction Lesson Card
+function TransactionLessonCard({ lesson, currency }: { lesson: TransactionEventData; currency: string }) {
+    const fields = [
+        { label: "Leader", value: lesson.leaderStudentName },
+        ...lesson.studentNames.map((name, idx) => ({ label: `Student ${idx + 1}`, value: name })),
+        { label: "Location", value: lesson.event.location || "N/A" },
+        { label: "Revenue", value: `${lesson.financials.studentRevenue.toFixed(0)} ${currency}` },
+        { label: "Commission", value: `${lesson.financials.teacherEarnings.toFixed(0)} ${currency}` },
+        { label: "Profit", value: `${lesson.financials.profit.toFixed(0)} ${currency}` },
+    ];
+
+    const footerLeftContent = (
+        <div className="flex items-center gap-5">
+            <div className="[&_span]:text-white">
+                <EquipmentStudentCommissionBadge
+                    categoryEquipment={lesson.packageData.categoryEquipment}
+                    equipmentCapacity={lesson.packageData.capacityEquipment}
+                    studentCapacity={lesson.packageData.capacityStudents}
+                    commissionType={lesson.financials.commissionType}
+                    commissionValue={lesson.financials.commissionValue}
+                />
+            </div>
+
+            <div className="h-4 w-px bg-white/10" />
+
+            <div className="flex items-center gap-2 text-zinc-400">
+                <MapPin size={20} className="text-zinc-400" />
+                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">
+                    {lesson.event.location || "N/A"}
+                </span>
+            </div>
+        </div>
+    );
+
+    return (
+        <EventUserCard date={lesson.event.date} duration={lesson.event.duration} status={lesson.event.status} footerLeftContent={footerLeftContent}>
+            <CardList fields={fields} />
+        </EventUserCard>
     );
 }

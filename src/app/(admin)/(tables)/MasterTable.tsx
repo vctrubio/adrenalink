@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { SEARCH_FIELDS_DESCRIPTION } from "@/types/searching-entities";
 import { ENTITY_DATA } from "@/config/entities";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 export type GroupingType = "all" | "date" | "week" | "month";
 
@@ -23,6 +24,44 @@ export interface MobileColumnDef<T> {
 }
 
 export type GroupStats = Record<string, any>;
+
+/**
+ * Shared actions for master tables
+ */
+export function TableActions({ id, type }: { id: string; type: "student" | "teacher" | "package" | "equipment" }) {
+    const router = useRouter();
+
+    const handleAddToRegister = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`/register?add=${type}:${id}`);
+    };
+
+    const handleDelete = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`DEV: calling soft delete on id ${id} entity ${type}`);
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <button
+                onClick={handleAddToRegister}
+                title="Add to Register"
+                className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors border border-primary/20 hover:border-primary/40 bg-primary/5"
+            >
+                <PlusCircle size={16} />
+            </button>
+            <button
+                onClick={handleDelete}
+                title="Delete"
+                className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors border border-destructive/20 hover:border-destructive/40 bg-destructive/5"
+            >
+                <Trash2 size={16} />
+            </button>
+        </div>
+    );
+}
 
 interface MasterTableProps<T> {
     rows: T[];
@@ -44,12 +83,16 @@ function DesktopTable<T extends Record<string, any>>({
     sortedGroupEntries,
     calculateStats,
     renderGroupHeader,
+    showActions,
+    populateType,
 }: {
     columns: ColumnDef<T>[];
     groupBy: GroupingType;
     sortedGroupEntries: [string, T[]][];
     calculateStats?: (rows: T[]) => GroupStats;
     renderGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
+    showActions?: boolean;
+    populateType?: "student" | "teacher" | "package" | "equipment";
 }) {
     return (
         <div className="hidden sm:block overflow-x-auto">
@@ -61,6 +104,7 @@ function DesktopTable<T extends Record<string, any>>({
                                 {col.header}
                             </th>
                         ))}
+                        {showActions && <th className="px-4 py-3 font-medium w-0" />}
                     </tr>
                 </thead>
                 {sortedGroupEntries.map(([title, groupRows]) => {
@@ -78,6 +122,13 @@ function DesktopTable<T extends Record<string, any>>({
                                             {col.render(row)}
                                         </td>
                                     ))}
+                                    {showActions && populateType && (
+                                        <td className="px-4 py-3 whitespace-nowrap w-0">
+                                            <div className="flex justify-end opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                                <TableActions id={row.id} type={populateType} />
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
@@ -95,12 +146,16 @@ function MobileTable<T extends Record<string, any>>({
     sortedGroupEntries,
     calculateStats,
     renderMobileGroupHeader,
+    showActions,
+    populateType,
 }: {
     mobileColumns: MobileColumnDef<T>[];
     groupBy: GroupingType;
     sortedGroupEntries: [string, T[]][];
     calculateStats?: (rows: T[]) => GroupStats;
     renderMobileGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
+    showActions?: boolean;
+    populateType?: "student" | "teacher" | "package" | "equipment";
 }) {
     return (
         <div className="sm:hidden">
@@ -112,6 +167,7 @@ function MobileTable<T extends Record<string, any>>({
                                 {col.label}
                             </th>
                         ))}
+                        {showActions && <th className="px-3 py-2 w-0" />}
                     </tr>
                 </thead>
                 {sortedGroupEntries.map(([title, groupRows]) => {
@@ -120,12 +176,17 @@ function MobileTable<T extends Record<string, any>>({
                         <tbody key={title} className="divide-y divide-border">
                             {groupBy !== "all" && stats && renderMobileGroupHeader && renderMobileGroupHeader(title, stats, groupBy)}
                             {groupRows.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-muted/5 transition-colors cursor-pointer border-b border-border/40">
+                                <tr key={idx} className="hover:bg-muted/5 transition-colors cursor-pointer border-b border-border/40 group/row">
                                     {mobileColumns.map((col, colIdx) => (
                                         <td key={colIdx} className="px-3 py-3 align-middle">
                                             {col.render(row)}
                                         </td>
                                     ))}
+                                    {showActions && populateType && (
+                                        <td className="px-3 py-3 align-middle w-0">
+                                            <TableActions id={row.id} type={populateType} />
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
@@ -147,7 +208,8 @@ export function MasterTable<T extends Record<string, any>>({
     renderMobileGroupHeader,
     showGroupToggle = true,
     populateType,
-}: MasterTableProps<T>) {
+    showActions = false,
+}: MasterTableProps<T> & { showActions?: boolean }) {
     const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy || "all");
     const [isPopulating, setIsPopulating] = useState(false);
     const { search, onSearchChange } = useTablesController();
@@ -306,6 +368,8 @@ export function MasterTable<T extends Record<string, any>>({
                     sortedGroupEntries={sortedGroupEntries}
                     calculateStats={calculateStats}
                     renderGroupHeader={renderGroupHeader}
+                    showActions={showActions}
+                    populateType={populateType}
                 />
                 <MobileTable
                     mobileColumns={mobileColumns}
@@ -313,6 +377,8 @@ export function MasterTable<T extends Record<string, any>>({
                     sortedGroupEntries={sortedGroupEntries}
                     calculateStats={calculateStats}
                     renderMobileGroupHeader={renderMobileGroupHeader}
+                    showActions={showActions}
+                    populateType={populateType}
                 />
             </div>
         </div>

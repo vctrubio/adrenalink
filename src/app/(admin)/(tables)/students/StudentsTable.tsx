@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupingType, type GroupStats } from "../MasterTable";
 import { StudentStatusBadge } from "@/src/components/ui/badge";
-import { SchoolStudentStatus } from "@/types/status";
 import type { StudentTableData } from "@/config/tables";
 import ReactCountryFlag from "react-country-flag";
 import { StudentBookingActivityCard } from "./StudentBookingActivityCard";
 import { filterStudents } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { COUNTRIES } from "@/config/countries";
-import { ENTITY_DATA } from "@/config/entities";
 import { StatItemUI } from "@/backend/data/StatsData";
-import { getHMDuration } from "@/getters/duration-getter";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
+import { TableActions } from "../MasterTable";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTablesController } from "../layout";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -24,6 +25,7 @@ const HEADER_CLASSES = {
 } as const;
 
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
+    const { showActions } = useTablesController();
     const {
         filteredRows: filteredStudents,
         masterTableGroupBy,
@@ -32,9 +34,9 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         data: students,
         filterSearch: filterStudents,
         filterStatus: (student, status) => {
-            if (status === "Active") return student.schoolStudentStatus === "active";
-            if (status === "Inactive") return student.schoolStudentStatus !== "active";
-            return true;
+            if (status === "New") return student.stats.totalBookings === 0;
+            if (status === "Available") return student.stats.allBookingsCompleted === true;
+            return true; // "All"
         },
         dateField: "createdAt",
     });
@@ -136,13 +138,35 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             header: "Status",
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
-                <div className="flex justify-center">
-                    <StudentStatusBadge
-                        bookingCount={data.stats.totalBookings}
-                        totalEventDuration={data.stats.totalDurationMinutes}
-                        allBookingsCompleted={data.stats.allBookingsCompleted}
-                        eventCount={data.stats.totalEvents}
-                    />
+                <div className="flex justify-center min-w-[100px]">
+                    <AnimatePresence mode="wait">
+                        {showActions ? (
+                            <motion.div
+                                key="actions"
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <TableActions id={data.id} type="student" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="status"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <StudentStatusBadge
+                                    bookingCount={data.stats.totalBookings}
+                                    totalEventDuration={data.stats.totalDurationMinutes}
+                                    allBookingsCompleted={data.stats.allBookingsCompleted}
+                                    eventCount={data.stats.totalEvents}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ),
         },
@@ -185,13 +209,35 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             label: "Status",
             headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <div className="scale-90 origin-right">
-                    <StudentStatusBadge
-                        bookingCount={data.stats.totalBookings}
-                        totalEventDuration={data.stats.totalDurationMinutes}
-                        allBookingsCompleted={data.stats.allBookingsCompleted}
-                        eventCount={data.stats.totalEvents}
-                    />
+                <div className="scale-90 origin-right flex justify-end">
+                    <AnimatePresence mode="wait">
+                        {showActions ? (
+                            <motion.div
+                                key="actions"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <TableActions id={data.id} type="student" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="status"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <StudentStatusBadge
+                                    bookingCount={data.stats.totalBookings}
+                                    totalEventDuration={data.stats.totalDurationMinutes}
+                                    allBookingsCompleted={data.stats.allBookingsCompleted}
+                                    eventCount={data.stats.totalEvents}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ),
         },
@@ -213,10 +259,9 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
     );
 }
 
-// Helper to attempt mapping country name to code (simple fallback)
 function getCountryCode(countryName: string): string {
     const country = COUNTRIES.find(
         (c) => c.name.toLowerCase() === countryName.toLowerCase() || c.label.toLowerCase() === countryName.toLowerCase(),
     );
-    return country?.code || "US";
+    return country?.code || "YEN";
 }

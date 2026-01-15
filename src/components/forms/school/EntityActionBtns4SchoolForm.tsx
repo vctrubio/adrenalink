@@ -7,7 +7,7 @@ export interface EntityActionBtns4SchoolFormProps {
     isLoading?: boolean;
     isFormValid?: boolean;
     entityColor?: string;
-    submitLabel?: string;
+    submitLabel?: React.ReactNode;
 }
 
 export function EntityActionBtns4SchoolForm({

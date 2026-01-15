@@ -1,12 +1,10 @@
 "use client";
 
-import { MasterTable, type ColumnDef, type MobileColumnDef } from "../MasterTable";
+import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { ENTITY_DATA } from "@/config/entities";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { PackageTableData } from "@/config/tables";
-import BookingIcon from "@/public/appSvgs/BookingIcon";
-import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { PackageConfigToggles } from "@/src/components/labels/PackageConfigToggles";
 import { Calendar, LayoutGrid } from "lucide-react";
@@ -14,6 +12,10 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { filterPackages } from "@/types/searching-entities";
+import { useMemo } from "react";
+import { TableActions } from "../MasterTable";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTablesController } from "../layout";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -23,6 +25,7 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
+    const { showActions } = useTablesController();
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const {
@@ -33,9 +36,9 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
         data: packages,
         filterSearch: filterPackages,
         filterStatus: (pkg, status) => {
-            if (status === "Active") return pkg.active;
-            if (status === "Inactive") return !pkg.active;
-            return true;
+            if (status === "Lesson") return pkg.packageType === "lessons";
+            if (status === "Rental") return pkg.packageType === "rental";
+            return true; // "All"
         },
         dateField: "createdAt",
     });
@@ -135,11 +138,33 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             ),
         },
         {
-            header: "Config",
+            header: "Status",
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
-                <div className="flex justify-center">
-                    <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
+                <div className="flex justify-center min-w-[100px]">
+                    <AnimatePresence mode="wait">
+                        {showActions ? (
+                            <motion.div
+                                key="actions"
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <TableActions id={data.id} type="package" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="status"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ),
         },
@@ -170,22 +195,33 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             ),
         },
         {
-            label: "Activity",
-            headerClassName: HEADER_CLASSES.blue,
-            render: (data) => (
-                <div className="flex flex-row flex-wrap gap-2 scale-90 origin-right justify-end max-w-[120px]">
-                    <StatItemUI type="bookings" value={data.usageStats.bookingCount} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="requests" value={data.usageStats.requestCount} iconColor={true} hideLabel={true} />
-                    <StatItemUI type="revenue" value={data.usageStats.revenue} iconColor={true} hideLabel={true} />
-                </div>
-            ),
-        },
-        {
-            label: "Config",
+            label: "Status",
             headerClassName: HEADER_CLASSES.center,
             render: (data) => (
-                <div className="flex justify-end scale-90 origin-right">
-                    <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
+                <div className="flex justify-end scale-90 origin-right min-w-[100px]">
+                    <AnimatePresence mode="wait">
+                        {showActions ? (
+                            <motion.div
+                                key="actions"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <TableActions id={data.id} type="package" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="status"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <PackageConfigToggles packageId={data.id} isActive={data.active} isPublic={data.isPublic} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ),
         },

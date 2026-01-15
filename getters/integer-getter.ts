@@ -20,3 +20,16 @@ export function getCompactNumber(num: number): string {
 
     return `${rounded}k`;
 }
+
+/**
+ * Format number to show 2 decimals only when needed
+ * Examples: 2 → "2", 180 → "180", 2.99 → "2.99", 2.5 → "2.50"
+ */
+export function getPPP(num: number): string {
+    // If it's a whole number, return without decimals
+    if (num % 1 === 0) {
+        return num.toString();
+    }
+    // Otherwise, show 2 decimals
+    return num.toFixed(2);
+}

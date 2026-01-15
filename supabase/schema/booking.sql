@@ -26,3 +26,10 @@ CREATE TABLE booking_student (
 
 CREATE INDEX booking_student_booking_id_idx ON booking_student(booking_id);
 CREATE INDEX booking_student_student_id_idx ON booking_student(student_id);
+
+
+/*
+- we will add referal id to booking
+- add student_package optional)) to booking_student so we know if booking comes from student package or direclty school package, this will determine to see who booked the student
+
+*/

@@ -15,7 +15,7 @@ export interface MasterSchoolFormProps {
     onClear?: () => void;
     isLoading?: boolean;
     showActionButtons?: boolean;
-    submitLabel?: string;
+    submitLabel?: React.ReactNode;
     children: ReactNode;
 }
 
@@ -33,14 +33,8 @@ export function MasterSchoolForm({
     children,
 }: MasterSchoolFormProps) {
     const handleSubmit = useCallback(async () => {
-        try {
-            await onSubmit();
-            toast.success(entityTitle);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "An error occurred";
-            toast.error(message);
-        }
-    }, [onSubmit, entityTitle]);
+        await onSubmit();
+    }, [onSubmit]);
 
     return (
         <div className="space-y-6">

@@ -10,6 +10,7 @@ import { PackageSection } from "./booking-sections/PackageSection";
 import { StudentsSection } from "./booking-sections/StudentsSection";
 import { ReferralSection } from "./booking-sections/ReferralSection";
 import { TeacherSection } from "./booking-sections/TeacherSection";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 type SectionId =
     | "dates-section"
@@ -50,6 +51,23 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
 
     // Memoize stats map for performance
     const studentStatsMap = useMemo(() => contextData.studentBookingStats || {}, [contextData.studentBookingStats]);
+
+    // Calculate package counts by equipment category
+    const packageCategoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        // Initialize all categories with 0
+        EQUIPMENT_CATEGORIES.forEach((cat) => {
+            counts[cat.id] = 0;
+        });
+        // Count packages by category
+        currentPackages.forEach((pkg) => {
+            const category = pkg.categoryEquipment;
+            if (category && counts[category] !== undefined) {
+                counts[category] = (counts[category] || 0) + 1;
+            }
+        });
+        return counts;
+    }, [currentPackages]);
 
     useEffect(() => {
         console.log("[MasterBookingForm] data changed:", {
@@ -404,6 +422,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 isExpanded={expandedSections.has("equipment-section")}
                 onToggle={() => toggleSection("equipment-section")}
                 onExpand={() => openSection("equipment-section")}
+                packageCategoryCounts={packageCategoryCounts}
             />
 
             <PackageSection

@@ -1,4 +1,29 @@
 import type { BookingWithLessonAndPayments, BookingTableStats } from "@/config/tables";
+import type { Booking } from "@/supabase/db/types";
+
+/**
+ * Booking Relations - all related data from joined tables
+ */
+export interface BookingRelations {
+    school_package: any;
+    students: any[];
+    lessons: any[];
+    student_booking_payment: any[];
+}
+
+/**
+ * Booking Update Form - fields that can be updated
+ */
+export type BookingUpdateForm = Omit<Booking, "id" | "school_id" | "created_at" | "updated_at">;
+
+/**
+ * Booking Data - complete booking record with schema, form, and relations
+ */
+export interface BookingData {
+    schema: Booking;
+    updateForm: BookingUpdateForm;
+    relations: BookingRelations;
+}
 
 /**
  * Calculate stats from a single booking

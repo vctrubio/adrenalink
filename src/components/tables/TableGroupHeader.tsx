@@ -21,7 +21,14 @@ export function TableGroupHeader({ title, stats, groupBy, children, colSpan = 20
             year: "numeric",
         });
     } else if (groupBy === "week") {
-        displayTitle = `Week ${title.split("-W")[1]} of ${title.split("-W")[0]}`;
+        const [year, weekNum] = title.split("-W");
+        // Calculate the first day of the week to get the month
+        const firstDayOfYear = new Date(parseInt(year), 0, 1);
+        const daysOffset = (parseInt(weekNum) - 1) * 7 - firstDayOfYear.getDay();
+        const weekStartDate = new Date(firstDayOfYear);
+        weekStartDate.setDate(firstDayOfYear.getDate() + daysOffset);
+        const monthName = weekStartDate.toLocaleDateString(undefined, { month: "long" });
+        displayTitle = `Week ${weekNum}, ${monthName} ${year}`;
     } else if (groupBy === "month") {
         const [year, month] = title.split("-");
         displayTitle = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -53,7 +60,14 @@ export function TableMobileGroupHeader({ title, stats, groupBy, children, colSpa
     if (groupBy === "date") {
         displayTitle = new Date(title).toLocaleDateString(undefined, { day: "numeric", month: "short" });
     } else if (groupBy === "week") {
-        displayTitle = `Week ${title.split("-W")[1]}`;
+        const [year, weekNum] = title.split("-W");
+        // Calculate the first day of the week to get the month
+        const firstDayOfYear = new Date(parseInt(year), 0, 1);
+        const daysOffset = (parseInt(weekNum) - 1) * 7 - firstDayOfYear.getDay();
+        const weekStartDate = new Date(firstDayOfYear);
+        weekStartDate.setDate(firstDayOfYear.getDate() + daysOffset);
+        const monthName = weekStartDate.toLocaleDateString(undefined, { month: "short" });
+        displayTitle = `W${weekNum}, ${monthName}`;
     } else if (groupBy === "month") {
         const [year, month] = title.split("-");
         displayTitle = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString(undefined, { month: "short" });

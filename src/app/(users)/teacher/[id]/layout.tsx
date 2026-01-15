@@ -1,8 +1,9 @@
 import { type ReactNode } from "react";
-import { getTeacherId } from "@/supabase/server/teacher-id";
+import { getTeacherUser } from "@/supabase/server/teacher-user";
 import { getSchoolHeader } from "@/types/headers";
 import UserWelcome from "@/src/components/UserWelcome";
 import { TeacherNavigation } from "./TeacherNavigation";
+import { TeacherUserProvider } from "@/src/providers/teacher-user-provider";
 
 interface TeacherLayoutProps {
     children: ReactNode;
@@ -13,19 +14,26 @@ export default async function TeacherLayout({ children, params }: TeacherLayoutP
     const { id: teacherId } = await params;
 
     const schoolHeader = await getSchoolHeader();
-    const teacherResult = await getTeacherId(teacherId);
+    const teacherUserResult = await getTeacherUser(teacherId);
 
-    if (!teacherResult.success || !teacherResult.data) {
-        return <div className="p-4 text-destructive">Error loading teacher data: {teacherResult.error || "Teacher not found"}</div>;
+    if (!teacherUserResult.success || !teacherUserResult.data) {
+        return <div className="p-4 text-destructive">Error loading teacher data: {teacherUserResult.error || "Teacher not found"}</div>;
     }
 
-    const teacher = teacherResult.data;
+    const teacherUser = teacherUserResult.data;
 
     return (
-        <div className="space-y-6 max-w-2xl mx-auto p-4">
-            <UserWelcome firstName={teacher.schema.first_name} lastName={teacher.schema.last_name} schoolName={schoolHeader?.name} />
-            <TeacherNavigation teacherId={teacherId} />
-            {children}
-        </div>
+        <TeacherUserProvider
+            data={teacherUser}
+            schoolId={schoolHeader?.id || ""}
+            currency={schoolHeader?.currency || "YEN"}
+            timezone={schoolHeader?.timezone}
+        >
+            <div className="space-y-6 max-w-2xl mx-auto p-4">
+                <UserWelcome firstName={teacherUser.teacher.first_name} lastName={teacherUser.teacher.last_name} schoolName={schoolHeader?.name} />
+                <TeacherNavigation teacherId={teacherId} />
+                {children}
+            </div>
+        </TeacherUserProvider>
     );
 }

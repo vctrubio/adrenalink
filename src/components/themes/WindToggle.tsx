@@ -2,7 +2,6 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { useSidebar } from "../navigations/sidebar";
 
 interface WindToggleProps {
     onThemeChange?: () => void;
@@ -40,16 +39,6 @@ export function WindToggle({ onThemeChange, compact = false }: WindToggleProps =
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
-    // Make sidebar optional - will be null if not in sidebar context
-    let collapsed = false;
-    try {
-        const sidebar = useSidebar();
-        collapsed = sidebar.collapsed;
-    } catch (error) {
-        // Not in sidebar context, use default value
-        collapsed = false;
-    }
-
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -70,7 +59,7 @@ export function WindToggle({ onThemeChange, compact = false }: WindToggleProps =
             className={`flex items-center justify-center p-2 rounded-lg transition-colors ${
                 // Removed w-full
                 mounted ? "hover:bg-accent cursor-pointer" : ""
-            } ${collapsed || compact ? "justify-center" : ""}`} // Added compact here
+                    } ${compact ? "justify-center" : ""}`} // Only compact now
             title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
         >
             {mounted && isDarkMode ? (
@@ -78,7 +67,7 @@ export function WindToggle({ onThemeChange, compact = false }: WindToggleProps =
             ) : (
                 <NoWindIcon className="w-5 h-5 text-foreground flex-shrink-0" />
             )}
-            {!collapsed && !compact && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
+                {!compact && <span className="ml-3 text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"}</span>}
         </button>
     );
 }

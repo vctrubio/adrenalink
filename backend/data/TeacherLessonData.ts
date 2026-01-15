@@ -1,9 +1,9 @@
 import type { TimelineEvent } from "@/src/components/timeline";
-import { buildEventModels, groupEventsByLesson, eventModelToTimelineEvent, type EventModel, type LessonGroup } from "./EventModel";
+import type { TransactionEventData } from "@/types/transaction-event";
+import { buildTransactionEvents, groupEventsByLesson, transactionEventToTimelineEvent, type LessonGroup } from "@/getters/teacher-lesson-getter";
 
 /**
- * @deprecated Use EventModel and LessonGroup from EventModel.ts instead
- * This is kept for backward compatibility
+ * Legacy LessonRow interface for backward compatibility
  */
 export interface LessonRow {
     lessonId: string;
@@ -19,15 +19,15 @@ export interface LessonRow {
     totalHours: number;
     totalEarning: number;
     eventCount: number;
-    events: EventModel[];
+    events: TransactionEventData[];
     equipmentCategory: string;
     studentCapacity: number;
 }
 
 /**
  * Process teacher lessons data and build lesson rows + timeline events
- * Uses centralized EventModel as single source of truth
- * 
+ * Uses TransactionEventData as single source of truth
+ *
  * @param lessons - Array of lesson objects with event, booking, teacher_commission
  * @param teacher - Teacher info (optional, will use lesson.teacher if available)
  */
@@ -38,12 +38,12 @@ export function buildTeacherLessonData(
     lessonRows: LessonRow[];
     timelineEvents: TimelineEvent[];
 } {
-    // Build flat list of events (single source of truth)
-    const eventModels = buildEventModels(lessons, teacher);
-    
+    // Build flat list of transaction events (single source of truth)
+    const transactionEvents = buildTransactionEvents(lessons, teacher);
+
     // Group events by lesson
-    const lessonGroups = groupEventsByLesson(eventModels);
-    
+    const lessonGroups = groupEventsByLesson(transactionEvents);
+
     // Convert to legacy LessonRow format for backward compatibility
     const lessonRows: LessonRow[] = lessonGroups.map((group) => ({
         lessonId: group.lessonId,
@@ -63,15 +63,10 @@ export function buildTeacherLessonData(
         equipmentCategory: group.equipmentCategory,
         studentCapacity: group.studentCapacity,
     }));
-    
+
     // Convert to timeline events
-    const timelineEvents: TimelineEvent[] = eventModels.map(eventModelToTimelineEvent);
+    const timelineEvents: TimelineEvent[] = transactionEvents.map(transactionEventToTimelineEvent);
     timelineEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     return { lessonRows, timelineEvents };
 }
-
-/**
- * @deprecated Use filterEvents and sortEvents from EventModel.ts instead
- * This function is no longer used and kept only for reference
- */

@@ -2,6 +2,7 @@ import BookingIcon from "@/public/appSvgs/BookingIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/types/status";
+import { memo } from "react";
 
 interface StudentStatusBadgeProps {
     bookingCount: number;
@@ -10,13 +11,12 @@ interface StudentStatusBadgeProps {
     eventCount?: number;
 }
 
-export function StudentStatusBadge({
+export const StudentStatusBadge = memo(function StudentStatusBadge({
     bookingCount,
     totalEventDuration,
     allBookingsCompleted = true,
     eventCount,
 }: StudentStatusBadgeProps) {
-    console.log("[StudentStatusBadge]", { bookingCount, totalEventDuration, allBookingsCompleted, eventCount });
     // Show "New" if no bookings
     if (bookingCount === 0) {
         return (
@@ -53,4 +53,4 @@ export function StudentStatusBadge({
             <span>{eventDurationHours}h</span>
         </div>
     );
-}
+});

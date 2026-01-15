@@ -3,8 +3,6 @@ import { headers } from "next/headers";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
 import { calculateStudentStats } from "@/backend/data/StudentData";
 import { calculateBookingStats } from "@/backend/data/BookingData";
-import { getStudentEventsRPC } from "@/supabase/rpc/student_events";
-import type { ApiActionResponseModel } from "@/types/actions";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {
     try {
@@ -158,37 +156,3 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
     }
 }
 
-export async function getStudentEvents(studentId: string, schoolId?: string): Promise<ApiActionResponseModel<any[]>> {
-    try {
-        const supabase = getServerConnection();
-        const events = await getStudentEventsRPC(supabase, studentId, schoolId);
-
-        const mappedEvents = events.map((e) => ({
-            id: e.event_id,
-            date: e.event_date,
-            duration: e.event_duration,
-            location: e.event_location,
-            status: e.event_status,
-            teacher: {
-                id: e.teacher_id,
-                firstName: e.teacher_first_name,
-                lastName: e.teacher_last_name,
-                username: e.teacher_username,
-            },
-            schoolPackage: {
-                id: e.package_id,
-                description: e.package_description,
-                durationMinutes: e.package_duration_minutes,
-                pricePerStudent: e.package_price_per_student,
-                categoryEquipment: e.package_category_equipment,
-                capacityEquipment: e.package_capacity_equipment,
-                capacityStudents: e.package_capacity_students,
-            },
-        }));
-
-        return { success: true, data: mappedEvents };
-    } catch (error) {
-        console.error("Error in getStudentEvents:", error);
-        return { success: false, error: "Failed to fetch student events" };
-    }
-}

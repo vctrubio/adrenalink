@@ -9,11 +9,12 @@ import { Timeline } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import { Calendar, List, Table, Handshake } from "lucide-react";
 import type { BookingData } from "@/backend/data/BookingData";
-import { buildEventModels, groupEventsByLesson, groupEventsByTeacher, eventModelToTimelineEvent, eventModelToTransactionEventData, type EventModel } from "@/backend/data/EventModel";
+import { lessonsToTransactionEvents, transactionEventToTimelineEvent } from "@/getters/transaction-event-getter";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { BookingReceipt, type BookingReceiptEventRow } from "@/src/components/ids/BookingReceipt";
 import { TeacherBookingLessonTable } from "@/src/components/ids/TeacherBookingLessonTable";
 import { type LessonRow } from "@/backend/data/TeacherLessonData";
+import type { TransactionEventData } from "@/types/transaction-event";
 
 type ViewMode = "timeline" | "by-teacher" | "table" | "receipt";
 
@@ -33,60 +34,30 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
 
     const lessons = booking.relations?.lessons || [];
     const schoolPackage = booking.relations?.school_package;
+    const students = booking.relations?.students || [];
 
     const formatCurrency = (num: number): string => {
         const rounded = Math.round(num * 100) / 100;
         return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(2);
     };
 
-    // Normalize booking lessons data to match buildEventModels expected structure
-    const normalizedLessons = useMemo(() => {
-        const students = (booking.relations?.students || []).map((student: any) => ({
-            id: student.id,
-            first_name: student.first_name,
-            last_name: student.last_name,
-        }));
-
-        return lessons.map((lesson: any) => ({
-            ...lesson,
-            // Normalize: events -> event (singular) to match expected structure
-            event: lesson.events || [],
-            // Add booking object with school_package nested
-            booking: {
-                id: booking.schema.id,
-                leader_student_name: booking.schema.leader_student_name,
-                date_start: booking.schema.date_start,
-                date_end: booking.schema.date_end,
-                status: booking.schema.status,
-                students,
-                school_package: schoolPackage,
-            },
-        }));
-    }, [lessons, booking, schoolPackage]);
-
-    // Build centralized event models (single source of truth)
-    const eventModels = useMemo(() => {
-        return buildEventModels(normalizedLessons);
-    }, [normalizedLessons]);
-
-    // Handle equipment assignment and status update, then revalidate
     const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
         router.refresh();
     }, [router]);
 
-    // Convert to timeline events
-    const timelineEvents = useMemo(() => {
-        return eventModels.map(eventModelToTimelineEvent).sort((a, b) => a.date.getTime() - b.date.getTime());
-    }, [eventModels]);
-
-    // Convert to TransactionEventData for table view
+    // Single source of truth: Transform lessons to TransactionEventData once
     const transactionEvents = useMemo(() => {
-        return eventModels.map((event) => eventModelToTransactionEventData(event, currency));
-    }, [eventModels, currency]);
+        return lessonsToTransactionEvents(lessons, schoolPackage, students, booking.schema.leader_student_name, currency);
+    }, [lessons, schoolPackage, students, booking.schema.leader_student_name, currency]);
 
-    // Convert lesson groups to legacy format for receipt
+    // Adapt TransactionEventData to TimelineEvent for timeline view
+    const timelineEvents = useMemo(() => {
+        return transactionEvents.map(transactionEventToTimelineEvent).sort((a, b) => a.date.getTime() - b.date.getTime());
+    }, [transactionEvents]);
+
+    // Convert to BookingReceiptEventRow format
     const eventRowsForReceipt: BookingReceiptEventRow[] = useMemo(() => {
-        return eventModels.map((event) => ({
+        return timelineEvents.map((event) => ({
             eventId: event.eventId,
             lessonId: event.lessonId,
             date: event.date,
@@ -107,20 +78,20 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
             commissionType: event.commissionType,
             commissionCph: event.commissionCph,
         }));
-    }, [eventModels]);
+    }, [timelineEvents]);
 
     // Calculate totals for receipt
     const totals = useMemo(() => {
-        return eventModels.reduce(
+        return transactionEvents.reduce(
             (acc, event) => ({
-                duration: acc.duration + event.duration,
-                teacherEarnings: acc.teacherEarnings + event.teacherEarning,
-                schoolRevenue: acc.schoolRevenue + event.schoolRevenue,
-                totalRevenue: acc.totalRevenue + event.totalRevenue,
+                duration: acc.duration + event.event.duration,
+                teacherEarnings: acc.teacherEarnings + event.financials.teacherEarnings,
+                schoolRevenue: acc.schoolRevenue + event.financials.studentRevenue,
+                totalRevenue: acc.totalRevenue + event.financials.studentRevenue,
             }),
             { duration: 0, teacherEarnings: 0, schoolRevenue: 0, totalRevenue: 0 },
         );
-    }, [eventModels]);
+    }, [transactionEvents]);
 
     return (
         <div className="space-y-6">
@@ -148,7 +119,7 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
                 )}
                 {viewMode === "by-teacher" && (
                     <ByTeacherView
-                        eventModels={eventModels}
+                        transactionEvents={transactionEvents}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
                         bookingEntity={bookingEntity}
@@ -185,7 +156,7 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
 
 // Sub-component: By Teacher View
 function ByTeacherView({
-    eventModels,
+    transactionEvents,
     expandedLesson,
     setExpandedLesson,
     bookingEntity,
@@ -194,7 +165,7 @@ function ByTeacherView({
     currency,
     onEquipmentUpdate,
 }: {
-    eventModels: EventModel[];
+    transactionEvents: TransactionEventData[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
     bookingEntity: any;
@@ -203,50 +174,50 @@ function ByTeacherView({
     currency: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
 }) {
-    const teacherGroups = useMemo(() => groupEventsByTeacher(eventModels), [eventModels]);
-    const lessonGroups = useMemo(() => groupEventsByLesson(eventModels), [eventModels]);
-
-    // Convert lesson groups to LessonRow format for TeacherBookingLessonTable
-    const lessonRows: LessonRow[] = useMemo(() => {
-        return lessonGroups.map((group) => ({
-            lessonId: group.lessonId,
-            bookingId: group.bookingId,
-            leaderName: group.leaderName,
-            dateStart: group.dateStart,
-            dateEnd: group.dateEnd,
-            lessonStatus: group.lessonStatus,
-            bookingStatus: group.bookingStatus,
-            commissionType: group.commissionType,
-            cph: group.cph,
-            totalDuration: group.totalDuration,
-            totalHours: group.totalHours,
-            totalEarning: group.totalEarning,
-            eventCount: group.eventCount,
-            events: group.events,
-            equipmentCategory: group.equipmentCategory,
-            studentCapacity: group.studentCapacity,
-        }));
-    }, [lessonGroups]);
-
-    // Group lessons by teacher
+    // Group transaction events by teacher
     const lessonsByTeacher = useMemo(() => {
-        const map = new Map<string, LessonRow[]>();
-        for (const lesson of lessonRows) {
-            const teacherGroup = teacherGroups.find((tg) =>
-                tg.events.some((e) => e.lessonId === lesson.lessonId),
-            );
-            if (teacherGroup) {
-                if (!map.has(teacherGroup.teacherId)) {
-                    map.set(teacherGroup.teacherId, []);
-                }
-                map.get(teacherGroup.teacherId)!.push(lesson);
+        const map = new Map<string, TransactionEventData[]>();
+        for (const event of transactionEvents) {
+            const username = event.teacher.username;
+            if (!map.has(username)) {
+                map.set(username, []);
             }
+            map.get(username)!.push(event);
         }
-        return Array.from(map.entries()).map(([teacherId, lessons]) => {
-            const teacher = teacherGroups.find((tg) => tg.teacherId === teacherId)!;
-            return { teacher, lessons };
+
+        return Array.from(map.entries()).map(([username, events]) => {
+            const totalEvents = events.length;
+            const totalDuration = events.reduce((sum, e) => sum + e.event.duration, 0);
+            const totalHours = totalDuration / 60;
+            const totalEarning = events.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+
+            // Group by lesson
+            const lessonMap = new Map<string, TransactionEventData[]>();
+            for (const event of events) {
+                const lessonId = event.event.lessonId || "unknown";
+                if (!lessonMap.has(lessonId)) {
+                    lessonMap.set(lessonId, []);
+                }
+                lessonMap.get(lessonId)!.push(event);
+            }
+
+            const lessons = Array.from(lessonMap.entries()).map(([lessonId, lessonEvents]) => {
+                const lessonDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
+                const lessonHours = lessonDuration / 60;
+                const lessonEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+
+                return {
+                    lessonId,
+                    events: lessonEvents,
+                    totalDuration: lessonDuration,
+                    totalHours: lessonHours,
+                    totalEarning: lessonEarning,
+                };
+            });
+
+            return { username, totalEvents, totalHours, totalEarning, lessons };
         });
-    }, [lessonRows, teacherGroups]);
+    }, [transactionEvents]);
 
     return (
         <motion.div
@@ -256,32 +227,53 @@ function ByTeacherView({
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
         >
-            {lessonsByTeacher.map(({ teacher, lessons }) => (
-                <div key={teacher.teacherId} className="space-y-3">
+            {lessonsByTeacher.map(({ username, totalEvents, totalHours, totalEarning, lessons }) => (
+                <div key={username} className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-border/40">
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">{teacher.teacherUsername}</span>
+                            <span className="font-bold text-lg">{username}</span>
                             <span className="text-sm text-muted-foreground">
-                                ({teacher.eventCount} {teacher.eventCount === 1 ? "event" : "events"})
+                                ({totalEvents} {totalEvents === 1 ? "event" : "events"})
                             </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            {teacher.totalHours.toFixed(1)}h • {formatCurrency(teacher.totalEarning)} {currency}
+                            {totalHours.toFixed(1)}h • {formatCurrency(totalEarning)} {currency}
                         </div>
                     </div>
-                    {lessons.map((lesson) => (
-                        <TeacherBookingLessonTable
-                            key={lesson.lessonId}
-                            lesson={lesson}
-                            isExpanded={expandedLesson === lesson.lessonId}
-                            onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                            bookingEntity={bookingEntity}
-                            studentEntity={studentEntity}
-                            teacherId={teacher.teacherId}
-                            teacherUsername={teacher.teacherUsername}
-                            onEquipmentUpdate={onEquipmentUpdate}
-                        />
-                    ))}
+                    {lessons.map(({ lessonId, events, totalDuration, totalHours, totalEarning }) => {
+                        const firstEvent = events[0];
+                        const lessonRow: LessonRow = {
+                            lessonId,
+                            bookingId: "",
+                            leaderName: firstEvent.leaderStudentName,
+                            dateStart: firstEvent.event.date,
+                            dateEnd: firstEvent.event.date,
+                            lessonStatus: "active",
+                            bookingStatus: "active",
+                            commissionType: firstEvent.commission.type,
+                            cph: firstEvent.commission.cph,
+                            totalDuration,
+                            totalHours,
+                            totalEarning,
+                            eventCount: events.length,
+                            events,
+                            equipmentCategory: firstEvent.packageData.categoryEquipment,
+                            studentCapacity: firstEvent.packageData.capacityStudents,
+                        };
+
+                        return (
+                            <TeacherBookingLessonTable
+                                key={lessonId}
+                                lesson={lessonRow}
+                                isExpanded={expandedLesson === lessonId}
+                                onToggle={() => setExpandedLesson(expandedLesson === lessonId ? null : lessonId)}
+                                bookingEntity={bookingEntity}
+                                studentEntity={studentEntity}
+                                teacherUsername={username}
+                                onEquipmentUpdate={onEquipmentUpdate}
+                            />
+                        );
+                    })}
                 </div>
             ))}
         </motion.div>

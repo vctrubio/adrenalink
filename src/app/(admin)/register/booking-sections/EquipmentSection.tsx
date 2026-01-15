@@ -10,6 +10,7 @@ interface EquipmentSectionProps {
     isExpanded: boolean;
     onToggle: () => void;
     onExpand?: () => void;
+    packageCategoryCounts?: Record<string, number>;
 }
 
 export function EquipmentSection({
@@ -18,6 +19,7 @@ export function EquipmentSection({
     isExpanded,
     onToggle,
     onExpand,
+    packageCategoryCounts = {},
 }: EquipmentSectionProps) {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment");
     const selectedCategory = selectedEquipmentCategory
@@ -46,6 +48,7 @@ export function EquipmentSection({
                 {EQUIPMENT_CATEGORIES.map((cat) => {
                     const CategoryIcon = cat.icon;
                     const isSelected = selectedEquipmentCategory === cat.id;
+                    const count = packageCategoryCounts[cat.id] || 0;
 
                     return (
                         <button
@@ -72,6 +75,7 @@ export function EquipmentSection({
                                 <CategoryIcon className="w-5 h-5" style={{ color: cat.color }} />
                             </div>
                             <span className="text-lg font-black uppercase tracking-tight">{cat.name}</span>
+                            <span className="text-sm font-semibold text-muted-foreground">({count})</span>
                         </button>
                     );
                 })}

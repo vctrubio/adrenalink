@@ -19,7 +19,7 @@ export default async function StudentsMasterTablePage() {
 
     return (
         <TableLayout stats={stats}>
-            <StudentsTable students={students} />
+            <StudentsTable students={students} showActions={true} />
         </TableLayout>
     );
 }

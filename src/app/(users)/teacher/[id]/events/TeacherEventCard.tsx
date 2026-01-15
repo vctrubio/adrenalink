@@ -1,39 +1,34 @@
 "use client";
 
-import type { EventModel } from "@/backend/data/EventModel";
-import type { EventStatus } from "@/types/status";
+import type { EventNode } from "@/types/classboard-teacher-queue";
 import { CardList } from "@/src/components/ui/card/card-list";
 import { EventUserCard } from "@/src/components/events/EventUserCard";
 import { EquipmentStudentCommissionBadge } from "@/src/components/ui/badge/equipment-student-commission";
-import { BrandSizeCategoryList } from "@/src/components/ui/badge/brand-size-category";
 import { MapPin } from "lucide-react";
 import { minutesToHours } from "@/getters/duration-getter";
 
 interface TeacherEventCardProps {
-    event: EventModel;
-    teacherId: string;
-    teacherUsername: string;
+    event: EventNode;
     currency: string;
-    onStatusChange?: () => void;
-    onEquipmentAssign?: () => void;
 }
 
-export function TeacherEventCard({
-    event,
-    teacherId,
-    teacherUsername,
-    currency,
-    onStatusChange,
-    onEquipmentAssign,
-}: TeacherEventCardProps) {
-    const durationHours = minutesToHours(event.duration);
-    const earnedAmount = event.teacherEarning;
+export function TeacherEventCard({ event, currency }: TeacherEventCardProps) {
+    const durationHours = minutesToHours(event.eventData.duration);
+
+    // Calculate earnings
+    let earnedAmount = 0;
+    if (event.commission.type === "fixed") {
+        earnedAmount = event.commission.cph * durationHours;
+    } else {
+        const revenue = event.pricePerStudent * event.bookingStudents.length * durationHours;
+        earnedAmount = revenue * (event.commission.cph / 100);
+    }
 
     // Format earnings breakdown string
     const earningsLabel =
-        event.commissionType === "fixed"
-            ? `Earnings (${event.commissionCph} ${currency} x ${durationHours.toFixed(1)} hrs)`
-            : `Earnings (${event.commissionCph}% of Revenue)`;
+        event.commission.type === "fixed"
+            ? `Earnings (${event.commission.cph} ${currency} x ${durationHours.toFixed(1)} hrs)`
+            : `Earnings (${event.commission.cph}% of Revenue)`;
 
     // Prepare student names
     const studentNames = event.bookingStudents.map((s) => `${s.firstName} ${s.lastName}`.trim());
@@ -46,21 +41,19 @@ export function TeacherEventCard({
 
     const fields = [
         ...studentFields,
-        { label: "Location", value: event.location },
+        { label: "Location", value: event.eventData.location },
         { label: earningsLabel, value: `${earnedAmount.toFixed(0)} ${currency}` },
     ];
-
-    const hasEquipmentAssigned = event.equipments && event.equipments.length > 0;
 
     const footerLeftContent = (
         <div className="flex items-center gap-5">
             <div className="[&_span]:text-white">
                 <EquipmentStudentCommissionBadge
-                    categoryEquipment={event.equipmentCategory}
-                    equipmentCapacity={event.capacityEquipment || 0}
-                    studentCapacity={event.capacityStudents || 0}
-                    commissionType={event.commissionType}
-                    commissionValue={event.commissionCph}
+                    categoryEquipment={event.categoryEquipment}
+                    equipmentCapacity={event.capacityEquipment}
+                    studentCapacity={event.capacityStudents}
+                    commissionType={event.commission.type}
+                    commissionValue={event.commission.cph}
                 />
             </div>
 
@@ -68,31 +61,16 @@ export function TeacherEventCard({
 
             <div className="flex items-center gap-2 text-zinc-400">
                 <MapPin size={20} className="text-zinc-400" />
-                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">{event.location}</span>
+                <span className="text-sm font-semibold tracking-tight truncate max-w-[120px] text-zinc-300">{event.eventData.location}</span>
             </div>
-
-            {/* Equipment display */}
-            {/* {hasEquipmentAssigned && ( */}
-            {/*     <> */}
-            {/*         <div className="h-4 w-px bg-white/10" /> */}
-            {/*         <BrandSizeCategoryList */}
-            {/*             equipments={event.equipments!.map((eq) => ({ */}
-            {/*                 id: eq.id, */}
-            {/*                 model: eq.brand ? `${eq.brand} ${eq.model}` : eq.model, */}
-            {/*                 size: eq.size, */}
-            {/*             }))} */}
-            {/*             showIcon={true} */}
-            {/*         /> */}
-            {/*     </> */}
-            {/* )} */}
         </div>
     );
 
     return (
         <EventUserCard
-            date={event.date.toISOString()}
-            duration={event.duration}
-            status={event.eventStatus}
+            date={event.eventData.date}
+            duration={event.eventData.duration}
+            status={event.eventData.status}
             footerLeftContent={footerLeftContent}
         >
             <CardList fields={fields} />

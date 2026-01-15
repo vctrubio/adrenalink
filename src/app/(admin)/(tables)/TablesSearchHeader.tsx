@@ -4,19 +4,33 @@ import { usePathname } from "next/navigation";
 import { ENTITY_DATA } from "@/config/entities";
 import { SearchInput } from "@/src/components/SearchInput";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
+import { StatusFilterButtons } from "@/src/components/ui/StatusFilterButtons";
+import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { ENTITY_SORT_OPTIONS } from "@/types/sort";
-import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
+import type { DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
 import type { SortConfig } from "@/types/sort";
+import { Settings2 } from "lucide-react";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
-const FILTER_OPTIONS_DEFAULT: DataboardFilterByDate[] = ["All", "Last 7 days", "Last 30 days"];
 const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Weekly", "Monthly"];
 
 // Determine status options based on entity
-const getStatusOptions = (entityId: string): DataboardActivityFilter[] => {
-    if (entityId === "booking" || entityId === "schoolPackage") {
-        return ["All", "Active", "Inactive"]; // Example mapping
+const getStatusOptions = (entityId: string): string[] => {
+    if (entityId === "student") {
+        return ["All", "Available", "New"];
+    }
+    if (entityId === "teacher") {
+        return ["All", "Free"];
+    }
+    if (entityId === "booking") {
+        return ["All", "Active", "Completed"];
+    }
+    if (entityId === "equipment") {
+        return ["All", "Kite", "Wing", "Windsurf"];
+    }
+    if (entityId === "schoolPackage") {
+        return ["All", "Lesson", "Rental"];
     }
     return ["All", "Active", "Inactive"];
 };
@@ -35,6 +49,15 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
 
     const statusOptions = getStatusOptions(entity.id);
 
+    // Get equipment icons for equipment filters
+    const getEquipmentIcon = (option: string) => {
+        if (entity.id === "equipment" && option !== "All") {
+            const category = EQUIPMENT_CATEGORIES.find((cat) => cat.name === option);
+            return category?.icon;
+        }
+        return null;
+    };
+
     return (
         <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
             {/* Search */}
@@ -50,48 +73,57 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
 
             {/* Filters */}
             <div className="flex items-center gap-2">
-                {/* Use SortDropdown for event/booking entities, FilterDropdown for others */}
-                {(entity.id === "event" || entity.id === "booking") ? (
+                {/* Use SortDropdown for event/booking entities */}
+                {(entity.id === "event" || entity.id === "booking") && (
                     <SortDropdown
                         value={controller.sort}
                         options={ENTITY_SORT_OPTIONS.event || ENTITY_SORT_OPTIONS.booking || []}
                         onChange={controller.onSortChange}
                         entityColor={entity.color}
                     />
-                ) : (
+                )}
+
+                {/* Only show Group for time-relevant entities */}
+                {(entity.id === "booking" ||
+                    entity.id === "event" ||
+                    entity.id === "teacher" ||
+                    entity.id === "student") && (
                     <FilterDropdown
-                        label="Status"
-                        value={controller.status}
-                        options={statusOptions}
-                        onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
+                        label="Group"
+                        value={controller.group}
+                        options={GROUP_OPTIONS}
+                        onChange={(v) => controller.onGroupChange(v as DataboardGroupByDate)}
                         entityColor={entity.color}
                     />
                 )}
 
-                {/* Only show Date Filter/Group for time-relevant entities */}
-                {(entity.id === "booking" ||
-                    entity.id === "event" ||
+                {/* Status Filter Buttons for student, teacher, booking, package, equipment */}
+                {(entity.id === "student" ||
                     entity.id === "teacher" ||
-                    entity.id === "equipment" ||
-                    entity.id === "student" ||
-                    entity.id === "schoolPackage") && (
-                    <>
-                        <FilterDropdown
-                            label="Filter"
-                            value={controller.filter}
-                            options={FILTER_OPTIONS_DEFAULT}
-                            onChange={(v) => controller.onFilterChange(v as DataboardFilterByDate)}
-                            entityColor={entity.color}
-                        />
-                        <FilterDropdown
-                            label="Group"
-                            value={controller.group}
-                            options={GROUP_OPTIONS}
-                            onChange={(v) => controller.onGroupChange(v as DataboardGroupByDate)}
-                            entityColor={entity.color}
-                        />
-                    </>
+                    entity.id === "booking" ||
+                    entity.id === "schoolPackage" ||
+                    entity.id === "equipment") && (
+                    <StatusFilterButtons
+                        options={statusOptions}
+                        value={controller.status}
+                        onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
+                        getIcon={entity.id === "equipment" ? getEquipmentIcon : undefined}
+                    />
                 )}
+
+                {/* Actions Toggle */}
+                <button
+                    type="button"
+                    onClick={() => controller.onShowActionsChange(!controller.showActions)}
+                    className={`p-2 rounded-lg border transition-all ${
+                        controller.showActions
+                            ? "bg-primary/10 border-primary text-primary shadow-sm"
+                            : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                    title="Toggle Actions"
+                >
+                    <Settings2 size={16} />
+                </button>
             </div>
         </div>
     );

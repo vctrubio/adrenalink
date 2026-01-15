@@ -1,28 +1,16 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
-import type { TeacherData } from "@/backend/data/TeacherData";
-import { buildEventModels, type EventModel } from "@/backend/data/EventModel";
 import { TeacherEventCard } from "./TeacherEventCard";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { getTodayDateString } from "@/getters/date-getter";
-import { getClientConnection } from "@/supabase/connection";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import CreditIcon from "@/public/appSvgs/CreditIcon";
+import { useTeacherUser } from "@/src/providers/teacher-user-provider";
+import type { EventNode } from "@/types/classboard-teacher-queue";
 
-interface TeacherEventsClientProps {
-    teacher: TeacherData;
-    schoolId?: string;
-    currency: string;
-    timezone?: string;
-}
-
-export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: TeacherEventsClientProps) {
-    const router = useRouter();
+export function TeacherEventsClient() {
+    const { data: teacherUser, currency } = useTeacherUser();
     const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
 
     // Date Logic
@@ -67,27 +55,17 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
     const badgeText =
         diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
-    // Build all event models from teacher's lessons
-    const allEvents = useMemo(() => {
-        const lessons = teacher.relations?.lesson || [];
-        return buildEventModels(lessons, {
-            id: teacher.schema.id,
-            first_name: teacher.schema.first_name,
-            username: teacher.schema.username,
-        });
-    }, [teacher]);
-
     // Filter events for selected date
     const eventsForDate = useMemo(() => {
-        return allEvents.filter((event) => {
-            const eventDateStr = event.date.toISOString().split("T")[0];
+        return teacherUser.events.filter((event) => {
+            const eventDateStr = new Date(event.eventData.date).toISOString().split("T")[0];
             return eventDateStr === selectedDate;
         });
-    }, [allEvents, selectedDate]);
+    }, [teacherUser.events, selectedDate]);
 
     // Sort by time
     const sortedEvents = useMemo(() => {
-        return [...eventsForDate].sort((a, b) => a.date.getTime() - b.date.getTime());
+        return [...eventsForDate].sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
     }, [eventsForDate]);
 
     // Calculate stats for the day
@@ -97,9 +75,18 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
         let completedCount = 0;
 
         sortedEvents.forEach((event) => {
-            totalDuration += event.duration;
-            totalEarning += event.teacherEarning;
-            if (event.eventStatus === "completed") {
+            totalDuration += event.eventData.duration;
+
+            // Calculate earnings
+            const hours = event.eventData.duration / 60;
+            if (event.commission.type === "fixed") {
+                totalEarning += event.commission.cph * hours;
+            } else {
+                const revenue = event.pricePerStudent * event.bookingStudents.length * hours;
+                totalEarning += revenue * (event.commission.cph / 100);
+            }
+
+            if (event.eventData.status === "completed") {
                 completedCount++;
             }
         });
@@ -112,45 +99,6 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
             totalEarning,
         };
     }, [sortedEvents]);
-
-    // Real-time subscription for event updates
-    useEffect(() => {
-        if (!schoolId) return;
-
-        const supabase = getClientConnection();
-
-        const channel = supabase
-            .channel(`teacher_events_${teacher.schema.id}`)
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "event",
-                    filter: `school_id=eq.${schoolId}`,
-                },
-                (payload) => {
-                    console.log("[TeacherEventsClient] Event change detected:", payload);
-                    // Refresh the page data
-                    router.refresh();
-                },
-            )
-            .subscribe((status) => {
-                console.log(`[TeacherEventsClient] Subscription status: ${status}`);
-            });
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [schoolId, teacher.schema.id, router]);
-
-    const handleEquipmentUpdate = useCallback(() => {
-        router.refresh();
-    }, [router]);
-
-    const handleStatusChange = useCallback(() => {
-        router.refresh();
-    }, [router]);
 
     return (
         <div className="space-y-6">
@@ -251,15 +199,7 @@ export function TeacherEventsClient({ teacher, schoolId, currency, timezone }: T
                     >
                         {sortedEvents.length > 0 ? (
                             sortedEvents.map((event) => (
-                                <TeacherEventCard
-                                    key={event.eventId}
-                                    event={event}
-                                    teacherId={teacher.schema.id}
-                                    teacherUsername={teacher.schema.username}
-                                    currency={currency}
-                                    onStatusChange={handleStatusChange}
-                                    onEquipmentAssign={handleEquipmentUpdate}
-                                />
+                                <TeacherEventCard key={event.id} event={event} currency={currency} />
                             ))
                         ) : (
                             <div className="text-center py-12 bg-card rounded-2xl border-2 border-dashed border-border text-muted-foreground">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, memo, useState } from "react";
+import { useCallback, useMemo, memo, useState, useEffect } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
@@ -9,6 +9,7 @@ import { LANGUAGES } from "@/supabase/db/enums";
 import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { X } from "lucide-react";
+import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
@@ -136,10 +137,10 @@ const CommissionsListField = memo(function CommissionsListField({
     currency,
     commissionColor,
 }: {
-    commissions: { id: string; commissionType: "fixed" | "percentage"; commissionValue: string; commissionDescription: string }[];
+    commissions: { id: string; commissionType: "fixed" | "percentage"; commissionValue: number; commissionDescription: string }[];
     onAddCommission: (commission: {
         commissionType: "fixed" | "percentage";
-        commissionValue: string;
+        commissionValue: number;
         commissionDescription: string;
     }) => void;
     onRemoveCommission: (id: string) => void;
@@ -154,7 +155,7 @@ const CommissionsListField = memo(function CommissionsListField({
         if (commissionValue.trim()) {
             onAddCommission({
                 commissionType,
-                commissionValue,
+                commissionValue: parseFloat(commissionValue),
                 commissionDescription,
             });
             setCommissionValue("");
@@ -164,7 +165,15 @@ const CommissionsListField = memo(function CommissionsListField({
     }, [commissionType, commissionValue, commissionDescription, onAddCommission]);
 
     return (
-        <FormField label="Commissions" required={false}>
+        <FormField
+            label={
+                <div className="flex items-center gap-2">
+                    <HandshakeIcon size={16} className="text-emerald-500" />
+                    <span>Commissions</span>
+                </div>
+            }
+            required={false}
+        >
             <div className="space-y-3">
                 {/* Staged Commissions List */}
                 {commissions.length > 0 && (
@@ -172,7 +181,7 @@ const CommissionsListField = memo(function CommissionsListField({
                         {commissions.map((commission) => (
                             <div key={commission.id} className="relative group">
                                 <CommissionTypeValue
-                                    value={commission.commissionValue}
+                                    value={commission.commissionValue.toString()}
                                     type={commission.commissionType}
                                     description={commission.commissionDescription}
                                 />
@@ -383,6 +392,18 @@ export default function TeacherForm({
     const credentials = useSchoolCredentials();
     const currency = credentials.currency || "YEN";
 
+    // Debug validation
+    useEffect(() => {
+        if (!isFormReady) {
+            const result = teacherFormSchema.safeParse(formData);
+            if (!result.success) {
+                console.log("[TeacherForm] Validation Errors:", result.error.flatten().fieldErrors);
+            } else {
+                console.log("[TeacherForm] Schema is valid, but isFormReady is false. Check parent logic.");
+            }
+        }
+    }, [isFormReady, formData]);
+
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
         const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
@@ -442,6 +463,14 @@ export default function TeacherForm({
     const isFieldValid = (field: keyof TeacherFormData): boolean => {
         return getFieldError(field) === undefined && !!formData[field];
     };
+
+    const submitLabel = useMemo(() => {
+        const commissionCount = formData.commissions.length;
+        if (commissionCount > 0) {
+            return `Add Teacher + ${commissionCount} Commission${commissionCount > 1 ? "s" : ""}`;
+        }
+        return "Add Teacher";
+    }, [formData.commissions.length]);
 
     const formContent = (
         <>
@@ -527,10 +556,13 @@ export default function TeacherForm({
             entityTitle={entityTitle}
             isFormReady={isFormReady}
             onSubmit={onSubmit || (() => Promise.resolve())}
-            onCancel={onClose || (() => {})}
+            onCancel={() => {
+                handleClear();
+                onClose?.();
+            }}
             onClear={handleClear}
             isLoading={isLoading}
-            submitLabel="Add Teacher"
+            submitLabel={submitLabel}
         >
             {formContent}
         </MasterSchoolForm>

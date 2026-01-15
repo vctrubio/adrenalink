@@ -42,7 +42,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
         filterSearch: filterBookings,
         filterStatus: (booking, status) => {
             if (status === "Active") return booking.booking.status === "active";
-            if (status === "Inactive") return booking.booking.status !== "active";
+            if (status === "Completed") return booking.booking.status === "completed";
             return true;
         },
         dateField: (row) => row.booking.dateStart,

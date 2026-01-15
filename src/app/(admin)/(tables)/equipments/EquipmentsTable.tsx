@@ -3,19 +3,12 @@
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupStats, type GroupingType } from "../MasterTable";
 import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
-import { getHMDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import type { EquipmentTableData } from "@/config/tables";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
-import RepairIcon from "@/public/appSvgs/RepairIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { Activity } from "lucide-react";
 
 import { StatItemUI } from "@/backend/data/StatsData";
-import { Calendar } from "lucide-react";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 
 import { filterEquipment } from "@/types/searching-entities";
@@ -42,10 +35,10 @@ export function EquipmentsTable({ equipments = [] }: { equipments: EquipmentTabl
         data: equipments,
         filterSearch: filterEquipment,
         filterStatus: (eq, status) => {
-            const isActive = eq.status === "public" || eq.status === "rental";
-            if (status === "Active") return isActive;
-            if (status === "Inactive") return !isActive;
-            return true;
+            if (status === "Kite") return eq.category === "kite";
+            if (status === "Wing") return eq.category === "wing";
+            if (status === "Windsurf") return eq.category === "windsurf";
+            return true; // "All"
         },
         dateField: "createdAt",
     });

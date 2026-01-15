@@ -27,6 +27,12 @@ export interface TransactionEventEquipment {
     color?: string;
 }
 
+export interface TransactionEventCommission {
+    id: string;
+    type: "fixed" | "percentage";
+    cph: number;
+}
+
 export interface TransactionEventData {
     event: {
         id: string;
@@ -43,6 +49,7 @@ export interface TransactionEventData {
     studentCount: number;
     studentNames: string[];
     packageData: TransactionEventPackage;
+    commission: TransactionEventCommission;
     financials: TransactionEventFinancials;
     equipments?: TransactionEventEquipment[];
 }

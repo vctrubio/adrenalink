@@ -1,7 +1,9 @@
 import { type ReactNode } from "react";
-import { getStudentId } from "@/supabase/server/student-id";
+import { getStudentUser } from "@/supabase/server/student-user";
 import { getSchoolHeader } from "@/types/headers";
 import UserWelcome from "@/src/components/UserWelcome";
+import { StudentUserProvider } from "@/src/providers/student-user-provider";
+import { StudentNavigation } from "./StudentNavigation";
 
 interface StudentLayoutProps {
     children: ReactNode;
@@ -12,18 +14,26 @@ export default async function StudentLayout({ children, params }: StudentLayoutP
     const { id: studentId } = await params;
 
     const schoolHeader = await getSchoolHeader();
-    const studentResult = await getStudentId(studentId);
+    const studentUserResult = await getStudentUser(studentId);
 
-    if (!studentResult.success || !studentResult.data) {
-        return <div className="p-4 text-destructive">Error loading student data: {studentResult.error || "Student not found"}</div>;
+    if (!studentUserResult.success || !studentUserResult.data) {
+        return <div className="p-4 text-destructive">Error loading student data: {studentUserResult.error || "Student not found"}</div>;
     }
 
-    const student = studentResult.data;
+    const studentUser = studentUserResult.data;
 
     return (
-        <div className="space-y-8 max-w-2xl mx-auto">
-            <UserWelcome firstName={student.schema.first_name} lastName={student.schema.last_name} schoolName={schoolHeader?.name} />
-            {children}
-        </div>
+        <StudentUserProvider
+            data={studentUser}
+            schoolId={schoolHeader?.id || ""}
+            currency={schoolHeader?.currency || "YEN"}
+            timezone={schoolHeader?.timezone}
+        >
+            <div className="space-y-6 max-w-2xl mx-auto p-4">
+                <UserWelcome firstName={studentUser.student.first_name} lastName={studentUser.student.last_name} schoolName={schoolHeader?.name} />
+                <StudentNavigation studentId={studentId} />
+                {children}
+            </div>
+        </StudentUserProvider>
     );
 }

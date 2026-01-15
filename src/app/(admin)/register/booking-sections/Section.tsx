@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-
 export interface SectionState {
     isSelected?: boolean;
     isLast?: boolean;
@@ -79,17 +77,11 @@ export function Section(config: SectionConfig) {
     };
 
     return (
-        <motion.div 
+        <div 
             id={id} 
-            className={`scroll-mt-4 ${shouldShowSeparator ? "mb-6 pb-6 border-b border-border/50" : ""} ${shouldHideTopBorder ? "-mt-6" : ""}`} 
-            layout
-            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className={`scroll-mt-4 ${shouldShowSeparator ? "mb-6 pb-6 border-b border-border/50" : ""} ${shouldHideTopBorder ? "-mt-6" : ""}`}
         >
-            <motion.div
-                className={className}
-                layout
-                transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            >
+            <div className={className}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 cursor-default">
                     <div className="flex items-center gap-3">
@@ -162,26 +154,11 @@ export function Section(config: SectionConfig) {
                     </div>
                 </div>
 
-                {/* Content with Framer Motion animations */}
-                <AnimatePresence initial={false}>
-                    {isExpanded && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{
-                                duration: 0.15,
-                                ease: [0.4, 0, 0.2, 1], // Custom cubic-bezier for smoother animation
-                                opacity: { duration: 0.1 }, // Faster opacity transition
-                            }}
-                            className="overflow-hidden will-change-[height,opacity]"
-                            style={{ transform: "translateZ(0)" }} // Force GPU acceleration
-                        >
-                            <div className="px-4 pb-4">{children}</div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-        </motion.div>
+                {/* Content */}
+                {isExpanded && (
+                    <div className="px-4 pb-4">{children}</div>
+                )}
+            </div>
+        </div>
     );
 }

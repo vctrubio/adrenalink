@@ -1,67 +1,55 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { type TeacherData } from "@/backend/data/TeacherData";
-import { buildEventModels, groupLessonsByCommission, groupEventsByLesson, type CommissionGroup } from "@/backend/data/EventModel";
-import { ENTITY_DATA } from "@/config/entities";
-import { TeacherBookingLessonTable } from "@/src/components/ids/TeacherBookingLessonTable";
-import { type LessonRow } from "@/backend/data/TeacherLessonData";
-import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import { useMemo } from "react";
+import { useTeacherUser } from "@/src/providers/teacher-user-provider";
+import type { LessonSummary } from "@/supabase/server/teacher-user";
 import { StatItemUI } from "@/backend/data/StatsData";
 
-interface TeacherCommissionsClientProps {
-    teacher: TeacherData;
-    currency: string;
+interface CommissionGroup {
+    commissionId: string;
+    commissionType: "fixed" | "percentage";
+    cph: number;
+    lessonCount: number;
+    totalDuration: number;
+    totalHours: number;
+    totalEarnings: number;
+    lessons: LessonSummary[];
 }
 
-// Sub-component: Commission Header
-function CommissionHeader({ commission, currency }: { commission: CommissionGroup; currency: string }) {
-    return (
-        <div className="flex items-center justify-between py-3 border-b border-border/40">
-            <div className="flex items-center gap-3">
-                <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={currency} />
-            </div>
-            <div className="flex items-center gap-x-6 gap-y-2 opacity-80">
-                <StatItemUI type="lessons" value={commission.lessonCount} hideLabel={false} iconColor={false} />
-                <StatItemUI type="duration" value={commission.hours * 60} hideLabel={false} iconColor={false} />
-                <StatItemUI type="commission" value={commission.earning} hideLabel={false} variant="primary" iconColor={false} />
-            </div>
-        </div>
-    );
-}
+export function TeacherCommissionsClient() {
+    const { data: teacherUser, currency } = useTeacherUser();
 
-export function TeacherCommissionsClient({ teacher, currency }: TeacherCommissionsClientProps) {
-    const router = useRouter();
-    const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
-
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-
-    // Build event models (all events)
-    const eventModels = useMemo(() => {
-        const lessons = teacher.relations?.lesson || [];
-        return buildEventModels(lessons, {
-            id: teacher.schema.id,
-            first_name: teacher.schema.first_name,
-            username: teacher.schema.username,
-        });
-    }, [teacher]);
-
-    // Handle equipment update
-    const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
-        router.refresh();
-    }, [router]);
-
-    // Group events by lesson (needed for commission grouping)
-    const lessonGroups = useMemo(() => {
-        return groupEventsByLesson(eventModels);
-    }, [eventModels]);
-
-    // Group lessons by commission
+    // Group lesson summaries by commission ID
     const commissionGroups = useMemo(() => {
-        return groupLessonsByCommission(lessonGroups);
-    }, [lessonGroups]);
+        const groupMap = new Map<string, CommissionGroup>();
+
+        teacherUser.lessonSummaries.forEach((lesson) => {
+            if (!groupMap.has(lesson.commissionId)) {
+                groupMap.set(lesson.commissionId, {
+                    commissionId: lesson.commissionId,
+                    commissionType: lesson.commissionType,
+                    cph: lesson.cph,
+                    lessonCount: 0,
+                    totalDuration: 0,
+                    totalHours: 0,
+                    totalEarnings: 0,
+                    lessons: [],
+                });
+            }
+
+            const group = groupMap.get(lesson.commissionId)!;
+            group.lessonCount++;
+            group.totalDuration += lesson.totalDuration;
+            group.totalEarnings += lesson.totalEarnings;
+            group.lessons.push(lesson);
+        });
+
+        // Convert to array and calculate hours
+        return Array.from(groupMap.values()).map((group) => ({
+            ...group,
+            totalHours: group.totalDuration / 60,
+        }));
+    }, [teacherUser.lessonSummaries]);
 
     return (
         <div className="space-y-6">
@@ -71,49 +59,77 @@ export function TeacherCommissionsClient({ teacher, currency }: TeacherCommissio
                 <p className="text-muted-foreground">No commissions found</p>
             ) : (
                 <div className="space-y-8">
-                    {commissionGroups.map((commission, idx) => (
-                        <div key={idx} className="space-y-2">
-                            <CommissionHeader commission={commission} currency={currency} />
-                            <div className="space-y-3">
-                                {commission.lessons.map((lesson) => {
-                                    // Convert LessonGroup to LessonRow format for TeacherBookingLessonTable
-                                    const lessonRow: LessonRow = {
-                                        lessonId: lesson.lessonId,
-                                        bookingId: lesson.bookingId,
-                                        leaderName: lesson.leaderName,
-                                        dateStart: lesson.dateStart,
-                                        dateEnd: lesson.dateEnd,
-                                        lessonStatus: lesson.lessonStatus,
-                                        bookingStatus: lesson.bookingStatus,
-                                        commissionType: lesson.commissionType,
-                                        cph: lesson.cph,
-                                        totalDuration: lesson.totalDuration,
-                                        totalHours: lesson.totalHours,
-                                        totalEarning: lesson.totalEarning,
-                                        eventCount: lesson.eventCount,
-                                        events: lesson.events,
-                                        equipmentCategory: lesson.equipmentCategory,
-                                        studentCapacity: lesson.studentCapacity,
-                                    };
-                                    return (
-                                        <TeacherBookingLessonTable
-                                            key={lesson.lessonId}
-                                            lesson={lessonRow}
-                                            isExpanded={expandedLesson === lesson.lessonId}
-                                            onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                                            bookingEntity={bookingEntity}
-                                            studentEntity={studentEntity}
-                                            teacherId={teacher.schema.id}
-                                            teacherUsername={teacher.schema.username}
-                                            onEquipmentUpdate={handleEquipmentUpdate}
-                                        />
-                                    );
-                                })}
+                    {commissionGroups.map((commission) => (
+                        <div key={commission.commissionId} className="space-y-4">
+                            {/* Commission Header */}
+                            <div className="flex items-center justify-between py-4 px-5 border border-border bg-card rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Commission Type</span>
+                                        <span className="text-2xl font-black text-foreground">
+                                            {commission.commissionType === "fixed"
+                                                ? `${commission.cph} ${currency}/hr`
+                                                : `${commission.cph}% Revenue`}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-x-8 gap-y-2 opacity-80">
+                                    <StatItemUI type="lessons" value={commission.lessonCount} hideLabel={false} iconColor={false} />
+                                    <StatItemUI type="duration" value={commission.totalDuration} hideLabel={false} iconColor={false} />
+                                    <StatItemUI
+                                        type="commission"
+                                        value={commission.totalEarnings}
+                                        hideLabel={false}
+                                        variant="primary"
+                                        iconColor={false}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Lesson List for this commission */}
+                            <div className="pl-4 space-y-2">
+                                {commission.lessons.map((lesson) => (
+                                    <LessonSummaryCard key={lesson.lessonId} lesson={lesson} currency={currency} />
+                                ))}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
+        </div>
+    );
+}
+
+// Sub-component: Lesson Summary Card
+function LessonSummaryCard({ lesson, currency }: { lesson: LessonSummary; currency: string }) {
+    const hours = lesson.totalDuration / 60;
+
+    return (
+        <div className="flex items-center justify-between py-3 px-4 bg-muted/20 rounded-lg border border-border/30 hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground font-medium">Lesson</span>
+                    <span className="text-sm font-mono text-foreground/80">{lesson.lessonId.slice(0, 8)}</span>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-x-6 gap-y-1 text-sm">
+                <div className="flex flex-col items-end">
+                    <span className="text-xs text-muted-foreground">Events</span>
+                    <span className="font-semibold text-foreground">{lesson.eventCount}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                    <span className="text-xs text-muted-foreground">Hours</span>
+                    <span className="font-semibold text-foreground">{hours.toFixed(1)}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                    <span className="text-xs text-muted-foreground">Earned</span>
+                    <span className="font-bold text-primary">
+                        {lesson.totalEarnings.toFixed(0)} {currency}
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }
