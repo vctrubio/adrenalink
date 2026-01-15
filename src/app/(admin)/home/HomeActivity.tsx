@@ -24,6 +24,20 @@ function Heatmap({
     selectedDate: string | null;
 }) {
     const { weeks, monthLabels } = useMemo(() => {
+        // Helper to format date as YYYY-MM-DD using local timezone
+        const formatDateKey = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        };
+
+        // Helper to parse YYYY-MM-DD to local date
+        const parseDateKey = (dateKey: string): Date => {
+            const [year, month, day] = dateKey.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        };
+
         const today = new Date();
         const endDate = new Date(today);
         while (endDate.getDay() !== 6) endDate.setDate(endDate.getDate() + 1);
@@ -47,7 +61,7 @@ function Heatmap({
 
         let weekIdx = 0;
         while (iterDate <= endDate) {
-            const dateKey = iterDate.toISOString().split("T")[0];
+            const dateKey = formatDateKey(iterDate);
             const stats = data[dateKey];
             let intensity = 0;
 
@@ -58,11 +72,11 @@ function Heatmap({
             currentWeek.push({ date: dateKey, intensity });
 
             if (currentWeek.length === 7) {
-                const month = new Date(currentWeek[0].date).getMonth();
+                const month = parseDateKey(currentWeek[0].date).getMonth();
                 if (month !== currentMonth) {
                     currentMonth = month;
                     labels.push({
-                        name: new Date(currentWeek[0].date).toLocaleDateString(undefined, { month: "short" }),
+                        name: parseDateKey(currentWeek[0].date).toLocaleDateString(undefined, { month: "short" }),
                         weekIndex: weekIdx,
                     });
                 }
@@ -226,7 +240,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                         </div>
 
                         {filteredEvents.length > 0 ? (
-                            <TransactionEventsTable events={filteredEvents} groupBy="none" />
+                            <TransactionEventsTable events={filteredEvents} groupBy="all" />
                         ) : (
                             <div className="p-12 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5 max-w-7xl mx-auto">
                                 <p className="text-muted-foreground font-medium italic">No transactions recorded for this date.</p>

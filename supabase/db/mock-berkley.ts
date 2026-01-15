@@ -1,4 +1,4 @@
-/**
+s/**
  * Mock Berkley Windsurf Academy - Complete Seed
  *
  * Comprehensive seeding flow:
@@ -169,36 +169,55 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
         packages.forEach((p) => packageMap.set(p.id, p));
 
 
-        // 5. Create Bookings (today to +3 days)
-        console.log("5️⃣  Creating bookings (today to +3 days)...");
-        // Create 60 bookings, spread over 4 days, 1 per student per package
+        // 5. Create Bookings (today to 6 months ago)
+        console.log("5️⃣  Creating bookings (today to 6 months ago)...");
         const today = new Date();
+        const sixMonthsAgo = new Date(today);
+        sixMonthsAgo.setMonth(today.getMonth() - 6);
+        
         const bookings = [];
         const bookingStudents = new Map();
         let bookingCount = 0;
-        for (let day = 0; day < 4; day++) {
-            for (const pkg of packages) {
-                for (const student of students) {
-                    const date = new Date(today);
-                    date.setDate(today.getDate() + day);
-                    const { data: bookingData, error: bookingError } = await supabase.from("booking").insert({
-                        school_id: schoolId,
-                        school_package_id: pkg.id,
-                        date_start: date.toISOString().slice(0, 10),
-                        date_end: date.toISOString().slice(0, 10),
-                        leader_student_name: `${student.first_name} ${student.last_name}`,
-                        status: "completed",
-                    }).select();
-                    if (bookingError || !bookingData || bookingData.length === 0) throw new Error("Failed to create booking");
-                    const booking = bookingData[0];
-                    bookings.push(booking);
-                    await supabase.from("booking_student").insert({ booking_id: booking.id, student_id: student.id });
-                    bookingStudents.set(booking.id, [student.id]);
-                    bookingCount++;
-                }
+        
+        // Create bookings spread over 6 months
+        // Each student gets 1 booking (usually, but can be group capacity)
+        const totalDays = Math.floor((today.getTime() - sixMonthsAgo.getTime()) / (1000 * 60 * 60 * 24));
+        
+        for (const student of students) {
+            // Each student gets 1 booking, randomly distributed over the 6 months
+            const randomDayOffset = Math.floor(Math.random() * totalDays);
+            const bookingDate = new Date(sixMonthsAgo);
+            bookingDate.setDate(sixMonthsAgo.getDate() + randomDayOffset);
+            
+            // Pick a random package (can be group capacity)
+            const pkg = packages[Math.floor(Math.random() * packages.length)];
+            
+            // Determine if this is a group booking (20% chance for group packages)
+            const isGroup = pkg.capacity_students > 1 && Math.random() < 0.2;
+            const studentIds = isGroup && pkg.capacity_students > 1
+                ? [student.id, ...students.filter(s => s.id !== student.id).slice(0, pkg.capacity_students - 1).map(s => s.id)]
+                : [student.id];
+            
+            const { data: bookingData, error: bookingError } = await supabase.from("booking").insert({
+                school_id: schoolId,
+                school_package_id: pkg.id,
+                date_start: bookingDate.toISOString().slice(0, 10),
+                date_end: bookingDate.toISOString().slice(0, 10),
+                leader_student_name: `${student.first_name} ${student.last_name}`,
+                status: "completed",
+            }).select();
+            if (bookingError || !bookingData || bookingData.length === 0) throw new Error("Failed to create booking");
+            const booking = bookingData[0];
+            bookings.push(booking);
+            
+            // Link all students to the booking
+            for (const studentId of studentIds) {
+                await supabase.from("booking_student").insert({ booking_id: booking.id, student_id: studentId });
             }
+            bookingStudents.set(booking.id, studentIds);
+            bookingCount++;
         }
-        console.log(`✅ Created ${bookingCount} bookings from today to +3 days (all COMPLETED)`);
+        console.log(`✅ Created ${bookingCount} bookings from 6 months ago to today (all COMPLETED)`);
 
 
         // 6. Create Teacher-Equipment Relations (diverse, at least one per category)
@@ -238,26 +257,39 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
             new Map(),
         );
 
-        // 8. Add Equipment to Events (match category)
+        // 8. Add Equipment to Events (match category and assign properly)
         console.log("8️⃣  Adding equipment to events...");
         for (const event of events) {
             const lesson = lessons.find(l => l.id === event.lesson_id);
             if (!lesson) continue;
-            const requiredCategory = lesson._categoryEquipment;
-            // Find the school_package for this event
-            const pkg = packages.find(p => p.id === event.school_package_id);
-            const capacity = pkg ? pkg.capacity_equipment : 1;
-            // Gather all eligible equipment (from all teachers) for this category
-            const eligible = [];
-            for (const eqIds of teacherEquipmentMap.values()) {
-                for (const id of eqIds) {
-                    const eq = equipment.find(e => e.id === id && e.category === requiredCategory);
-                    if (eq) eligible.push(eq);
-                }
-            }
+            
+            // Get the package to find required category and capacity
+            const booking = bookings.find(b => b.id === lesson.booking_id);
+            if (!booking) continue;
+            const pkg = packages.find(p => p.id === booking.school_package_id);
+            if (!pkg) continue;
+            
+            const requiredCategory = pkg.category_equipment;
+            const capacity = pkg.capacity_equipment;
+            
+            // Get teacher's equipment for this category
+            const teacherEquipIds = teacherEquipmentMap.get(lesson.teacher_id) || [];
+            const eligible = equipment.filter(e => 
+                teacherEquipIds.includes(e.id) && e.category === requiredCategory
+            );
+            
+            // If teacher doesn't have equipment of this category, find any equipment of this category
+            const fallbackEligible = eligible.length === 0
+                ? equipment.filter(e => e.category === requiredCategory)
+                : eligible;
+            
             // Assign up to capacity_equipment equipment to the event
-            for (let i = 0; i < Math.min(capacity, eligible.length); i++) {
-                await supabase.from("equipment_event").insert({ equipment_id: eligible[i].id, event_id: event.id });
+            const equipmentToAssign = fallbackEligible.slice(0, Math.min(capacity, fallbackEligible.length));
+            for (const eq of equipmentToAssign) {
+                await supabase.from("equipment_event").insert({ 
+                    equipment_id: eq.id, 
+                    event_id: event.id 
+                });
             }
         }
         console.log("✅ Added equipment to events by category");
@@ -285,11 +317,11 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
 
         console.log("\n✨ Berkley Windsurf Academy FRESH seed completed successfully!");
         console.log(`   School ID: ${schoolId}`);
-        console.log("   Username: berkley12");
+        console.log("   Username: berkley");
         console.log(`   Teachers: ${teachers.length}`);
         console.log(`   Students: ${students.length}`);
         console.log(`   Packages: ${packages.length}`);
-        console.log(`   Bookings: ${bookings.length} (today to +3 days)`);
+        console.log(`   Bookings: ${bookings.length} (6 months ago to today)`);
         console.log(`   Lessons: ${lessons.length} (1 per booking)`);
         console.log(`   Events: ${events.length}`);
         console.log(`   Equipment: ${equipment.length}`);
