@@ -1,10 +1,12 @@
 "use server";
 
-import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { getServerConnection } from "@/supabase/connection";
 import { getStudentBookingStatus } from "@/supabase/rpc/student_booking_status";
+import { getSchoolContextOrFail } from "@/backend/school-context";
+import { handleSupabaseError, isUniqueConstraintError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export interface StudentPayload {
     first_name: string;
@@ -57,23 +59,24 @@ export async function createAndLinkStudent(
     }>
 > {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
         // Create student
-        const { data: createdStudent, error: studentError } = await supabase.from("student").insert(studentData).select().single();
+        const { data: createdStudent, error: studentError } = await supabase
+            .from("student")
+            .insert(studentData)
+            .select()
+            .single();
 
         if (studentError || !createdStudent) {
-            if (studentError?.code === "23505" || studentError?.message?.includes("unique constraint")) {
+            if (isUniqueConstraintError(studentError)) {
                 return { success: false, error: "Student with this passport already exists" };
             }
-            return { success: false, error: "Failed to create student" };
+            return handleSupabaseError(studentError, "create student", "Failed to create student");
         }
 
         // Link to school
@@ -90,8 +93,10 @@ export async function createAndLinkStudent(
             .single();
 
         if (linkError || !createdSchoolStudent) {
-            return { success: false, error: "Failed to link student to school" };
+            return handleSupabaseError(linkError, "link student to school", "Failed to link student to school");
         }
+
+        logger.info("Created and linked student", { studentId: createdStudent.id, schoolId });
 
         return {
             success: true,
@@ -101,7 +106,7 @@ export async function createAndLinkStudent(
             },
         };
     } catch (error) {
-        console.error("Error creating and linking student:", error);
+        logger.error("Error creating and linking student", error);
         return { success: false, error: "Failed to create and link student" };
     }
 }
@@ -119,12 +124,9 @@ export async function createAndLinkTeacher(
     }>
 > {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
@@ -139,14 +141,14 @@ export async function createAndLinkTeacher(
             .single();
 
         if (teacherError || !createdTeacher) {
-            if (teacherError?.code === "23505" || teacherError?.message?.includes("unique constraint")) {
+            if (isUniqueConstraintError(teacherError)) {
                 if (teacherError?.message?.includes("passport")) {
                     return { success: false, error: "Teacher with this passport already exists" };
                 } else if (teacherError?.message?.includes("username")) {
                     return { success: false, error: "Teacher with this username already exists for this school" };
                 }
             }
-            return { success: false, error: "Failed to create teacher" };
+            return handleSupabaseError(teacherError, "create teacher", "Failed to create teacher");
         }
 
         // Create commissions
@@ -164,11 +166,13 @@ export async function createAndLinkTeacher(
                 .single();
 
             if (commissionError || !createdCommission) {
-                return { success: false, error: "Failed to create teacher commissions" };
+                return handleSupabaseError(commissionError, "create teacher commission", "Failed to create teacher commissions");
             }
 
             createdCommissions.push(createdCommission);
         }
+
+        logger.info("Created teacher with commissions", { teacherId: createdTeacher.id, commissionCount: createdCommissions.length });
 
         return {
             success: true,
@@ -178,7 +182,7 @@ export async function createAndLinkTeacher(
             },
         };
     } catch (error) {
-        console.error("Error creating teacher:", error);
+        logger.error("Error creating teacher", error);
         return { success: false, error: "Failed to create teacher" };
     }
 }
@@ -188,12 +192,9 @@ export async function createAndLinkTeacher(
  */
 export async function createSchoolPackage(packageData: PackagePayload): Promise<ApiActionResponseModel<any>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
@@ -207,12 +208,13 @@ export async function createSchoolPackage(packageData: PackagePayload): Promise<
             .single();
 
         if (error || !createdPackage) {
-            return { success: false, error: "Failed to create package" };
+            return handleSupabaseError(error, "create school package", "Failed to create package");
         }
 
+        logger.info("Created school package", { packageId: createdPackage.id });
         return { success: true, data: createdPackage };
     } catch (error) {
-        console.error("Error creating package:", error);
+        logger.error("Error creating package", error);
         return { success: false, error: "Failed to create package" };
     }
 }
@@ -229,12 +231,9 @@ export async function createSchoolEquipment(equipmentData: {
     status?: string;
 }): Promise<ApiActionResponseModel<any>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
@@ -248,12 +247,13 @@ export async function createSchoolEquipment(equipmentData: {
             .single();
 
         if (error || !createdEquipment) {
-            return { success: false, error: "Failed to create equipment" };
+            return handleSupabaseError(error, "create equipment", "Failed to create equipment");
         }
 
+        logger.info("Created equipment", { equipmentId: createdEquipment.id });
         return { success: true, data: createdEquipment };
     } catch (error) {
-        console.error("Error creating equipment:", error);
+        logger.error("Error creating equipment", error);
         return { success: false, error: "Failed to create equipment" };
     }
 }
@@ -285,12 +285,9 @@ export async function masterBookingAdd(
             return { success: false, error: "Commission ID is required when teacher is provided" };
         }
 
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
@@ -309,7 +306,7 @@ export async function masterBookingAdd(
             .single();
 
         if (bookingError || !createdBooking) {
-            return { success: false, error: "Failed to create booking" };
+            return handleSupabaseError(bookingError, "create booking", "Failed to create booking");
         }
 
         // Link students to booking
@@ -320,7 +317,7 @@ export async function masterBookingAdd(
             });
 
             if (linkError) {
-                return { success: false, error: "Failed to link students to booking" };
+                return handleSupabaseError(linkError, "link student to booking", "Failed to link students to booking");
             }
         }
 
@@ -340,16 +337,15 @@ export async function masterBookingAdd(
                 .single();
 
             if (lessonError) {
-                return { success: false, error: "Failed to create lesson" };
+                return handleSupabaseError(lessonError, "create lesson", "Failed to create lesson");
             }
 
             createdLesson = lesson;
-
-            // Revalidate teacher path only if lesson was created
             revalidatePath("/teachers");
         }
 
-        // Revalidate student and package paths
+        logger.info("Created booking with students", { bookingId: createdBooking.id, studentCount: studentIds.length, hasLesson: !!createdLesson });
+
         revalidatePath("/students");
         revalidatePath("/packages");
 
@@ -361,7 +357,7 @@ export async function masterBookingAdd(
             },
         };
     } catch (error) {
-        console.error("Error creating booking:", error);
+        logger.error("Error creating booking", error);
         return { success: false, error: "Failed to create booking" };
     }
 }
@@ -423,12 +419,9 @@ export interface RegisterTables {
  */
 export async function getRegisterTables(): Promise<ApiActionResponseModel<RegisterTables>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-
-        if (!schoolId) {
-            return { success: false, error: "School ID not found in headers" };
-        }
+        const contextResult = await getSchoolContextOrFail();
+        if (!contextResult.success) return contextResult;
+        const { schoolId } = contextResult.data;
 
         const supabase = getServerConnection();
 
@@ -436,19 +429,23 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
         const bookingStatsResults = await getStudentBookingStatus(schoolId);
 
         // Fetch packages
-        const { data: packages, error: packagesError } = await supabase.from("school_package").select("*").eq("school_id", schoolId);
+        const { data: packages, error: packagesError } = await supabase
+            .from("school_package")
+            .select("*")
+            .eq("school_id", schoolId);
 
         if (packagesError) {
-            console.error("Error fetching packages:", packagesError);
-            return { success: false, error: "Failed to fetch packages" };
+            return handleSupabaseError(packagesError, "fetch packages", "Failed to fetch packages");
         }
 
         // Fetch referrals
-        const { data: referrals, error: referralsError } = await supabase.from("referral").select("*").eq("school_id", schoolId);
+        const { data: referrals, error: referralsError } = await supabase
+            .from("referral")
+            .select("*")
+            .eq("school_id", schoolId);
 
         if (referralsError) {
-            console.error("Error fetching referrals:", referralsError);
-            return { success: false, error: "Failed to fetch referrals" };
+            return handleSupabaseError(referralsError, "fetch referrals", "Failed to fetch referrals");
         }
 
         // Transform RPC results to RegisterTables format
@@ -470,7 +467,7 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
             },
         }));
 
-        const transformedPackages = (packages || []).map((p: any) => ({
+        const transformedPackages = safeArray(packages).map((p: any) => ({
             id: p.id,
             durationMinutes: p.duration_minutes,
             description: p.description,
@@ -483,7 +480,7 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
             active: p.active,
         }));
 
-        const transformedReferrals = (referrals || []).map((r: any) => ({
+        const transformedReferrals = safeArray(referrals).map((r: any) => ({
             id: r.id,
             code: r.code,
             commissionType: r.commission_type,
@@ -492,7 +489,7 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
             active: r.active,
         }));
 
-        // Transform RPC results to studentBookingStats (already have bookingStatsResults from above)
+        // Transform RPC results to studentBookingStats
         const studentBookingStats: Record<
             string,
             {
@@ -511,7 +508,8 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
                 allBookingsCompleted: stat.all_bookings_completed,
             };
         });
-        console.log("[getRegisterTables] studentBookingStats:", studentBookingStats);
+
+        logger.info("Fetched register tables", { studentCount: transformedStudents.length, packageCount: transformedPackages.length, referralCount: transformedReferrals.length });
 
         return {
             success: true,
@@ -523,7 +521,7 @@ export async function getRegisterTables(): Promise<ApiActionResponseModel<Regist
             },
         };
     } catch (error) {
-        console.error("Error in getRegisterTables:", error);
+        logger.error("Error fetching register tables", error);
         return { success: false, error: "Failed to fetch register tables" };
     }
 }

@@ -9,6 +9,7 @@ import {
     isPublicPath,
 } from "@/types/auth-utils";
 import { HEADER_KEYS, setHeader } from "@/types/header-constants";
+import { logger } from "@/backend/logger";
 
 /**
  * Helper to construct discover redirect URL based on domain type
@@ -78,14 +79,14 @@ export async function proxy(request: NextRequest) {
             const { data } = await supabase.from("school").select("id, timezone").eq("username", subdomainInfo.subdomain).single();
 
             if (!data?.id) {
-                printf("DEV:DEBUG ❌ SCHOOL NOT FOUND FOR:", subdomainInfo.subdomain);
+                logger.warn("School not found for subdomain", { subdomain: subdomainInfo.subdomain });
                 const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
                 return NextResponse.redirect(discoverUrl);
             }
             schoolId = data.id;
             timezone = data.timezone;
         } catch (error) {
-            printf("DEV:DEBUG ❌ SCHOOL LOOKUP ERROR:", error);
+            logger.error("School lookup failed", error, { subdomain: subdomainInfo.subdomain });
             const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
             return NextResponse.redirect(discoverUrl);
         }
