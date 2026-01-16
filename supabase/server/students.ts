@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
 import { calculateStudentStats } from "@/backend/data/StudentData";
 import { calculateBookingStats } from "@/backend/data/BookingData";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {
     try {
@@ -10,7 +12,6 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
-            console.error("❌ No school ID found in headers");
             return [];
         }
 
@@ -62,11 +63,11 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
             .eq("school_id", schoolId);
 
         if (error) {
-            console.error("Error fetching students table:", error);
+            logger.error("Error fetching students table", error);
             return [];
         }
 
-        return data.map((ss: any) => {
+        const result = safeArray(data).map((ss: any) => {
             const student = ss.student;
 
             const bookings = student.booking_student.map((bs: any) => {
@@ -130,7 +131,7 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                 };
             });
 
-            const result: StudentWithBookingsAndPayments = {
+            const studentResult: StudentWithBookingsAndPayments = {
                 id: student.id,
                 firstName: student.first_name,
                 lastName: student.last_name,
@@ -143,15 +144,18 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                 bookings,
             };
 
-            const stats = calculateStudentStats(result);
+            const stats = calculateStudentStats(studentResult);
 
             return {
-                ...result,
+                ...studentResult,
                 stats,
             };
         });
+
+        logger.debug("Fetched students table", { schoolId, count: result.length });
+        return result;
     } catch (error) {
-        console.error("Unexpected error in getStudentsTable:", error);
+        logger.error("Error fetching students table", error);
         return [];
     }
 }

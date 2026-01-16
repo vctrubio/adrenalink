@@ -5,6 +5,8 @@ import { getSchoolHeader } from "@/types/headers";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
 import { Booking } from "@/supabase/db/types";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 import { headers } from "next/headers";
 
@@ -80,17 +82,16 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             .single();
 
         if (bookingError || !booking) {
-            console.error("Error fetching booking details:", bookingError);
-            return { success: false, error: "Booking not found" };
+            return handleSupabaseError(bookingError, "fetch booking details", "Booking not found");
         }
 
         // Map Relations
-        const students = (booking.booking_student || []).map((bs: any) => bs.student).filter(Boolean);
+        const students = safeArray(booking.booking_student).map((bs: any) => bs.student).filter(Boolean);
 
         const relations: BookingRelations = {
             school_package: booking.school_package,
             students,
-            lessons: (booking.lesson || []).map((l: any) => {
+            lessons: safeArray(booking.lesson).map((l: any) => {
                 // Convert event times if timezone is available
                 const events = (l.event || []).map((evt: any) => {
                     if (timezone) {
@@ -116,7 +117,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                     },
                 };
             }),
-            student_booking_payment: (booking.student_booking_payment || []).map((p: any) => ({
+            student_booking_payment: safeArray(booking.student_booking_payment).map((p: any) => ({
                 id: p.id,
                 amount: p.amount,
                 created_at: p.created_at,
@@ -145,9 +146,10 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             relations,
         };
 
+        logger.debug("Fetched booking details", { bookingId: id, schoolId, lessonCount: relations.lessons.length });
         return { success: true, data: bookingData };
     } catch (error) {
-        console.error("Unexpected error in getBookingId:", error);
+        logger.error("Error fetching booking details", error);
         return { success: false, error: "Failed to fetch booking" };
     }
 }
@@ -167,13 +169,13 @@ export async function updateBookingStatus(bookingId: string, status: string): Pr
         const { error } = await supabase.from("booking").update({ status }).eq("id", bookingId).eq("school_id", schoolHeader.id);
 
         if (error) {
-            console.error("Error updating booking status:", error);
-            return { success: false, error: "Failed to update booking status" };
+            return handleSupabaseError(error, "update booking status", "Failed to update booking status");
         }
 
+        logger.info("Updated booking status", { bookingId, status });
         return { success: true };
     } catch (error) {
-        console.error("Unexpected error in updateBookingStatus:", error);
+        logger.error("Error updating booking status", error);
         return { success: false, error: "Failed to update booking status" };
     }
 }

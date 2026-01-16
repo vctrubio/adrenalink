@@ -2,6 +2,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { EquipmentData, EquipmentUpdateForm, EquipmentRelations } from "@/backend/data/EquipmentData";
 import { Equipment } from "@/supabase/db/types";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 /**
  * Fetches equipment by ID with all relations mapped to EquipmentData interface.
@@ -52,19 +54,18 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
             .single();
 
         if (equipmentError || !equipment) {
-            console.error("Error fetching equipment details:", equipmentError);
-            return { success: false, error: "Equipment not found" };
+            return handleSupabaseError(equipmentError, "fetch equipment details", "Equipment not found");
         }
 
         // Map Relations
         const relations: EquipmentRelations = {
-            repairs: (equipment.equipment_repair || []).map((r: any) => ({
+            repairs: safeArray(equipment.equipment_repair).map((r: any) => ({
                 id: r.id,
                 description: r.description,
                 created_at: r.created_at,
             })),
-            teachers: (equipment.teacher_equipment || []).map((te: any) => te.teacher).filter(Boolean),
-            events: (equipment.equipment_event || [])
+            teachers: safeArray(equipment.teacher_equipment).map((te: any) => te.teacher).filter(Boolean),
+            events: safeArray(equipment.equipment_event)
                 .map((ee: any) => {
                     if (!ee.event) return null;
                     return {
@@ -73,12 +74,12 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
                     };
                 })
                 .filter(Boolean),
-            rentals: (equipment.rental_equipment || [])
+            rentals: safeArray(equipment.rental_equipment)
                 .map((re: any) => {
                     if (!re.rental) return null;
                     return {
                         ...re.rental,
-                        students: (re.rental.rental_student || []).map((rs: any) => rs.student).filter(Boolean),
+                        students: safeArray(re.rental.rental_student).map((rs: any) => rs.student).filter(Boolean),
                     };
                 })
                 .filter(Boolean),
@@ -106,9 +107,10 @@ export async function getEquipmentId(id: string): Promise<{ success: boolean; da
             relations,
         };
 
+        logger.debug("Fetched equipment details", { equipmentId: id, schoolId: schoolHeader.id });
         return { success: true, data: equipmentData };
     } catch (error) {
-        console.error("Unexpected error in getEquipmentId:", error);
+        logger.error("Error fetching equipment details", error);
         return { success: false, error: "Failed to fetch equipment" };
     }
 }

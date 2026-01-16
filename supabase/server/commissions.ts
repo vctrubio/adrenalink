@@ -3,6 +3,8 @@
 import { getServerConnection } from "@/supabase/connection";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export interface CommissionData {
     id: string;
@@ -28,7 +30,6 @@ export interface CommissionForm {
 export async function createCommission(commissionData: CommissionForm): Promise<ApiActionResponseModel<CommissionData>> {
     try {
         const supabase = getServerConnection();
-
         const { data, error } = await supabase
             .from("teacher_commission")
             .insert({
@@ -41,14 +42,14 @@ export async function createCommission(commissionData: CommissionForm): Promise<
             .single();
 
         if (error) {
-            console.error("Error creating commission:", error);
-            return { success: false, error: "Failed to create commission" };
+            return handleSupabaseError(error, "create commission", "Failed to create commission");
         }
 
+        logger.info("Created commission", { commissionId: data.id, teacherId: commissionData.teacherId });
         revalidatePath("/");
         return { success: true, data };
     } catch (error) {
-        console.error("Error in createCommission:", error);
+        logger.error("Error creating commission", error);
         return { success: false, error: "Failed to create commission" };
     }
 }
@@ -59,18 +60,17 @@ export async function createCommission(commissionData: CommissionForm): Promise<
 export async function deleteCommission(commissionId: string): Promise<ApiActionResponseModel<null>> {
     try {
         const supabase = getServerConnection();
-
         const { error } = await supabase.from("teacher_commission").delete().eq("id", commissionId);
 
         if (error) {
-            console.error("Error deleting commission:", error);
-            return { success: false, error: "Failed to delete commission" };
+            return handleSupabaseError(error, "delete commission", "Failed to delete commission");
         }
 
+        logger.info("Deleted commission", { commissionId });
         revalidatePath("/");
         return { success: true, data: null };
     } catch (error) {
-        console.error("Error in deleteCommission:", error);
+        logger.error("Error deleting commission", error);
         return { success: false, error: "Failed to delete commission" };
     }
 }
@@ -81,7 +81,6 @@ export async function deleteCommission(commissionId: string): Promise<ApiActionR
 export async function getCommissionsByTeacherId(teacherId: string): Promise<ApiActionResponseModel<CommissionData[]>> {
     try {
         const supabase = getServerConnection();
-
         const { data, error } = await supabase
             .from("teacher_commission")
             .select("*")
@@ -89,13 +88,13 @@ export async function getCommissionsByTeacherId(teacherId: string): Promise<ApiA
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching commissions:", error);
-            return { success: false, error: "Failed to fetch commissions" };
+            return handleSupabaseError(error, "fetch commissions by teacher", "Failed to fetch commissions");
         }
 
-        return { success: true, data: data || [] };
+        logger.debug("Fetched teacher commissions", { teacherId, count: safeArray(data).length });
+        return { success: true, data: safeArray(data) };
     } catch (error) {
-        console.error("Error in getCommissionsByTeacherId:", error);
+        logger.error("Error fetching commissions", error);
         return { success: false, error: "Failed to fetch commissions" };
     }
 }
@@ -110,13 +109,12 @@ export async function getCommissionById(commissionId: string): Promise<ApiAction
         const { data, error } = await supabase.from("teacher_commission").select("*").eq("id", commissionId).single();
 
         if (error) {
-            console.error("Error fetching commission:", error);
-            return { success: false, error: "Commission not found" };
+            return handleSupabaseError(error, "fetch commission by ID", "Commission not found");
         }
 
         return { success: true, data };
     } catch (error) {
-        console.error("Error in getCommissionById:", error);
+        logger.error("Error in getCommissionById", error);
         return { success: false, error: "Failed to fetch commission" };
     }
 }
@@ -139,14 +137,14 @@ export async function updateCommission(
         const { data, error } = await supabase.from("teacher_commission").update(updateData).eq("id", commissionId).select().single();
 
         if (error) {
-            console.error("Error updating commission:", error);
-            return { success: false, error: "Failed to update commission" };
+            return handleSupabaseError(error, "update commission", "Failed to update commission");
         }
 
+        logger.info("Updated commission", { commissionId, updates });
         revalidatePath("/");
         return { success: true, data };
     } catch (error) {
-        console.error("Error in updateCommission:", error);
+        logger.error("Error updating commission", error);
         return { success: false, error: "Failed to update commission" };
     }
 }

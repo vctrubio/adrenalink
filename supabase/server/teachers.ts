@@ -7,6 +7,8 @@ import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayment
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
 import { getTeacherEventsRPC } from "@/supabase/rpc/teacher_events";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export interface TeacherProvider {
     schema: {
@@ -38,7 +40,6 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
-            console.error("❌ No school ID found in headers");
             return { success: false, error: "School ID not found" };
         }
 
@@ -73,11 +74,10 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
             .order("username", { ascending: true });
 
         if (error) {
-            console.error("Error fetching teachers provider:", error);
-            return { success: false, error: "Failed to fetch teachers" };
+            return handleSupabaseError(error, "fetch teachers provider", "Failed to fetch teachers");
         }
 
-        const teachers = data.map((t: any) => {
+        const teachers = safeArray(data).map((t: any) => {
             const lessons = t.lesson || [];
             const totalLessons = lessons.length;
             const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
@@ -107,9 +107,10 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
             };
         });
 
+        logger.debug("Fetched teachers provider", { schoolId, count: teachers.length });
         return { success: true, data: teachers };
     } catch (error) {
-        console.error("Unexpected error in getSchoolTeacherProvider:", error);
+        logger.error("Error fetching teachers provider", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }
@@ -120,7 +121,6 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
-            console.error("❌ No school ID found in headers");
             return [];
         }
 
@@ -181,11 +181,11 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching teachers table:", error);
+            logger.error("Error fetching teachers table", error);
             return [];
         }
 
-        return data.map((t: any) => {
+        const result = safeArray(data).map((t: any) => {
             const lessons: LessonWithPayments[] = (t.lesson || []).map((l: any) => {
                 const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
                 const recordedPayments = (l.teacher_lesson_payment || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
@@ -244,7 +244,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                     category: te.equipment.category,
                 }));
 
-            const result: TeacherWithLessonsAndPayments = {
+            const tableResult: TeacherWithLessonsAndPayments = {
                 id: t.id,
                 username: t.username,
                 firstName: t.first_name,
@@ -260,15 +260,18 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
                 activityStats,
             };
 
-            const stats = calculateTeacherStats(result);
+            const stats = calculateTeacherStats(tableResult);
 
             return {
-                ...result,
+                ...tableResult,
                 stats,
             };
         });
+
+        logger.debug("Fetched teachers table", { schoolId, count: result.length });
+        return result;
     } catch (error) {
-        console.error("Unexpected error in getTeachersTable:", error);
+        logger.error("Error fetching teachers table", error);
         return [];
     }
 }
@@ -280,12 +283,13 @@ export async function updateTeacherActive(teacherId: string, active: boolean): P
         const { error } = await supabase.from("teacher").update({ active }).eq("id", teacherId);
 
         if (error) {
-            return { success: false, error: "Failed to update teacher status" };
+            return handleSupabaseError(error, "update teacher status", "Failed to update teacher status");
         }
 
+        logger.info("Updated teacher active status", { teacherId, active });
         return { success: true };
     } catch (error) {
-        console.error("Error updating teacher status:", error);
+        logger.error("Error updating teacher status", error);
         return { success: false, error: "Failed to update teacher status" };
     }
 }
@@ -295,7 +299,7 @@ export async function getTeacherEvents(teacherId: string, schoolId?: string): Pr
         const supabase = getServerConnection();
         const events = await getTeacherEventsRPC(supabase, teacherId, schoolId);
 
-        const mappedEvents = events.map((e) => ({
+        const mappedEvents = safeArray(events).map((e) => ({
             id: e.event_id,
             date: e.event_date,
             duration: e.event_duration,
@@ -325,9 +329,10 @@ export async function getTeacherEvents(teacherId: string, schoolId?: string): Pr
             },
         }));
 
+        logger.debug("Fetched teacher events", { teacherId, eventCount: mappedEvents.length });
         return { success: true, data: mappedEvents };
     } catch (error) {
-        console.error("Error in getTeacherEvents:", error);
+        logger.error("Error fetching teacher events", error);
         return { success: false, error: "Failed to fetch teacher events" };
     }
 }

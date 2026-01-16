@@ -5,6 +5,8 @@ import { getSchoolHeader } from "@/types/headers";
 import { PackageData, PackageUpdateForm, PackageRelations } from "@/backend/data/BookingData"; // Actually PackageData
 import { SchoolPackage } from "@/supabase/db/types";
 import { revalidatePath } from "next/cache";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 /**
  * Updates specific boolean configuration flags for a package.
@@ -20,12 +22,15 @@ export async function updatePackageConfig(
         const supabase = getServerConnection();
         const { error } = await supabase.from("school_package").update(updates).eq("id", id).eq("school_id", schoolHeader.id);
 
-        if (error) throw error;
+        if (error) {
+            return handleSupabaseError(error, "update package config", "Update failed");
+        }
 
+        logger.info("Updated package config", { packageId: id, updates });
         revalidatePath("/packages");
         return { success: true };
     } catch (error) {
-        console.error("Error updating package config:", error);
+        logger.error("Error updating package config", error);
         return { success: false, error: "Update failed" };
     }
 }
@@ -71,20 +76,19 @@ export async function getPackageId(id: string): Promise<{ success: boolean; data
             .single();
 
         if (pkgError || !pkg) {
-            console.error("Error fetching package details:", pkgError);
-            return { success: false, error: "Package not found" };
+            return handleSupabaseError(pkgError, "fetch package details", "Package not found");
         }
 
         // Map Relations
         const relations: PackageRelations = {
-            requests: (pkg.student_package || []).map((rp: any) => ({
+            requests: safeArray(pkg.student_package).map((rp: any) => ({
                 ...rp,
                 referral: rp.referral,
                 bookings: [], // Bookings are not directly linked to requests in schema
             })),
-            bookings: (pkg.booking || []).map((b: any) => ({
+            bookings: safeArray(pkg.booking).map((b: any) => ({
                 ...b,
-                students: (b.booking_student || []).map((bs: any) => bs.student).filter(Boolean),
+                students: safeArray(b.booking_student).map((bs: any) => bs.student).filter(Boolean),
             })),
         };
 
@@ -112,9 +116,10 @@ export async function getPackageId(id: string): Promise<{ success: boolean; data
             relations,
         };
 
+        logger.debug("Fetched package details", { packageId: id, schoolId: schoolHeader.id });
         return { success: true, data: packageData };
     } catch (error) {
-        console.error("Unexpected error in getPackageId:", error);
+        logger.error("Error fetching package details", error);
         return { success: false, error: "Failed to fetch package" };
     }
 }

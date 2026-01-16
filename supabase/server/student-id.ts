@@ -4,6 +4,8 @@ import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data
 import { Student } from "@/supabase/db/types";
 import { headers } from "next/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 /**
  * Fetches a student by ID with all relations mapped to StudentData interface.
@@ -43,8 +45,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             .single();
 
         if (studentError || !student) {
-            console.error("Error fetching student details:", studentError);
-            return { success: false, error: "Student not found" };
+            return handleSupabaseError(studentError, "fetch student details", "Student not found");
         }
 
         // 2. Fetch all bookings this student is part of, including all payments for those bookings
@@ -69,11 +70,11 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             .eq("booking.school_id", schoolId);
 
         if (bookingError) {
-            console.error("Error fetching student bookings:", bookingError);
+            logger.warn("Error fetching student bookings", bookingError);
         }
 
         // 3. Transform bookings and aggregate ALL payments
-        const bookings = (bookingLinks || [])
+        const bookings = safeArray(bookingLinks)
             .map((bl: any) => {
                 const b = bl.booking;
                 if (!b) return null;
@@ -162,7 +163,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
 
         const relations: StudentRelations = {
             school_students: student.school_students,
-            student_package: (studentPackages || []).map((sp: any) => ({
+            student_package: safeArray(studentPackages).map((sp: any) => ({
                 ...sp,
                 school_package: sp.school_package,
             })),
@@ -196,9 +197,10 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             relations,
         };
 
+        logger.debug("Fetched student details", { studentId: id, schoolId, bookingCount: bookings.length });
         return { success: true, data: studentData };
     } catch (error) {
-        console.error("Unexpected error in getStudentId:", error);
+        logger.error("Error fetching student details", error);
         return { success: false, error: "Failed to fetch student" };
     }
 }

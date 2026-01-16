@@ -4,6 +4,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export interface LessonData {
     id: string;
@@ -50,15 +52,15 @@ export async function createLesson(lessonData: LessonForm): Promise<ApiActionRes
             .single();
 
         if (error) {
-            console.error("Error creating lesson:", error);
-            return { success: false, error: "Failed to create lesson" };
+            return handleSupabaseError(error, "create lesson", "Failed to create lesson");
         }
 
+        logger.info("Created lesson", { lessonId: data.id, bookingId: lessonData.bookingId, teacherId: lessonData.teacherId });
         revalidatePath("/lessons");
         revalidatePath("/classboard");
         return { success: true, data };
     } catch (error) {
-        console.error("Error in createLesson:", error);
+        logger.error("Error creating lesson", error);
         return { success: false, error: "Failed to create lesson" };
     }
 }
@@ -94,16 +96,16 @@ export async function createLessonWithCommission(
             .single();
 
         if (error) {
-            console.error("Error creating lesson with commission:", error);
-            return { success: false, error: "Failed to create lesson" };
+            return handleSupabaseError(error, "create lesson with commission", "Failed to create lesson");
         }
 
+        logger.info("Created lesson with commission", { lessonId: data.id, bookingId, teacherId, commissionId });
         revalidatePath(`/bookings/${bookingId}`);
         revalidatePath("/teachers");
 
         return { success: true, data };
     } catch (error) {
-        console.error("Error in createLessonWithCommission:", error);
+        logger.error("Error creating lesson with commission", error);
         return { success: false, error: "Failed to create lesson" };
     }
 }
@@ -129,13 +131,13 @@ export async function getLessons(): Promise<ApiActionResponseModel<LessonData[]>
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching lessons:", error);
-            return { success: false, error: "Failed to fetch lessons" };
+            return handleSupabaseError(error, "fetch lessons", "Failed to fetch lessons");
         }
 
-        return { success: true, data: data || [] };
+        logger.debug("Fetched lessons", { schoolId, count: safeArray(data).length });
+        return { success: true, data: safeArray(data) };
     } catch (error) {
-        console.error("Error in getLessons:", error);
+        logger.error("Error fetching lessons", error);
         return { success: false, error: "Failed to fetch lessons" };
     }
 }
@@ -150,13 +152,12 @@ export async function getLessonById(lessonId: string): Promise<ApiActionResponse
         const { data, error } = await supabase.from("lesson").select("*").eq("id", lessonId).single();
 
         if (error) {
-            console.error("Error fetching lesson:", error);
-            return { success: false, error: "Lesson not found" };
+            return handleSupabaseError(error, "fetch lesson by ID", "Lesson not found");
         }
 
         return { success: true, data };
     } catch (error) {
-        console.error("Error in getLessonById:", error);
+        logger.error("Error fetching lesson", error);
         return { success: false, error: "Failed to fetch lesson" };
     }
 }
@@ -175,13 +176,13 @@ export async function getLessonsByBookingId(bookingId: string): Promise<ApiActio
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching lessons by booking:", error);
-            return { success: false, error: "Failed to fetch lessons" };
+            return handleSupabaseError(error, "fetch lessons by booking", "Failed to fetch lessons");
         }
 
-        return { success: true, data: data || [] };
+        logger.debug("Fetched lessons by booking", { bookingId, count: safeArray(data).length });
+        return { success: true, data: safeArray(data) };
     } catch (error) {
-        console.error("Error in getLessonsByBookingId:", error);
+        logger.error("Error fetching lessons by booking", error);
         return { success: false, error: "Failed to fetch lessons" };
     }
 }
@@ -200,13 +201,13 @@ export async function getLessonsByTeacherId(teacherId: string): Promise<ApiActio
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching lessons by teacher:", error);
-            return { success: false, error: "Failed to fetch lessons" };
+            return handleSupabaseError(error, "fetch lessons by teacher", "Failed to fetch lessons");
         }
 
-        return { success: true, data: data || [] };
+        logger.debug("Fetched lessons by teacher", { teacherId, count: safeArray(data).length });
+        return { success: true, data: safeArray(data) };
     } catch (error) {
-        console.error("Error in getLessonsByTeacherId:", error);
+        logger.error("Error fetching lessons by teacher", error);
         return { success: false, error: "Failed to fetch lessons" };
     }
 }
@@ -224,15 +225,15 @@ export async function updateLesson(
         const { data, error } = await supabase.from("lesson").update(updates).eq("id", lessonId).select().single();
 
         if (error) {
-            console.error("Error updating lesson:", error);
-            return { success: false, error: "Failed to update lesson" };
+            return handleSupabaseError(error, "update lesson", "Failed to update lesson");
         }
 
+        logger.info("Updated lesson", { lessonId, updates });
         revalidatePath("/lessons");
         revalidatePath("/classboard");
         return { success: true, data };
     } catch (error) {
-        console.error("Error in updateLesson:", error);
+        logger.error("Error updating lesson", error);
         return { success: false, error: "Failed to update lesson" };
     }
 }
@@ -247,15 +248,15 @@ export async function deleteLesson(lessonId: string): Promise<ApiActionResponseM
         const { error } = await supabase.from("lesson").delete().eq("id", lessonId);
 
         if (error) {
-            console.error("Error deleting lesson:", error);
-            return { success: false, error: "Failed to delete lesson" };
+            return handleSupabaseError(error, "delete lesson", "Failed to delete lesson");
         }
 
+        logger.info("Deleted lesson", { lessonId });
         revalidatePath("/lessons");
         revalidatePath("/classboard");
         return { success: true, data: null };
     } catch (error) {
-        console.error("Error in deleteLesson:", error);
+        logger.error("Error deleting lesson", error);
         return { success: false, error: "Failed to delete lesson" };
     }
 }
@@ -284,7 +285,7 @@ export async function assignTeacherCommissionToLesson(
         const { data: lesson, error: lessonError } = await supabase.from("lesson").select("booking_id").eq("id", lessonId).single();
 
         if (lessonError || !lesson) {
-            return { success: false, error: "Lesson not found" };
+            return handleSupabaseError(lessonError, "fetch lesson for assignment", "Lesson not found");
         }
 
         // Check for duplicate combo in same booking
@@ -342,17 +343,17 @@ export async function assignTeacherCommissionToLesson(
             .single();
 
         if (updateError || !updatedLesson) {
-            console.error("Error assigning teacher to lesson:", updateError);
-            return { success: false, error: "Failed to assign teacher" };
+            return handleSupabaseError(updateError, "assign teacher to lesson", "Failed to assign teacher");
         }
 
+        logger.info("Assigned teacher to lesson", { lessonId, teacherId, commissionId, bookingId: lesson.booking_id });
         revalidatePath("/classboard");
         revalidatePath(`/bookings/${lesson.booking_id}`);
         revalidatePath(`/teachers/${teacherId}`);
 
         return { success: true, data: updatedLesson };
     } catch (error) {
-        console.error("Error in assignTeacherCommissionToLesson:", error);
+        logger.error("Error assigning teacher to lesson", error);
         return { success: false, error: "Failed to assign teacher" };
     }
 }

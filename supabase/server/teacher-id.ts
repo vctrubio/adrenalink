@@ -4,6 +4,8 @@ import { TeacherData, TeacherUpdateForm, TeacherRelations } from "@/backend/data
 import { Teacher } from "@/supabase/db/types";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { headers } from "next/headers";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 /**
  * Fetches a teacher by ID with all relations mapped to TeacherData interface.
@@ -72,14 +74,13 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             .single();
 
         if (teacherError || !teacher) {
-            console.error("Error fetching teacher details:", teacherError);
-            return { success: false, error: "Teacher not found" };
+            return handleSupabaseError(teacherError, "fetch teacher details", "Teacher not found");
         }
 
         // Map Relations to standardized snake_case
         const relations: TeacherRelations = {
-            teacher_commission: teacher.teacher_commission || [],
-            lesson: (teacher.lesson || []).map((l: any) => {
+            teacher_commission: safeArray(teacher.teacher_commission),
+            lesson: safeArray(teacher.lesson).map((l: any) => {
                 // Convert event times if timezone is available and map equipment
                 const events = (l.event || []).map((evt: any) => {
                     const equipments = (evt.equipment_event || []).map((ee: any) => ({
@@ -122,10 +123,10 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                           }
                         : undefined,
                     event: events,
-                    teacher_lesson_payment: l.teacher_lesson_payment || [],
+                    teacher_lesson_payment: safeArray(l.teacher_lesson_payment),
                 };
             }),
-            teacher_equipment: teacher.teacher_equipment || [],
+            teacher_equipment: safeArray(teacher.teacher_equipment),
         };
 
         const schema: Teacher = {
@@ -151,9 +152,10 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             relations,
         };
 
+        logger.debug("Fetched teacher details", { teacherId: id, schoolId, lessonCount: relations.lesson.length });
         return { success: true, data: teacherData };
     } catch (error) {
-        console.error("Unexpected error in getTeacherId:", error);
+        logger.error("Error fetching teacher details", error);
         return { success: false, error: "Failed to fetch teacher" };
     }
 }

@@ -3,6 +3,8 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { revalidatePath } from "next/cache";
+import { handleSupabaseError } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function updateSchoolStudentStatus(studentId: string, isActive: boolean) {
     try {
@@ -12,7 +14,6 @@ export async function updateSchoolStudentStatus(studentId: string, isActive: boo
         }
 
         const supabase = getServerConnection();
-
         const { error } = await supabase
             .from("school_students")
             .update({ active: isActive })
@@ -20,14 +21,14 @@ export async function updateSchoolStudentStatus(studentId: string, isActive: boo
             .eq("student_id", studentId);
 
         if (error) {
-            console.error("Error updating student status:", error);
-            return { success: false, error: error.message };
+            return handleSupabaseError(error, "update student status");
         }
 
+        logger.info("Updated student status", { studentId, isActive });
         revalidatePath("/students");
         return { success: true };
     } catch (error) {
-        console.error("Unexpected error updating student status:", error);
+        logger.error("Error updating student status", error);
         return { success: false, error: "Failed to update status" };
     }
 }
