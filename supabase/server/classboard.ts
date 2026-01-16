@@ -692,7 +692,7 @@ export async function cascadeDeleteWithShift(
             }
         }
 
-        logger.info("Cascade complete: events shifted", { shiftedCount, minutesToShift: SHIFT_DURATION_MINUTES });
+        logger.info("Cascade complete: events shifted", { shiftedCount, minutesToShift });
 
         return {
             success: true,
