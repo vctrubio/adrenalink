@@ -1,6 +1,8 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import type { SchoolWithAssets } from "@/supabase/db/types";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function getSchools(): Promise<SchoolWithAssets[]> {
     try {
@@ -12,13 +14,13 @@ export async function getSchools(): Promise<SchoolWithAssets[]> {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("❌ Error fetching schools:", error);
+            logger.error("Error fetching schools", error);
             throw new Error(error.message);
         }
 
         // Fetch CDN URLs for each school using centralized function
         const schoolsWithAssets = await Promise.all(
-            schools.map(async (school) => {
+            safeArray(schools).map(async (school) => {
                 const { bannerUrl, iconUrl } = await getCDNImages(school.username);
                 return {
                     ...school,
@@ -28,15 +30,10 @@ export async function getSchools(): Promise<SchoolWithAssets[]> {
             }),
         );
 
-        // Log schools with equipment_categories for debugging
-        console.log("✅ Fetched schools:", schoolsWithAssets.length);
-        schoolsWithAssets.forEach((s) => {
-            console.log(`  ${s.name}: categories=${s.equipment_categories || "EMPTY"}`);
-        });
-
+        logger.info("Fetched schools", { count: schoolsWithAssets.length });
         return schoolsWithAssets as SchoolWithAssets[];
     } catch (err) {
-        console.error("💥 getSchools() failed:", err);
+        logger.error("Error fetching schools", err);
         throw err;
     }
 }

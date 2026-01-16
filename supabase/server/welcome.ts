@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { logAndNotifyNewSchool, logAndNotifyError } from "./notifications";
 import { sendSchoolRegistrationEmail } from "./email-service";
+import { logger } from "@/backend/logger";
 
 /**
  * Fetches all school usernames to prevent duplicates during registration
@@ -16,7 +17,7 @@ export async function getSchoolsUsernames(): Promise<ApiActionResponseModel<stri
         const { data, error } = await supabase.from("school").select("username");
 
         if (error) {
-            console.error("Error fetching school usernames:", error);
+            logger.error("Error fetching school usernames", error);
             // We don't notify admin for this minor read error to avoid spam
             return { success: false, error: "Failed to fetch school usernames" };
         }
@@ -24,7 +25,7 @@ export async function getSchoolsUsernames(): Promise<ApiActionResponseModel<stri
         const usernames = (data || []).map((s: any) => s.username);
         return { success: true, data: usernames };
     } catch (error) {
-        console.error("Unexpected error in getSchoolsUsernames:", error);
+        logger.error("Unexpected error in getSchoolsUsernames", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }
@@ -39,13 +40,13 @@ export async function checkUsernameAvailability(username: string): Promise<ApiAc
         const { data, error } = await supabase.from("school").select("id").eq("username", username.toLowerCase()).maybeSingle();
 
         if (error) {
-            console.error("Error checking username availability:", error);
+            logger.error("Error checking username availability", error);
             return { success: false, error: "Failed to check username availability" };
         }
 
         return { success: true, data: !data };
     } catch (error) {
-        console.error("Unexpected error in checkUsernameAvailability:", error);
+        logger.error("Unexpected error in checkUsernameAvailability", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }
@@ -91,12 +92,12 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
         // Success! Notify Admin via WhatsApp
         // Fire and forget so UI doesn't hang
         logAndNotifyNewSchool(data, schoolData.ownerEmail, schoolData.referenceNote).catch(err => 
-            console.error("Failed to fire notification:", err)
+            logger.error("Failed to fire notification", err)
         );
 
         // Send Welcome Email (Fire and forget)
         sendSchoolRegistrationEmail(data, schoolData.ownerEmail).catch(err => 
-            console.error("Failed to send welcome email:", err)
+            logger.error("Failed to send welcome email", err)
         );
 
         revalidatePath("/schools");

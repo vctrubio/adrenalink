@@ -3,6 +3,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { ApiActionResponseModel } from "@/types/actions";
+import { logger } from "@/backend/logger";
 
 export interface StudentPackageBookingLessons {
     id: string;
@@ -112,7 +113,7 @@ export async function getStudentPackageBookingLessons(
             .single();
 
         if (studentError) {
-            console.error("Error fetching student:", studentError);
+            logger.error("Error fetching student", studentError);
             return { success: false, error: "Failed to fetch student data" };
         }
 
@@ -175,7 +176,7 @@ export async function getStudentPackageBookingLessons(
             },
         };
     } catch (error) {
-        console.error("Error in getStudentPackageBookingLessons:", error);
+        logger.error("Error in getStudentPackageBookingLessons", error);
         return { success: false, error: "Failed to fetch student package booking lessons" };
     }
 }
@@ -240,7 +241,7 @@ export async function getTeacherPackageBookingLessons(
             .single();
 
         if (teacherError) {
-            console.error("Error fetching teacher:", teacherError);
+            logger.error("Error fetching teacher", teacherError);
             return { success: false, error: "Failed to fetch teacher data" };
         }
 
@@ -309,7 +310,7 @@ export async function getTeacherPackageBookingLessons(
             },
         };
     } catch (error) {
-        console.error("Error in getTeacherPackageBookingLessons:", error);
+        logger.error("Error in getTeacherPackageBookingLessons", error);
         return { success: false, error: "Failed to fetch teacher package booking lessons" };
     }
 }

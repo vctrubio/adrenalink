@@ -3,6 +3,7 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { StudentPackage, SchoolPackage, Referral } from "@/supabase/db/types";
 import { revalidatePath } from "next/cache";
+import { logger } from "@/backend/logger";
 
 export interface StudentPackageRequest extends StudentPackage {
     school_package: SchoolPackage;
@@ -34,13 +35,13 @@ export async function getStudentPackageRequests(): Promise<{ success: boolean; d
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching student package requests:", error);
+            logger.error("Error fetching student package requests", error);
             return { success: false, error: "Failed to fetch requests" };
         }
 
         return { success: true, data: data as StudentPackageRequest[] };
     } catch (error) {
-        console.error("Unexpected error in getStudentPackageRequests:", error);
+        logger.error("Unexpected error in getStudentPackageRequests", error);
         return { success: false, error: "Failed to fetch requests" };
     }
 }
@@ -61,7 +62,7 @@ export async function updateStudentPackageStatus(id: string, status: string): Pr
             .eq("id", id);
 
         if (error) {
-            console.error("Error updating student package status:", error);
+            logger.error("Error updating student package status", error);
             return { success: false, error: "Failed to update status" };
         }
 
@@ -71,7 +72,7 @@ export async function updateStudentPackageStatus(id: string, status: string): Pr
 
         return { success: true };
     } catch (error) {
-        console.error("Unexpected error in updateStudentPackageStatus:", error);
+        logger.error("Unexpected error in updateStudentPackageStatus", error);
         return { success: false, error: "Failed to update status" };
     }
 }
@@ -121,7 +122,7 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching student packages with stats:", error);
+            logger.error("Error fetching student packages with stats", error);
             return { success: false, error: "Failed to fetch packages" };
         }
 
@@ -158,7 +159,7 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
 
         return { success: true, data: packagesWithStats };
     } catch (error) {
-        console.error("Unexpected error in getStudentPackagesWithStats:", error);
+        logger.error("Unexpected error in getStudentPackagesWithStats", error);
         return { success: false, error: "Failed to fetch packages" };
     }
 }

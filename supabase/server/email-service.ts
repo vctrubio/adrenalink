@@ -1,4 +1,5 @@
 import { School } from "@/supabase/db/types";
+import { logger } from "@/backend/logger";
 
 /**
  * Domain 'adrenalink.tech' is verified in Resend.
@@ -12,7 +13,7 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
     const emailApiKey = process.env.EMAIL_API_KEY;
 
     if (!emailApiUrl) {
-        console.warn("⚠️ EMAIL_API_URL not set. Skipping email notification.");
+        logger.warn("EMAIL_API_URL not set. Skipping email notification.");
         return;
     }
 
@@ -147,13 +148,13 @@ export async function sendSchoolRegistrationEmail(school: School, ownerEmail: st
 
         if (!response.ok) {
             const errorData = await response.text();
-            console.error("❌ Email API Error:", response.status, errorData);
+            logger.error("Email API Error", { status: response.status, errorData });
             return;
         }
 
         const data = await response.json();
-        console.log(`📧 Welcome email sent successfully to ${ownerEmail}. ID:`, data.id);
+        logger.info("Welcome email sent successfully", { ownerEmail, id: data.id });
     } catch (error) {
-        console.error("❌ Failed to send email:", error);
+        logger.error("Failed to send email", error);
     }
 }

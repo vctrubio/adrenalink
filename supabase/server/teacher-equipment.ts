@@ -2,6 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { revalidatePath } from "next/cache";
+import { logger } from "@/backend/logger";
 
 export async function linkTeacherToEquipment(equipmentId: string, teacherId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -35,7 +36,7 @@ export async function linkTeacherToEquipment(equipmentId: string, teacherId: str
         revalidatePath("/teachers");
         return { success: true };
     } catch (error) {
-        console.error("Error linking teacher to equipment:", error);
+        logger.error("Error linking teacher to equipment", error);
         return { success: false, error: "Failed to link teacher to equipment" };
     }
 }
@@ -61,7 +62,7 @@ export async function removeTeacherFromEquipment(
         revalidatePath("/teachers");
         return { success: true };
     } catch (error) {
-        console.error("Error removing teacher from equipment:", error);
+        logger.error("Error removing teacher from equipment", error);
         return { success: false, error: "Failed to remove teacher from equipment" };
     }
 }

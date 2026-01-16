@@ -17,6 +17,7 @@ import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { headers } from "next/headers";
+import { logger } from "@/backend/logger";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -43,7 +44,7 @@ export async function updateEventIdStatus(eventId: string, newStatus: EventStatu
             .single();
 
         if (error) {
-            console.error("Error updating event status:", error);
+            logger.error("Error updating event status", error);
             return { success: false, error: error.message };
         }
 
@@ -55,7 +56,7 @@ export async function updateEventIdStatus(eventId: string, newStatus: EventStatu
             },
         };
     } catch (error) {
-        console.error("Unexpected error updating event status:", error);
+        logger.error("Unexpected error updating event status", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Failed to update event status",
@@ -168,7 +169,7 @@ export async function getEventTransaction(
             .single();
 
         if (error || !data) {
-            console.error("[EVENT] Error fetching event transaction:", error);
+            logger.error("Error fetching event transaction", error);
             return { success: false, error: "Event not found" };
         }
 
@@ -242,7 +243,7 @@ export async function getEventTransaction(
 
         return { success: true, data: transactionData };
     } catch (error) {
-        console.error("[EVENT] Error fetching event transaction:", error);
+        logger.error("Error fetching event transaction", error);
         return { success: false, error: "Failed to fetch data" };
     }
 }

@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { BookingWithLessonAndPayments } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
+import { logger } from "@/backend/logger";
 
 /**
  * Comprehensive student user data with ALL bookings and events
@@ -65,7 +66,7 @@ export async function getStudentUser(studentId: string): Promise<{
             .single();
 
         if (studentError || !studentData) {
-            console.error("Error fetching student user data:", studentError);
+            logger.error("Error fetching student user data", studentError);
             return { success: false, error: "Student not found" };
         }
 
@@ -183,7 +184,7 @@ export async function getStudentUser(studentId: string): Promise<{
 
         return { success: true, data: studentUserData };
     } catch (error) {
-        console.error("Unexpected error in getStudentUser:", error);
+        logger.error("Unexpected error in getStudentUser", error);
         return { success: false, error: "Failed to fetch student user data" };
     }
 }

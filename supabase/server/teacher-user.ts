@@ -4,6 +4,7 @@ import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { headers } from "next/headers";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { TransactionEventData } from "@/types/transaction-event";
+import { logger } from "@/backend/logger";
 
 /**
  * Comprehensive teacher user data with ALL relations
@@ -72,7 +73,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
             .single();
 
         if (teacherError || !teacher) {
-            console.error("Error fetching teacher user data:", teacherError);
+            logger.error("Error fetching teacher user data", teacherError);
             return { success: false, error: "Teacher not found" };
         }
 
@@ -245,7 +246,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
 
         return { success: true, data: teacherUserData };
     } catch (error) {
-        console.error("Unexpected error in getTeacherUser:", error);
+        logger.error("Unexpected error in getTeacherUser", error);
         return { success: false, error: "Failed to fetch teacher user data" };
     }
 }

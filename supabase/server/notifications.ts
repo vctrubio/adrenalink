@@ -1,15 +1,16 @@
 import { School } from "@/supabase/db/types";
+import { logger } from "@/backend/logger";
 
 /**
  * Logs a system error.
  */
 export async function logAndNotifyError(context: string, error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     // System Log (Vercel/Console)
-    console.error(`🚨 [SYSTEM ERROR] [${context}]`, errorMessage);
+    logger.error(`System error in ${context}`, error);
     if (error instanceof Error && error.stack) {
-        console.error(error.stack);
+        logger.error("Error stack trace", { stack: error.stack });
     }
 }
 
@@ -18,11 +19,12 @@ export async function logAndNotifyError(context: string, error: any) {
  */
 export async function logAndNotifyNewSchool(school: School, email: string, reference?: string) {
     // System Log
-    console.log(`🎉 [New Registration] School: ${school.name} (${school.username})`);
-    console.log(`   Email: ${email}`);
-    console.log(`   Country: ${school.country}`);
-    console.log(`   Link: https://${school.username}.adrenalink.tech`);
-    if (reference) {
-        console.log(`   Ref: ${reference}`);
-    }
+    logger.info("New school registration", {
+        schoolName: school.name,
+        username: school.username,
+        email,
+        country: school.country,
+        link: `https://${school.username}.adrenalink.tech`,
+        reference,
+    });
 }

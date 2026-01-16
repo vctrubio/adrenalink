@@ -8,6 +8,7 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { logger } from "@/backend/logger";
 
 /**
  * Shared query builder for booking relations
@@ -115,7 +116,7 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
             .order("date_start", { ascending: false });
 
         if (error) {
-            console.error("[CLASSBOARD] Error fetching bookings:", error);
+            logger.error("Error fetching bookings", error);
             return { success: false, error: "Failed to fetch classboard data" };
         }
 
@@ -170,7 +171,7 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
         const { data: bookingData, error } = await supabase.from("booking").select(buildBookingQuery()).eq("id", bookingId).single();
 
         if (error) {
-            console.error("[CLASSBOARD] Error fetching booking:", error);
+            logger.error("Error fetching booking", error);
             return { success: false, error: "Failed to fetch booking data" };
         }
 
@@ -225,7 +226,7 @@ export async function createClassboardEvent(
         const schoolId = headersList.get("x-school-id");
         const schoolZone = headersList.get("x-school-timezone");
 
-        console.log("🔍 [createClassboardEvent] Headers Check:", {
+        logger.debug("Headers check", {
             schoolId,
             schoolZone,
             allHeaders: Object.fromEntries(headersList.entries()),
@@ -265,11 +266,11 @@ export async function createClassboardEvent(
             .single();
 
         if (error || !result) {
-            console.error("❌ [classboard] DB Insert failed:", error);
+            logger.error("DB Insert failed", error);
             return { success: false, error: `Failed to create event: ${error?.message || "Unknown error"}` };
         }
 
-        console.log("✅ [Event Created]", {
+        logger.info("Event created", {
             schoolTime: timeStr,
             utcTime: utcDate.toISOString(),
             timezone: schoolZone,
@@ -286,7 +287,7 @@ export async function createClassboardEvent(
             },
         };
     } catch (error) {
-        console.error("❌ [classboard] Error creating event:", error);
+        logger.error("Error creating event", error);
         return { success: false, error: `Failed to create event: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
@@ -296,56 +297,56 @@ export async function createClassboardEvent(
  */
 export async function deleteClassboardEvent(eventId: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`🗑️ [classboard] Deleting event ${eventId}`);
+        logger.debug("Deleting event", { eventId });
 
         const supabase = getServerConnection();
 
-        console.log(`🗑️ [classboard/deleteClassboardEvent] Checking if event exists: ${eventId}`);
+        logger.debug("Checking if event exists", { eventId });
 
         // Check if event exists
         const { data: eventToDelete, error: fetchError } = await supabase.from("event").select("id").eq("id", eventId).single();
 
-        console.log("🗑️ [classboard/deleteClassboardEvent] Fetch result:", {
+        logger.debug("Fetch result", {
             eventToDelete,
             fetchError: fetchError ? { code: fetchError.code, message: fetchError.message, details: fetchError.details } : null,
         });
 
         if (fetchError || !eventToDelete) {
-            console.error(`🗑️ [classboard/deleteClassboardEvent] ❌ Event not found: ${eventId}`);
+            logger.error("Event not found", fetchError, { eventId });
             return { success: false, error: `Event not found: ${eventId}` };
         }
 
-        console.log("🗑️ [classboard/deleteClassboardEvent] Event exists, proceeding with delete...");
+        logger.debug("Event exists, proceeding with delete");
 
         // First delete related equipment_event records (cascade delete)
-        console.log("🗑️ [classboard/deleteClassboardEvent] Deleting related equipment_event records...");
+        logger.debug("Deleting related equipment_event records", { eventId });
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().eq("event_id", eventId);
 
         if (equipmentDeleteError) {
-            console.error("🗑️ [classboard/deleteClassboardEvent] ⚠️ Could not delete equipment_event records:", equipmentDeleteError);
+            logger.warn("Could not delete equipment_event records", { eventId, error: equipmentDeleteError });
             // Continue anyway - try to delete the event
         } else {
-            console.log("✅ [classboard/deleteClassboardEvent] Related equipment_event records deleted");
+            logger.debug("Related equipment_event records deleted", { eventId });
         }
 
         // Now delete the event
-        console.log("🗑️ [classboard/deleteClassboardEvent] Deleting event...");
+        logger.debug("Deleting event", { eventId });
         const { error: deleteError } = await supabase.from("event").delete().eq("id", eventId);
 
-        console.log("🗑️ [classboard/deleteClassboardEvent] Delete result:", {
+        logger.debug("Delete result", {
             deleteError: deleteError ? { code: deleteError.code, message: deleteError.message, details: deleteError.details } : null,
         });
 
         if (deleteError) {
-            console.error("🗑️ [classboard/deleteClassboardEvent] ❌ Delete failed:", deleteError);
+            logger.error("Delete failed", deleteError, { eventId });
             return { success: false, error: `Failed to delete event: ${deleteError.message}` };
         }
 
-        console.log(`✅ [classboard/deleteClassboardEvent] Event deleted successfully: ${eventId}`);
+        logger.info("Event deleted successfully", { eventId });
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard/deleteClassboardEvent] Exception:", error);
+        logger.error("Exception deleting event", error);
         return { success: false, error: `Failed to delete event: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
@@ -358,7 +359,7 @@ export async function updateClassboardEventLocation(
     location: string,
 ): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`📍 [classboard] Updating event ${eventId} location to ${location}`);
+        logger.debug("Updating event location", { eventId, location });
 
         const supabase = getServerConnection();
 
@@ -368,11 +369,11 @@ export async function updateClassboardEventLocation(
             return { success: false, error: "Event not found" };
         }
 
-        console.log(`✅ [classboard] Event location updated: ${eventId} -> ${location}`);
+        logger.info("Event location updated", { eventId, location });
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard] Error updating event location:", error);
+        logger.error("Error updating event location", error);
         return { success: false, error: `Failed to update event location: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
@@ -382,7 +383,7 @@ export async function updateClassboardEventLocation(
  */
 export async function updateEventStartTime(eventId: string, newDate: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`⏰ [classboard] Updating event ${eventId} start time to ${newDate}`);
+        logger.debug("Updating event start time", { eventId, newDate });
 
         const supabase = getServerConnection();
 
@@ -395,11 +396,11 @@ export async function updateEventStartTime(eventId: string, newDate: string): Pr
             return { success: false, error: "Event not found" };
         }
 
-        console.log(`✅ [classboard] Event start time updated: ${eventId} -> ${newDate}`);
+        logger.info("Event start time updated", { eventId, newDate });
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard] Error updating event start time:", error);
+        logger.error("Error updating event start time", error);
         return {
             success: false,
             error: `Failed to update event start time: ${error instanceof Error ? error.message : String(error)}`,
@@ -412,7 +413,7 @@ export async function updateEventStartTime(eventId: string, newDate: string): Pr
  */
 export async function updateEventStatus(eventId: string, status: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`📍 [classboard] Updating event ${eventId} status to ${status}`);
+        logger.debug("Updating event status", { eventId, status });
 
         const supabase = getServerConnection();
 
@@ -422,14 +423,14 @@ export async function updateEventStatus(eventId: string, status: string): Promis
             return { success: false, error: "Event not found" };
         }
 
-        console.log(`✅ [classboard] Event status updated: ${eventId} -> ${status}`);
+        logger.info("Event status updated", { eventId, status });
 
         // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
         revalidatePath("/teachers");
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard] Error updating event status:", error);
+        logger.error("Error updating event status", error);
         return { success: false, error: `Failed to update event status: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
@@ -453,7 +454,7 @@ export async function bulkUpdateClassboardEvents(
 
         // PRIORITY 1: Update events first
         if (updates.length > 0) {
-            console.log(`📝 [classboard] Updating ${updates.length} events with new dates, durations, and/or locations`);
+            logger.debug("Updating events", { count: updates.length });
 
             for (const update of updates) {
                 const updateData: Record<string, any> = {};
@@ -479,19 +480,19 @@ export async function bulkUpdateClassboardEvents(
                 }
             }
 
-            console.log(`✅ [classboard] Updated ${updatedCount} events`);
+            logger.info("Events updated", { updatedCount });
         }
 
         // PRIORITY 2: Delete events after updating
         if (toDelete && toDelete.length > 0) {
-            console.log(`🗑️ [classboard] Deleting ${toDelete.length} events after update`);
+            logger.debug("Deleting events after update", { count: toDelete.length });
 
             const { error: deleteError } = await supabase.from("event").delete().in("id", toDelete);
 
             if (!deleteError) {
                 deletedCount = toDelete.length;
             }
-            console.log(`✅ [classboard] Deleted ${deletedCount} events`);
+            logger.info("Events deleted", { deletedCount });
         }
 
         return {
@@ -499,7 +500,7 @@ export async function bulkUpdateClassboardEvents(
             data: { updatedCount, deletedCount },
         };
     } catch (error) {
-        console.error("❌ [classboard] Error in bulk operation:", error);
+        logger.error("Error in bulk operation", error);
         return {
             success: false,
             error: `Failed to process events: ${error instanceof Error ? error.message : String(error)}`,
@@ -516,41 +517,38 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
             return { success: false, error: "No events provided" };
         }
 
-        console.log(`🗑️ [classboard/bulkDeleteClassboardEvents] Deleting ${eventIds.length} events`);
+        logger.debug("Deleting events", { count: eventIds.length });
 
         const supabase = getServerConnection();
 
         // First delete related equipment_event records (cascade delete)
-        console.log("🗑️ [classboard/bulkDeleteClassboardEvents] Deleting related equipment_event records...");
+        logger.debug("Deleting related equipment_event records");
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().in("event_id", eventIds);
 
         if (equipmentDeleteError) {
-            console.error(
-                "🗑️ [classboard/bulkDeleteClassboardEvents] ⚠️ Could not delete equipment_event records:",
-                equipmentDeleteError,
-            );
+            logger.warn("Could not delete equipment_event records", { error: equipmentDeleteError });
             // Continue anyway
         } else {
-            console.log("✅ [classboard/bulkDeleteClassboardEvents] Related equipment_event records deleted");
+            logger.debug("Related equipment_event records deleted");
         }
 
         // Now delete the events
-        console.log(`🗑️ [classboard/bulkDeleteClassboardEvents] Deleting ${eventIds.length} events...`);
+        logger.debug("Deleting events", { count: eventIds.length });
         const { error } = await supabase.from("event").delete().in("id", eventIds);
 
         if (error) {
-            console.error("🗑️ [classboard/bulkDeleteClassboardEvents] ❌ Delete failed:", error);
+            logger.error("Delete failed", error);
             return { success: false, error: `Failed to delete events: ${error.message}` };
         }
 
-        console.log(`✅ [classboard/bulkDeleteClassboardEvents] Deleted ${eventIds.length} events`);
+        logger.info("Events deleted", { count: eventIds.length });
 
         return {
             success: true,
             data: { deletedCount: eventIds.length },
         };
     } catch (error) {
-        console.error("❌ [classboard/bulkDeleteClassboardEvents] Exception:", error);
+        logger.error("Exception deleting events", error);
         return {
             success: false,
             error: `Failed to delete events: ${error instanceof Error ? error.message : String(error)}`,
@@ -570,7 +568,7 @@ export async function deleteAllClassboardEvents(selectedDate: string): Promise<A
             return { success: false, error: "School not found" };
         }
 
-        console.log(`🗑️ [classboard] Deleting all events for date: ${selectedDate}`);
+        logger.debug("Deleting all events for date", { selectedDate });
 
         const supabase = getServerConnection();
 
@@ -591,14 +589,14 @@ export async function deleteAllClassboardEvents(selectedDate: string): Promise<A
             return { success: false, error: "Failed to delete events" };
         }
 
-        console.log(`✅ [classboard] Deleted events for date: ${selectedDate}`);
+        logger.info("Deleted events for date", { selectedDate });
 
         return {
             success: true,
             data: { deletedCount: 0 }, // Supabase doesn't return count for deletes
         };
     } catch (error) {
-        console.error("❌ [classboard] Error deleting all events:", error);
+        logger.error("Error deleting all events", error);
         return {
             success: false,
             error: `Failed to delete all events: ${error instanceof Error ? error.message : String(error)}`,
@@ -617,7 +615,7 @@ export async function deleteUncompletedClassboardEvents(
             return { success: false, error: "No events provided" };
         }
 
-        console.log(`🗑️ [classboard] Deleting ${eventIds.length} uncompleted events`);
+        logger.debug("Deleting uncompleted events", { count: eventIds.length });
 
         const supabase = getServerConnection();
 
@@ -627,14 +625,14 @@ export async function deleteUncompletedClassboardEvents(
             return { success: false, error: "Failed to delete events" };
         }
 
-        console.log("✅ [classboard] Deleted uncompleted events");
+        logger.info("Deleted uncompleted events", { count: eventIds.length });
 
         return {
             success: true,
             data: { deletedCount: eventIds.length },
         };
     } catch (error) {
-        console.error("❌ [classboard] Error deleting uncompleted events:", error);
+        logger.error("Error deleting uncompleted events", error);
         return {
             success: false,
             error: `Failed to delete uncompleted events: ${error instanceof Error ? error.message : String(error)}`,
@@ -654,7 +652,7 @@ export async function bulkUpdateEventStatus(
             return { success: false, error: "No events provided" };
         }
 
-        console.log(`📝 [classboard] Updating ${eventIds.length} events to status: ${status}`);
+        logger.debug("Updating event status", { count: eventIds.length, status });
 
         const supabase = getServerConnection();
 
@@ -664,14 +662,14 @@ export async function bulkUpdateEventStatus(
             return { success: false, error: "Failed to update status" };
         }
 
-        console.log(`✅ [classboard] Updated ${eventIds.length} events to ${status}`);
+        logger.info("Events updated to status", { count: eventIds.length, status });
 
         return {
             success: true,
             data: { updatedCount: eventIds.length },
         };
     } catch (error) {
-        console.error("❌ [classboard] Error updating event status:", error);
+        logger.error("Error updating event status", error);
         return {
             success: false,
             error: `Failed to update event status: ${error instanceof Error ? error.message : String(error)}`,
@@ -693,9 +691,7 @@ export async function cascadeDeleteWithShift(
 
         const SHIFT_DURATION_MINUTES = minutesToShift;
 
-        console.log(
-            `⏭️ [classboard] Cascading delete: shifting ${eventIds.length} events forward by ${SHIFT_DURATION_MINUTES} minutes`,
-        );
+        logger.debug("Cascading delete: shifting events", { count: eventIds.length, minutesToShift: SHIFT_DURATION_MINUTES });
 
         const supabase = getServerConnection();
 
@@ -719,16 +715,14 @@ export async function cascadeDeleteWithShift(
             }
         }
 
-        console.log(
-            `✅ [classboard] Cascade complete: shifted ${shiftedCount} events backward (${SHIFT_DURATION_MINUTES} min earlier)`,
-        );
+        logger.info("Cascade complete: events shifted", { shiftedCount, minutesToShift: SHIFT_DURATION_MINUTES });
 
         return {
             success: true,
             data: { shiftedCount },
         };
     } catch (error) {
-        console.error("❌ [classboard] Error cascading delete:", error);
+        logger.error("Error cascading delete", error);
         return {
             success: false,
             error: `Failed to cascade delete: ${error instanceof Error ? error.message : String(error)}`,
@@ -763,13 +757,13 @@ export async function getAvailableEquipment(category: string): Promise<ApiAction
             .in("status", ["rental", "public"])
             .order("brand", { ascending: true });
         if (error) {
-            console.error("❌ [classboard] Error fetching equipment:", error);
+            logger.error("Error fetching equipment", error);
             return { success: false, error: "Failed to fetch equipment" };
         }
 
         return { success: true, data: data || [] };
     } catch (error) {
-        console.error("❌ [classboard] Unexpected error fetching equipment:", error);
+        logger.error("Unexpected error fetching equipment", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }
@@ -782,14 +776,14 @@ export async function assignEquipmentToEvent(
     equipmentId: string,
 ): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`🔗 [classboard] Assigning equipment ${equipmentId} to event ${eventId}`);
+        logger.debug("Assigning equipment to event", { eventId, equipmentId });
 
         const supabase = getServerConnection();
 
         const { error } = await supabase.from("equipment_event").insert({ event_id: eventId, equipment_id: equipmentId });
 
         if (error) {
-            console.error("❌ [classboard] Error assigning equipment:", error);
+            logger.error("Error assigning equipment", error);
             return { success: false, error: "Failed to assign equipment" };
         }
 
@@ -798,7 +792,7 @@ export async function assignEquipmentToEvent(
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard] Error in assignEquipmentToEvent:", error);
+        logger.error("Error assigning equipment to event", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }
@@ -811,14 +805,14 @@ export async function unassignEquipmentFromEvent(
     equipmentId: string,
 ): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        console.log(`🔗 [classboard] Unassigning equipment ${equipmentId} from event ${eventId}`);
+        logger.debug("Unassigning equipment from event", { eventId, equipmentId });
 
         const supabase = getServerConnection();
 
         const { error } = await supabase.from("equipment_event").delete().eq("event_id", eventId).eq("equipment_id", equipmentId);
 
         if (error) {
-            console.error("❌ [classboard] Error unassigning equipment:", error);
+            logger.error("Error unassigning equipment", error);
             return { success: false, error: "Failed to unassign equipment" };
         }
 
@@ -827,7 +821,7 @@ export async function unassignEquipmentFromEvent(
 
         return { success: true, data: { success: true } };
     } catch (error) {
-        console.error("❌ [classboard] Error in unassignEquipmentFromEvent:", error);
+        logger.error("Error unassigning equipment from event", error);
         return { success: false, error: "An unexpected error occurred" };
     }
 }

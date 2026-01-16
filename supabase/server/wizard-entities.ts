@@ -2,6 +2,7 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
+import { logger } from "@/backend/logger";
 
 export interface WizardEntity {
     id: string;
@@ -124,7 +125,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
                 return [];
         }
     } catch (error) {
-        console.error(`Error fetching wizard entities for ${entityType}:`, error);
+        logger.error("Error fetching wizard entities", { entityType, error });
         return [];
     }
 }

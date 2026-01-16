@@ -5,6 +5,7 @@
  */
 
 import { cache } from "react";
+import { logger } from "@/backend/logger";
 
 // In-memory cache for CDN image verification results
 // Map structure: schoolUsername -> { bannerUrl, iconUrl, timestamp }
@@ -24,7 +25,7 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
     // Check cache first
     const cached = CDN_IMAGE_CACHE.get(username);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`✅ CDN cache hit for ${username}: banner=${cached.bannerUrl}, icon=${cached.iconUrl}`);
+        logger.debug("CDN cache hit", { username, bannerUrl: cached.bannerUrl, iconUrl: cached.iconUrl });
         return { bannerUrl: cached.bannerUrl, iconUrl: cached.iconUrl };
     }
 
@@ -37,7 +38,7 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
     let iconUrl = adminIconUrl;
 
     try {
-        console.log(`🔍 Checking CDN for custom assets: ${username}`);
+        logger.debug("Checking CDN for custom assets", { username });
         const [bannerRes, iconRes] = await Promise.all([
             fetch(customBannerUrl, { method: "HEAD" }),
             fetch(customIconUrl, { method: "HEAD" }),
@@ -45,20 +46,20 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
 
         if (bannerRes.ok) {
             bannerUrl = customBannerUrl;
-            console.log(`✅ Found custom banner for ${username}`);
+            logger.debug("Found custom banner", { username });
         } else {
-            console.log(`⚠️ Custom banner not found for ${username} (${bannerRes.status}), using admin fallback`);
+            logger.debug("Custom banner not found, using admin fallback", { username, status: bannerRes.status });
         }
 
         if (iconRes.ok) {
             iconUrl = customIconUrl;
-            console.log(`✅ Found custom icon for ${username}`);
+            logger.debug("Found custom icon", { username });
         } else {
-            console.log(`⚠️ Custom icon not found for ${username} (${iconRes.status}), using admin fallback`);
+            logger.debug("Custom icon not found, using admin fallback", { username, status: iconRes.status });
         }
     } catch (err) {
-        console.warn(`⚠️ Failed to check CDN images for ${username}:`, err);
-        console.log(`   Using admin fallbacks: banner=${adminBannerUrl}, icon=${adminIconUrl}`);
+        logger.warn("Failed to check CDN images", { username, error: err });
+        logger.debug("Using admin fallbacks", { bannerUrl: adminBannerUrl, iconUrl: adminIconUrl });
     }
 
     // Store in cache
@@ -68,7 +69,7 @@ async function getCDNImagesImpl(username: string): Promise<{ bannerUrl: string; 
         timestamp: Date.now(),
     });
 
-    console.log(`💾 CDN cache stored for ${username}: banner=${bannerUrl}, icon=${iconUrl}`);
+    logger.debug("CDN cache stored", { username, bannerUrl, iconUrl });
     return { bannerUrl, iconUrl };
 }
 

@@ -9,6 +9,7 @@ import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
+import { logger } from "@/backend/logger";
 
 /**
  * Query builder for booking with all nested relations
@@ -92,7 +93,7 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
 
     // Fallback: fetch timezone if not in headers (though middleware should provide it)
     if (!timezone) {
-        console.log("Timezone not found in headers, fetching from school header SHOULD NOT HAPPEN:...");
+        logger.warn("Timezone not found in headers, fetching from school header");
         const schoolHeader = await getSchoolHeader();
         if (schoolHeader) {
             timezone = schoolHeader.timezone;

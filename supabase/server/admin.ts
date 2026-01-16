@@ -7,6 +7,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import { headers } from "next/headers";
 import type { SchoolCredentials } from "@/types/credentials";
+import { handleSupabaseError } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
     try {
@@ -14,7 +16,7 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
         const schoolUsername = headersList.get("x-school-username");
 
         if (!schoolUsername) {
-            console.error("❌ [getSchoolCredentials] No school username found in headers (x-school-username)");
+            logger.warn("No school username found in headers");
             return null;
         }
 
@@ -28,7 +30,7 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
             .single();
 
         if (error || !schoolData) {
-            console.error(`❌ [getSchoolCredentials] DB lookup failed for "${schoolUsername}":`, error?.message || "School not found");
+            logger.error("Failed to fetch school credentials", error, { schoolUsername });
             return null;
         }
 
@@ -36,16 +38,12 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
         const missingFields: string[] = [];
         if (!schoolData.timezone) missingFields.push("timezone");
         if (!schoolData.currency) missingFields.push("currency");
-        if (!schoolData.wallet_id) missingFields.push("wallet_id (ownerId)");
+        if (!schoolData.wallet_id) missingFields.push("wallet_id");
         if (!schoolData.country) missingFields.push("country");
         if (!schoolData.status) missingFields.push("status");
 
         if (missingFields.length > 0) {
-            console.error(
-                `❌ [getSchoolCredentials] Missing mandatory configuration for "${schoolUsername}":`,
-                missingFields.join(", "),
-            );
-            // We return null to trigger the /no-credentials redirect if anything critical is missing
+            logger.warn("Missing mandatory school configuration", { schoolUsername, missingFields });
             return null;
         }
 
@@ -65,10 +63,10 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
             ownerId: schoolData.wallet_id,
         };
 
-        console.log(`✅ [getSchoolCredentials] Successfully loaded credentials for "${schoolUsername}"`);
+        logger.info("Loaded school credentials", { schoolUsername, schoolId: schoolData.id });
         return credentials;
     } catch (error) {
-        console.error("❌ [getSchoolCredentials] Critical error:", error);
+        logger.error("Critical error loading school credentials", error);
         return null;
     }
 }

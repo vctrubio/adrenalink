@@ -1,6 +1,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import type { School, SchoolPackage } from "@/supabase/db/types";
+import { logger } from "@/backend/logger";
 
 export interface SchoolAssets {
     bannerUrl: string;
@@ -24,12 +25,12 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         const { data, error } = await supabase.from("school").select("*, school_package(*)").eq("username", username).single();
 
         if (error) {
-            console.error(`❌ Error fetching school by username "${username}":`, error);
+            logger.error(`Error fetching school by username`, { username, error });
             return null;
         }
 
         if (!data) {
-            console.warn(`⚠️ School not found: ${username}`);
+            logger.warn("School not found", { username });
             return null;
         }
 
@@ -39,8 +40,12 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         // Fetch both asset URLs in one go
         const { bannerUrl, iconUrl } = await getCDNImages(username);
 
-        console.log(`✅ Fetched school "${school.name}" with ${packages.length} packages`);
-        console.log(`   Assets: banner=${bannerUrl}, icon=${iconUrl}`);
+        logger.info("Fetched school with packages", {
+            schoolName: school.name,
+            packageCount: packages.length,
+            bannerUrl,
+            iconUrl,
+        });
 
         return {
             school,
@@ -48,7 +53,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
             assets: { bannerUrl, iconUrl },
         };
     } catch (err) {
-        console.error(`💥 getSchoolByUsername("${username}") failed:`, err);
+        logger.error("Failed to fetch school by username", err, { username });
         return null;
     }
 }
