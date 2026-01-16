@@ -7,7 +7,6 @@ import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import { headers } from "next/headers";
 import type { SchoolCredentials } from "@/types/credentials";
-import { handleSupabaseError } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export async function getSchoolCredentials(): Promise<SchoolCredentials | null> {

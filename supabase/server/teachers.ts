@@ -2,7 +2,6 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
 import { getTeacherEventsRPC } from "@/supabase/rpc/teacher_events";

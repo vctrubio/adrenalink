@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
 import { calculateStudentStats } from "@/backend/data/StudentData";
 import { calculateBookingStats } from "@/backend/data/BookingData";
-import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {

@@ -2,7 +2,7 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { PackageWithUsageStats, PackageTableData } from "@/config/tables";
 import { calculatePackageStats } from "@/backend/data/PackageData";
-import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export async function getPackagesTable(): Promise<PackageTableData[]> {

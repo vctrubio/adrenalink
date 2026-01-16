@@ -1,7 +1,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import type { SchoolWithAssets } from "@/supabase/db/types";
-import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export async function getSchools(): Promise<SchoolWithAssets[]> {

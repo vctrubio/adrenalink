@@ -2,7 +2,7 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { BookingWithLessonAndPayments, LessonWithPayments, BookingStudentPayments, BookingTableStats } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
-import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export type BookingTableData = BookingWithLessonAndPayments & { stats: BookingTableStats; currency: string };

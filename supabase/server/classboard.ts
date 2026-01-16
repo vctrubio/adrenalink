@@ -297,53 +297,32 @@ export async function createClassboardEvent(
  */
 export async function deleteClassboardEvent(eventId: string): Promise<ApiActionResponseModel<{ success: boolean }>> {
     try {
-        logger.debug("Deleting event", { eventId });
-
         const supabase = getServerConnection();
-
-        logger.debug("Checking if event exists", { eventId });
 
         // Check if event exists
         const { data: eventToDelete, error: fetchError } = await supabase.from("event").select("id").eq("id", eventId).single();
-
-        logger.debug("Fetch result", {
-            eventToDelete,
-            fetchError: fetchError ? { code: fetchError.code, message: fetchError.message, details: fetchError.details } : null,
-        });
 
         if (fetchError || !eventToDelete) {
             logger.error("Event not found", fetchError, { eventId });
             return { success: false, error: `Event not found: ${eventId}` };
         }
 
-        logger.debug("Event exists, proceeding with delete");
-
         // First delete related equipment_event records (cascade delete)
-        logger.debug("Deleting related equipment_event records", { eventId });
         const { error: equipmentDeleteError } = await supabase.from("equipment_event").delete().eq("event_id", eventId);
 
         if (equipmentDeleteError) {
-            logger.warn("Could not delete equipment_event records", { eventId, error: equipmentDeleteError });
-            // Continue anyway - try to delete the event
-        } else {
-            logger.debug("Related equipment_event records deleted", { eventId });
+            logger.warn("Could not delete equipment_event records", { eventId });
         }
 
         // Now delete the event
-        logger.debug("Deleting event", { eventId });
         const { error: deleteError } = await supabase.from("event").delete().eq("id", eventId);
 
-        logger.debug("Delete result", {
-            deleteError: deleteError ? { code: deleteError.code, message: deleteError.message, details: deleteError.details } : null,
-        });
-
         if (deleteError) {
-            logger.error("Delete failed", deleteError, { eventId });
+            logger.error("Failed to delete event", deleteError, { eventId });
             return { success: false, error: `Failed to delete event: ${deleteError.message}` };
         }
 
         logger.info("Event deleted successfully", { eventId });
-
         return { success: true, data: { success: true } };
     } catch (error) {
         logger.error("Exception deleting event", error);
@@ -689,9 +668,7 @@ export async function cascadeDeleteWithShift(
             return { success: true, data: { shiftedCount: 0 } };
         }
 
-        const SHIFT_DURATION_MINUTES = minutesToShift;
-
-        logger.debug("Cascading delete: shifting events", { count: eventIds.length, minutesToShift: SHIFT_DURATION_MINUTES });
+        logger.debug("Cascading delete: shifting events", { count: eventIds.length, minutesToShift });
 
         const supabase = getServerConnection();
 
@@ -706,7 +683,7 @@ export async function cascadeDeleteWithShift(
         let shiftedCount = 0;
         for (const evt of eventsToShift) {
             const currentDate = new Date(evt.date);
-            currentDate.setMinutes(currentDate.getMinutes() - SHIFT_DURATION_MINUTES);
+            currentDate.setMinutes(currentDate.getMinutes() - minutesToShift);
 
             const { error: updateError } = await supabase.from("event").update({ date: currentDate }).eq("id", evt.id);
 
