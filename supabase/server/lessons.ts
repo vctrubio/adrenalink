@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
@@ -30,8 +30,7 @@ export interface LessonForm {
  */
 export async function createLesson(lessonData: LessonForm): Promise<ApiActionResponseModel<LessonData>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -74,8 +73,7 @@ export async function createLessonWithCommission(
     commissionId: string,
 ): Promise<ApiActionResponseModel<LessonData>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -115,8 +113,7 @@ export async function createLessonWithCommission(
  */
 export async function getLessons(): Promise<ApiActionResponseModel<LessonData[]>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -271,8 +268,7 @@ export async function assignTeacherCommissionToLesson(
     commissionId: string,
 ): Promise<ApiActionResponseModel<any>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };

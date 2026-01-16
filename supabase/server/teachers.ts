@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
 import { getTeacherEventsRPC } from "@/supabase/rpc/teacher_events";
@@ -35,8 +35,7 @@ export interface TeacherProvider {
 
 export async function getSchoolTeacherProvider(): Promise<{ success: boolean; data?: TeacherProvider[]; error?: string }> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
@@ -77,7 +76,7 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
         }
 
         const teachers = safeArray(data).map((t: any) => {
-            const lessons = t.lesson || [];
+            const lessons = safeArray(t.lesson);
             const totalLessons = lessons.length;
             const completedLessons = lessons.filter((l: any) => l.status === "completed" || l.status === "uncompleted").length;
 
@@ -92,7 +91,7 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
                     phone: t.phone,
                     languages: t.languages,
                     active: t.active,
-                    commissions: (t.teacher_commission || []).map((c: any) => ({
+                    commissions: safeArray(t.teacher_commission).map((c: any) => ({
                         id: c.id,
                         commissionType: c.commission_type,
                         cph: c.cph,
@@ -116,8 +115,7 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
 
 export async function getTeachersTable(): Promise<TeacherTableData[]> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return [];
@@ -185,9 +183,9 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
         }
 
         const result = safeArray(data).map((t: any) => {
-            const lessons: LessonWithPayments[] = (t.lesson || []).map((l: any) => {
-                const totalDuration = l.event.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-                const recordedPayments = (l.teacher_lesson_payment || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+            const lessons: LessonWithPayments[] = safeArray(t.lesson).map((l: any) => {
+                const totalDuration = safeArray(l.event).reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
+                const recordedPayments = safeArray(l.teacher_lesson_payment).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
                 const booking = l.booking;
                 const pkg = booking.school_package;
 
@@ -233,7 +231,7 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
             });
 
             // Map assigned equipment
-            const equipments = (t.teacher_equipment || [])
+            const equipments = safeArray(t.teacher_equipment)
                 .filter((te: any) => te.active && te.equipment)
                 .map((te: any) => ({
                     id: te.equipment.id,

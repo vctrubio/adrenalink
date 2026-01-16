@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
 import { calculateStudentStats } from "@/backend/data/StudentData";
 import { calculateBookingStats } from "@/backend/data/BookingData";
@@ -8,8 +8,7 @@ import { logger } from "@/backend/logger";
 
 export async function getStudentsTable(): Promise<StudentTableData[]> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return [];

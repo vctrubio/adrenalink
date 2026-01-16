@@ -1,9 +1,8 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { TeacherData, TeacherUpdateForm, TeacherRelations } from "@/backend/data/TeacherData";
 import { Teacher } from "@/supabase/db/types";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
-import { headers } from "next/headers";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
@@ -12,21 +11,11 @@ import { logger } from "@/backend/logger";
  */
 export async function getTeacherId(id: string): Promise<{ success: boolean; data?: TeacherData; error?: string }> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return { success: false, error: "School context not found" };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return { success: false, error: "School context not found" };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -82,8 +71,8 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
             teacher_commission: safeArray(teacher.teacher_commission),
             lesson: safeArray(teacher.lesson).map((l: any) => {
                 // Convert event times if timezone is available and map equipment
-                const events = (l.event || []).map((evt: any) => {
-                    const equipments = (evt.equipment_event || []).map((ee: any) => ({
+                const events = safeArray(l.event).map((evt: any) => {
+                    const equipments = safeArray(evt.equipment_event).map((ee: any) => ({
                         id: ee.equipment.id,
                         brand: ee.equipment.brand,
                         model: ee.equipment.model,
@@ -107,7 +96,7 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                 });
 
                 // Extract students from booking_student junction table
-                const students = (l.booking?.booking_student || []).map((bs: any) => ({
+                const students = safeArray(l.booking?.booking_student).map((bs: any) => ({
                     id: bs.student.id,
                     first_name: bs.student.first_name,
                     last_name: bs.student.last_name,

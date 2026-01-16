@@ -3,6 +3,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/backend/logger";
+import { isUniqueConstraintError } from "@/backend/error-handlers";
 
 export async function linkTeacherToEquipment(equipmentId: string, teacherId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -16,8 +17,8 @@ export async function linkTeacherToEquipment(equipmentId: string, teacherId: str
         });
 
         if (insertError) {
-            // If conflict, set active to true
-            if (insertError.code === "23505") {
+            // If conflict (duplicate), set active to true
+            if (isUniqueConstraintError(insertError)) {
                 const { error: updateError } = await supabase
                     .from("teacher_equipment")
                     .update({ active: true })

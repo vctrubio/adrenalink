@@ -4,12 +4,11 @@
  */
 
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
-import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
-import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Query builder for booking with all nested relations
@@ -83,22 +82,11 @@ function buildBookingQuery() {
 }
 
 export async function getHomeBookings(): Promise<ClassboardModel> {
-    const headersList = await headers();
-    const schoolId = headersList.get("x-school-id");
-    let timezone = headersList.get("x-school-timezone");
-
-    if (!schoolId) {
-        throw new Error("School ID not found in headers");
+    const context = await getSchoolContext();
+    if (!context) {
+        throw new Error("School context not found");
     }
-
-    // Fallback: fetch timezone if not in headers (though middleware should provide it)
-    if (!timezone) {
-        logger.warn("Timezone not found in headers, fetching from school header");
-        const schoolHeader = await getSchoolHeader();
-        if (schoolHeader) {
-            timezone = schoolHeader.timezone;
-        }
-    }
+    const { schoolId, timezone } = context;
 
     const supabase = await getServerConnection();
 
@@ -114,7 +102,7 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
     }
 
     // Transform raw booking data into ClassboardModel format
-    const classboardData = createClassboardModel(bookings || []);
+    const classboardData = createClassboardModel(safeArray(bookings));
 
     // Convert all event times from UTC → school's timezone for display
     if (timezone) {

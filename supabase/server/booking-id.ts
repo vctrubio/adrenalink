@@ -2,34 +2,23 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
 import { Booking } from "@/supabase/db/types";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
-import { headers } from "next/headers";
-
 /**
  * Fetches a booking by ID with all relations mapped to BookingData interface.
  */
 export async function getBookingId(id: string): Promise<{ success: boolean; data?: BookingData; error?: string }> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return { success: false, error: "School context not found" };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return { success: false, error: "School context not found" };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -93,7 +82,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             students,
             lessons: safeArray(booking.lesson).map((l: any) => {
                 // Convert event times if timezone is available
-                const events = (l.event || []).map((evt: any) => {
+                const events = safeArray(l.event).map((evt: any) => {
                     if (timezone) {
                         const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
                         return { ...evt, date: convertedDate.toISOString() };

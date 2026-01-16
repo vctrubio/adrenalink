@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import type { EquipmentWithRepairsRentalsEvents, EquipmentTableData } from "@/config/tables";
 import { calculateEquipmentStats } from "@/backend/data/EquipmentData";
 import { safeArray } from "@/backend/error-handlers";
@@ -7,8 +7,7 @@ import { logger } from "@/backend/logger";
 
 export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return [];

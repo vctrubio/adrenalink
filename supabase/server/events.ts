@@ -18,6 +18,7 @@ import type { TransactionEventData } from "@/types/transaction-event";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { headers } from "next/headers";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -179,7 +180,7 @@ export async function getEventTransaction(
         const teacher = lesson.teacher;
         const commission = lesson.teacher_commission;
         const students = booking.booking_student.map((bs: any) => bs.student);
-        const equipments = data.equipment_event?.map((ee: any) => ee.equipment) || [];
+        const equipments = safeArray(data.equipment_event).map((ee: any) => ee.equipment);
 
         // Financial Calculations
         const studentCount = students.length;

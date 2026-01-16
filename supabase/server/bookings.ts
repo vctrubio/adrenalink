@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import type { BookingWithLessonAndPayments, LessonWithPayments, BookingStudentPayments, BookingTableStats } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
 import { safeArray } from "@/backend/error-handlers";
@@ -9,8 +9,7 @@ export type BookingTableData = BookingWithLessonAndPayments & { stats: BookingTa
 
 export async function getBookingsTable(): Promise<BookingTableData[]> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return [];

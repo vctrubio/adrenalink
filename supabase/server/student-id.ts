@@ -1,8 +1,7 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data/StudentData";
 import { Student } from "@/supabase/db/types";
-import { headers } from "next/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
@@ -13,21 +12,11 @@ import { logger } from "@/backend/logger";
  */
 export async function getStudentId(id: string): Promise<{ success: boolean; data?: StudentData; error?: string }> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return { success: false, error: "School context not found" };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return { success: false, error: "School context not found" };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -95,8 +84,8 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         capacity_equipment: b.school_package.capacity_equipment,
                         category_equipment: b.school_package.category_equipment,
                     },
-                    lessons: (b.lesson || []).map((l: any) => {
-                        const events = (l.event || []).map((evt: any) => {
+                    lessons: safeArray(b.lesson).map((l: any) => {
+                        const events = safeArray(l.event).map((evt: any) => {
                             if (timezone) {
                                 const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
                                 return { ...evt, date: convertedDate.toISOString() };
@@ -133,7 +122,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                             },
                         };
                     }),
-                    student_booking_payment: (b.student_booking_payment || []).map((p: any) => ({
+                    student_booking_payment: safeArray(b.student_booking_payment).map((p: any) => ({
                         id: p.id,
                         amount: p.amount,
                         created_at: p.created_at,

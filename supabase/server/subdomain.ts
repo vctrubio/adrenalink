@@ -2,6 +2,7 @@ import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
 import type { School, SchoolPackage } from "@/supabase/db/types";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 export interface SchoolAssets {
     bannerUrl: string;
@@ -35,7 +36,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         }
 
         const school = data as School;
-        const packages: SchoolPackage[] = (data as School & { school_package: SchoolPackage[] }).school_package || [];
+        const packages: SchoolPackage[] = safeArray((data as School & { school_package: SchoolPackage[] }).school_package);
 
         // Fetch both asset URLs in one go
         const { bannerUrl, iconUrl } = await getCDNImages(username);

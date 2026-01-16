@@ -1,11 +1,11 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
-import { headers } from "next/headers";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { BookingWithLessonAndPayments } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Comprehensive student user data with ALL bookings and events
@@ -17,21 +17,11 @@ export async function getStudentUser(studentId: string): Promise<{
     error?: string;
 }> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return { success: false, error: "School context not found" };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return { success: false, error: "School context not found" };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -74,16 +64,16 @@ export async function getStudentUser(studentId: string): Promise<{
         const bookings: BookingWithProgress[] = [];
         const allEvents: StudentEvent[] = [];
 
-        for (const bs of studentData.booking_student || []) {
+        for (const bs of safeArray(studentData.booking_student)) {
             const booking = bs.booking;
             const schoolPackage = booking.school_package;
 
             if (!schoolPackage) continue;
 
             // Process lessons for booking
-            const lessons = (booking.lesson || []).map((lesson: any) => {
-                const totalDuration = (lesson.event || []).reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-                const recordedPayments = (lesson.teacher_lesson_payment || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+            const lessons = safeArray(booking.lesson).map((lesson: any) => {
+                const totalDuration = safeArray(lesson.event).reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
+                const recordedPayments = safeArray(lesson.teacher_lesson_payment).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
 
                 return {
                     id: lesson.id,
@@ -95,9 +85,9 @@ export async function getStudentUser(studentId: string): Promise<{
                         cph: lesson.teacher_commission.cph,
                     },
                     events: {
-                        totalCount: (lesson.event || []).length,
+                        totalCount: safeArray(lesson.event).length,
                         totalDuration,
-                        details: (lesson.event || []).map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
+                        details: safeArray(lesson.event).map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
                     },
                     teacherPayments: recordedPayments,
                 };
@@ -115,7 +105,7 @@ export async function getStudentUser(studentId: string): Promise<{
                     pph: schoolPackage.duration_minutes > 0 ? schoolPackage.price_per_student / (schoolPackage.duration_minutes / 60) : 0,
                 },
                 lessons,
-                payments: (booking.student_booking_payment || []).map((p: any) => ({
+                payments: safeArray(booking.student_booking_payment).map((p: any) => ({
                     student_id: studentId,
                     amount: p.amount || 0,
                 })),
@@ -134,9 +124,9 @@ export async function getStudentUser(studentId: string): Promise<{
             });
 
             // Extract all events for this student
-            for (const lesson of booking.lesson || []) {
+            for (const lesson of safeArray(booking.lesson)) {
                 const teacher = lesson.teacher;
-                for (const evt of lesson.event || []) {
+                for (const evt of safeArray(lesson.event)) {
                     let eventDate = evt.date;
                     if (timezone) {
                         const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone);

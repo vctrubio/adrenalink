@@ -1,8 +1,9 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { headers } from "next/headers";
+import { getSchoolId } from "@/backend/school-context";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 export interface WizardEntity {
     id: string;
@@ -13,8 +14,7 @@ export interface WizardEntity {
 
 export async function getWizardEntities(entityType: string): Promise<WizardEntity[]> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) return [];
 
@@ -41,7 +41,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
 
                 if (error) throw error;
 
-                return (data || []).map((row: any) => ({
+                return safeArray(data).map((row: any) => ({
                     id: row.student.id,
                     title: `${row.student.first_name} ${row.student.last_name}`,
                     subtitle: row.student.country,
@@ -59,7 +59,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
 
                 if (error) throw error;
 
-                return (data || []).map((row: any) => ({
+                return safeArray(data).map((row: any) => ({
                     id: row.id,
                     title: row.username,
                     subtitle: `${row.first_name} ${row.last_name}`,
@@ -77,7 +77,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
 
                 if (error) throw error;
 
-                return (data || []).map((row: any) => ({
+                return safeArray(data).map((row: any) => ({
                     id: row.id,
                     title: row.description,
                     subtitle: `${row.category_equipment} - ${row.duration_minutes} min`,
@@ -95,7 +95,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
 
                 if (error) throw error;
 
-                return (data || []).map((row: any) => ({
+                return safeArray(data).map((row: any) => ({
                     id: row.id,
                     title: `Booking ${row.id.substring(0, 8)}`,
                     subtitle: row.status,
@@ -113,7 +113,7 @@ export async function getWizardEntities(entityType: string): Promise<WizardEntit
 
                 if (error) throw error;
 
-                return (data || []).map((row: any) => ({
+                return safeArray(data).map((row: any) => ({
                     id: row.id,
                     title: `${row.model} ${row.sku}`,
                     subtitle: row.category,

@@ -4,6 +4,7 @@ import { getSchoolHeader } from "@/types/headers";
 import { StudentPackage, SchoolPackage, Referral } from "@/supabase/db/types";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 export interface StudentPackageRequest extends StudentPackage {
     school_package: SchoolPackage;
@@ -126,17 +127,17 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
             return { success: false, error: "Failed to fetch packages" };
         }
 
-        const packagesWithStats = (data || []).map((sp: any) => {
-            const bookings = sp.booking || [];
+        const packagesWithStats = safeArray(data).map((sp: any) => {
+            const bookings = safeArray(sp.booking);
             const booking_count = bookings.length;
 
             let event_count = 0;
             let total_duration_minutes = 0;
 
             bookings.forEach((b: any) => {
-                const lessons = b.lesson || [];
+                const lessons = safeArray(b.lesson);
                 lessons.forEach((l: any) => {
-                    const events = l.event || [];
+                    const events = safeArray(l.event);
                     event_count += events.length;
                     total_duration_minutes += events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
                 });

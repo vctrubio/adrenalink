@@ -1,10 +1,10 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext } from "@/backend/school-context";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
-import { headers } from "next/headers";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Comprehensive teacher user data with ALL relations
@@ -16,21 +16,11 @@ export async function getTeacherUser(teacherId: string): Promise<{
     error?: string;
 }> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return { success: false, error: "School context not found" };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return { success: false, error: "School context not found" };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -84,7 +74,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
         const transactions: TransactionEventData[] = [];
         const lessonMap = new Map<string, LessonSummary>();
 
-        for (const lesson of teacher.lesson || []) {
+        for (const lesson of safeArray(teacher.lesson)) {
             const booking = lesson.booking;
             const commission = lesson.teacher_commission;
             const schoolPackage = booking?.school_package;
@@ -92,7 +82,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
             if (!booking || !commission || !schoolPackage) continue;
 
             // Extract students
-            const bookingStudents = (booking.booking_student || []).map((bs: any) => ({
+            const bookingStudents = safeArray(booking.booking_student).map((bs: any) => ({
                 id: bs.student.id,
                 firstName: bs.student.first_name,
                 lastName: bs.student.last_name,
@@ -117,7 +107,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
             }
 
             // Process events for this lesson
-            for (const evt of lesson.event || []) {
+            for (const evt of safeArray(lesson.event)) {
                 let eventDate = evt.date;
                 if (timezone) {
                     const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone);
@@ -211,7 +201,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
         }
 
         // Process teacher equipment
-        const equipment = (teacher.teacher_equipment || []).map((te: any) => ({
+        const equipment = safeArray(teacher.teacher_equipment).map((te: any) => ({
             id: te.id,
             teacher_id: te.teacher_id,
             equipment_id: te.equipment_id,
@@ -237,7 +227,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
                 created_at: teacher.created_at,
                 updated_at: teacher.updated_at,
             },
-            commissions: teacher.teacher_commission || [],
+            commissions: safeArray(teacher.teacher_commission),
             equipment,
             events,
             lessons: transactions,

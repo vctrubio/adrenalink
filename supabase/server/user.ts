@@ -4,6 +4,7 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 export interface StudentPackageBookingLessons {
     id: string;
@@ -138,7 +139,7 @@ export async function getStudentPackageBookingLessons(
                                 type: lesson.commission?.commission_type || "",
                                 cph: parseInt(lesson.commission?.cph || "0"),
                             },
-                            events: (lesson.event || []).map((event: any) => ({
+                            events: safeArray(lesson.event).map((event: any) => ({
                                 id: event.id,
                                 date: event.date,
                                 duration: event.duration,
@@ -272,7 +273,7 @@ export async function getTeacherPackageBookingLessons(
                         type: lesson.commission?.commission_type || "",
                         cph: parseInt(lesson.commission?.cph || "0"),
                     },
-                    events: (lesson.event || []).map((event: any) => ({
+                    events: safeArray(lesson.event).map((event: any) => ({
                         id: event.id,
                         date: event.date,
                         duration: event.duration,

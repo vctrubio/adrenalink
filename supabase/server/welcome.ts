@@ -6,6 +6,7 @@ import type { ApiActionResponseModel } from "@/types/actions";
 import { logAndNotifyNewSchool, logAndNotifyError } from "./notifications";
 import { sendSchoolRegistrationEmail } from "./email-service";
 import { logger } from "@/backend/logger";
+import { isUniqueConstraintError, safeArray } from "@/backend/error-handlers";
 
 /**
  * Fetches all school usernames to prevent duplicates during registration
@@ -22,7 +23,7 @@ export async function getSchoolsUsernames(): Promise<ApiActionResponseModel<stri
             return { success: false, error: "Failed to fetch school usernames" };
         }
 
-        const usernames = (data || []).map((s: any) => s.username);
+        const usernames = safeArray(data).map((s: any) => s.username);
         return { success: true, data: usernames };
     } catch (error) {
         logger.error("Unexpected error in getSchoolsUsernames", error);
@@ -79,7 +80,7 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
         const { data, error } = await supabase.from("school").insert(insertData).select().single();
 
         if (error) {
-            if (error.code === "23505") {
+            if (isUniqueConstraintError(error)) {
                 return { success: false, error: "A school with this username already exists" };
             }
             

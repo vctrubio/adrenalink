@@ -1,14 +1,14 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolHeader } from "@/types/headers";
+import { getSchoolContext, getSchoolId } from "@/backend/school-context";
 import { convertUTCToSchoolTimezone, convertSchoolTimeToUTC } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/backend/logger";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Shared query builder for booking relations
@@ -87,24 +87,14 @@ function buildBookingQuery() {
  */
 export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const headersList = await headers();
-        let schoolId = headersList.get("x-school-id");
-        let timezone = headersList.get("x-school-timezone");
-
-        if (!schoolId) {
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                return {
-                    success: false,
-                    error: "School context could not be determined from header.",
-                };
-            }
-            schoolId = schoolHeader.id;
-            timezone = schoolHeader.timezone;
-        } else if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) timezone = schoolHeader.timezone;
+        const context = await getSchoolContext();
+        if (!context) {
+            return {
+                success: false,
+                error: "School context could not be determined from header.",
+            };
         }
+        const { schoolId, timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -120,7 +110,7 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
             return { success: false, error: "Failed to fetch classboard data" };
         }
 
-        const classboardData = createClassboardModel(bookingsResult || []);
+        const classboardData = createClassboardModel(safeArray(bookingsResult));
 
         // Convert all event times from UTC to school's local timezone for display
         if (timezone) {
@@ -149,21 +139,14 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
  */
 export async function getSQLClassboardDataForBooking(bookingId: string): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const headersList = await headers();
-        let timezone = headersList.get("x-school-timezone");
-
-        // Fallback if header missing
-        if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) {
-                timezone = schoolHeader.timezone;
-            } else {
-                return {
-                    success: false,
-                    error: "School context could not be determined.",
-                };
-            }
+        const context = await getSchoolContext();
+        if (!context) {
+            return {
+                success: false,
+                error: "School context could not be determined.",
+            };
         }
+        const { timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -221,20 +204,12 @@ export async function createClassboardEvent(
     }>
 > {
     try {
-        // Get school context from header
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
-        const schoolZone = headersList.get("x-school-timezone");
-
-        logger.debug("Headers check", {
-            schoolId,
-            schoolZone,
-            allHeaders: Object.fromEntries(headersList.entries()),
-        });
-
-        if (!schoolId || !schoolZone) {
+        // Get school context
+        const context = await getSchoolContext();
+        if (!context) {
             return { success: false, error: "School context not found or timezone not configured" };
         }
+        const { schoolId, timezone: schoolZone } = context;
 
         // Parse input: "2025-11-14T14:00:00"
         const dateMatch = eventDate.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
@@ -540,8 +515,7 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
  */
 export async function deleteAllClassboardEvents(selectedDate: string): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School not found" };
@@ -712,8 +686,7 @@ export async function cascadeDeleteWithShift(
  */
 export async function getAvailableEquipment(category: string): Promise<ApiActionResponseModel<any[]>> {
     try {
-        const headersList = await headers();
-        const schoolId = headersList.get("x-school-id");
+        const schoolId = await getSchoolId();
 
         if (!schoolId) {
             return { success: false, error: "School context not found" };
@@ -738,7 +711,7 @@ export async function getAvailableEquipment(category: string): Promise<ApiAction
             return { success: false, error: "Failed to fetch equipment" };
         }
 
-        return { success: true, data: data || [] };
+        return { success: true, data: safeArray(data) };
     } catch (error) {
         logger.error("Unexpected error fetching equipment", error);
         return { success: false, error: "An unexpected error occurred" };
