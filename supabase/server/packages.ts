@@ -2,6 +2,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { PackageWithUsageStats, PackageTableData } from "@/config/tables";
 import { calculatePackageStats } from "@/backend/data/PackageData";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function getPackagesTable(): Promise<PackageTableData[]> {
     try {
@@ -9,7 +11,6 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
-            console.error("❌ No school ID found in headers");
             return [];
         }
 
@@ -28,16 +29,16 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching packages table:", error);
+            logger.error("Error fetching packages table", error);
             return [];
         }
 
-        return data.map((pkg: any) => {
+        const result = safeArray(data).map((pkg: any) => {
             const bookingCount = pkg.booking?.[0]?.count || 0;
             const requestCount = pkg.student_package?.[0]?.count || 0;
             const revenue = bookingCount * pkg.price_per_student * pkg.capacity_students;
 
-            const result: PackageWithUsageStats = {
+            const packageResult: PackageWithUsageStats = {
                 id: pkg.id,
                 description: pkg.description,
                 pricePerStudent: pkg.price_per_student,
@@ -56,15 +57,18 @@ export async function getPackagesTable(): Promise<PackageTableData[]> {
                 },
             };
 
-            const stats = calculatePackageStats(result);
+            const stats = calculatePackageStats(packageResult);
 
             return {
-                ...result,
+                ...packageResult,
                 stats,
             };
         });
+
+        logger.debug("Fetched packages table", { schoolId, count: result.length });
+        return result;
     } catch (error) {
-        console.error("Unexpected error in getPackagesTable:", error);
+        logger.error("Error fetching packages table", error);
         return [];
     }
 }

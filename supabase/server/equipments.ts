@@ -2,6 +2,8 @@ import { getServerConnection } from "@/supabase/connection";
 import { headers } from "next/headers";
 import type { EquipmentWithRepairsRentalsEvents, EquipmentTableData } from "@/config/tables";
 import { calculateEquipmentStats } from "@/backend/data/EquipmentData";
+import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
 export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
     try {
@@ -9,7 +11,6 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
         const schoolId = headersList.get("x-school-id");
 
         if (!schoolId) {
-            console.error("❌ No school ID found in headers");
             return [];
         }
 
@@ -48,15 +49,15 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching equipments table:", error);
+            logger.error("Error fetching equipments table", error);
             return [];
         }
 
-        return data.map((e: any) => {
+        const result = safeArray(data).map((e: any) => {
             // Map usage stats from events
             const teacherUsageMap: Record<string, { eventCount: number; durationMinutes: number }> = {};
 
-            const equipmentEvents = (e.equipment_event || []).filter((ee: any) => ee.event);
+            const equipmentEvents = safeArray(e.equipment_event).filter((ee: any) => ee.event);
 
             equipmentEvents.forEach((ee: any) => {
                 const evt = ee.event;
@@ -71,7 +72,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
             });
 
             // Map active assigned teachers and merge usage stats
-            const assignedTeachers = (e.teacher_equipment || [])
+            const assignedTeachers = safeArray(e.teacher_equipment)
                 .filter((te: any) => te.active && te.teacher)
                 .map((te: any) => {
                     const usage = teacherUsageMap[te.teacher.id] || { eventCount: 0, durationMinutes: 0 };
@@ -84,7 +85,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                 });
 
             // Map repairs
-            const repairCount = (e.equipment_repair || []).length;
+            const repairCount = safeArray(e.equipment_repair).length;
 
             // Map rentals
             const rentalCount = e.rental_equipment?.[0]?.count || 0;
@@ -93,7 +94,7 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
             const eventCount = equipmentEvents.length;
             const totalDurationMinutes = equipmentEvents.reduce((sum: number, ee: any) => sum + (ee.event.duration || 0), 0);
 
-            const result: EquipmentWithRepairsRentalsEvents = {
+            const equipmentResult: EquipmentWithRepairsRentalsEvents = {
                 id: e.id,
                 sku: e.sku,
                 brand: e.brand,
@@ -116,15 +117,18 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
                 },
             };
 
-            const stats = calculateEquipmentStats(result);
+            const stats = calculateEquipmentStats(equipmentResult);
 
             return {
-                ...result,
+                ...equipmentResult,
                 stats,
             };
         });
+
+        logger.debug("Fetched equipments table", { schoolId, count: result.length });
+        return result;
     } catch (error) {
-        console.error("Unexpected error in getEquipmentsTable:", error);
+        logger.error("Error fetching equipments table", error);
         return [];
     }
 }
