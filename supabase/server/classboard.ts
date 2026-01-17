@@ -2,7 +2,6 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolContext, getSchoolId } from "@/backend/school-context";
-import { convertUTCToSchoolTimezone, convertSchoolTimeToUTC } from "@/getters/timezone-getter";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -112,18 +111,6 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
 
         const classboardData = createClassboardModel(safeArray(bookingsResult));
 
-        // Convert all event times from UTC to school's local timezone for display
-        if (timezone) {
-            classboardData.forEach((bookingData) => {
-                bookingData.lessons?.forEach((lessonData) => {
-                    lessonData.events?.forEach((evt) => {
-                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                        evt.date = convertedDate.toISOString();
-                    });
-                });
-            });
-        }
-
         return { success: true, data: classboardData };
     } catch (error) {
         return {
@@ -165,18 +152,6 @@ export async function getSQLClassboardDataForBooking(bookingId: string): Promise
         // createClassboardModel expects an array
         const classboardData = createClassboardModel([bookingData]);
 
-        // Convert all event times from UTC to school's local timezone for display
-        if (timezone) {
-            classboardData.forEach((bd) => {
-                bd.lessons?.forEach((lessonData) => {
-                    lessonData.events?.forEach((evt) => {
-                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                        evt.date = convertedDate.toISOString();
-                    });
-                });
-            });
-        }
-
         return { success: true, data: classboardData };
     } catch (error) {
         return {
@@ -207,9 +182,9 @@ export async function createClassboardEvent(
         // Get school context
         const context = await getSchoolContext();
         if (!context) {
-            return { success: false, error: "School context not found or timezone not configured" };
+            return { success: false, error: "School context not found" };
         }
-        const { schoolId, timezone: schoolZone } = context;
+        const { schoolId } = context;
 
         // Parse input: "2025-11-14T14:00:00"
         const dateMatch = eventDate.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
@@ -221,18 +196,17 @@ export async function createClassboardEvent(
         const dateStr = `${year}-${month}-${day}`;
         const timeStr = `${hours}:${minutes}:00`;
 
-        // Calculate UTC time from school local time using robust getter
-        // This handles DST and offset calculation correctly for the specific date
-        const utcDate = convertSchoolTimeToUTC(`${dateStr}T${timeStr}`, schoolZone);
+        // Store as Wall Clock Time (e.g. "2024-01-01T10:00:00") directly in the DB
+        const eventDateISO = `${dateStr}T${timeStr}`;
 
-        // Store as UTC in database
+        // Store as TIMESTAMP in database (Postgres will treat this as abstract timestamp)
         const supabase = getServerConnection();
         const { data: result, error } = await supabase
             .from("event")
             .insert({
                 lesson_id: lessonId,
                 school_id: schoolId,
-                date: utcDate,
+                date: eventDateISO,
                 duration,
                 location,
                 status: "planned",
@@ -247,8 +221,7 @@ export async function createClassboardEvent(
 
         logger.info("Event created", {
             schoolTime: timeStr,
-            utcTime: utcDate.toISOString(),
-            timezone: schoolZone,
+            dbTime: eventDateISO,
         });
 
         return {
@@ -343,7 +316,7 @@ export async function updateEventStartTime(eventId: string, newDate: string): Pr
 
         const { error } = await supabase
             .from("event")
-            .update({ date: new Date(newDate) })
+            .update({ date: newDate })
             .eq("id", eventId);
 
         if (error) {
@@ -414,7 +387,8 @@ export async function bulkUpdateClassboardEvents(
                 const updateData: Record<string, any> = {};
 
                 if (update.date !== undefined) {
-                    updateData.date = new Date(update.date);
+                    // Use string directly to preserve Wall Clock Time
+                    updateData.date = update.date;
                 }
                 if (update.duration !== undefined) {
                     updateData.duration = update.duration;

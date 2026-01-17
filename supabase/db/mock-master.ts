@@ -111,6 +111,8 @@ const seedMasterSchool = async () => {
             timezone: "Europe/London",
             website_url: "https://plymouthkiteschool.com",
             instagram_url: "https://instagram.com/plymouthkiteschool",
+            email: "admin@plymouthkiteschool.com",
+            clerk_id: "user_master_admin"
         });
         const schoolId = school.id;
 

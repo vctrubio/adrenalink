@@ -1,4 +1,4 @@
--- enriched RPC for Transaction table with Timezone conversion
+-- enriched RPC for Transaction table (Wall Clock Time)
 DROP FUNCTION IF EXISTS get_event_transaction(UUID);
 DROP FUNCTION IF EXISTS get_event_transactions_batch(UUID[]);
 
@@ -9,7 +9,7 @@ RETURNS TABLE (
     booking_id UUID,
     teacher_id UUID,
     school_id UUID,
-    event_date TIMESTAMP, -- Using TIMESTAMP without zone to return the "wall clock" local time
+    event_date TIMESTAMP, -- Stored as Wall Clock Time (no timezone)
     event_duration INTEGER,
     event_location VARCHAR,
     event_status TEXT,
@@ -37,7 +37,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        (e.date AT TIME ZONE s.timezone)::TIMESTAMP, -- Convert UTC to school timezone
+        e.date,
         e.duration,
         e.location,
         e.status,
@@ -70,7 +70,7 @@ BEGIN
             '[]'::jsonb
         )
     FROM event e
-    JOIN school s ON e.school_id = s.id -- Joined school to get the timezone
+    JOIN school s ON e.school_id = s.id
     JOIN lesson l ON e.lesson_id = l.id
     JOIN booking b ON l.booking_id = b.id
     JOIN school_package sp ON b.school_package_id = sp.id
@@ -115,7 +115,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        (e.date AT TIME ZONE s.timezone)::TIMESTAMP,
+        e.date,
         e.duration,
         e.location,
         e.status,

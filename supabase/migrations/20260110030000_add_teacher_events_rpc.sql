@@ -25,7 +25,7 @@ BEGIN
     RETURN QUERY
     SELECT 
         e.id,
-        (e.date AT TIME ZONE s.timezone)::TIMESTAMP,
+        e.date,
         e.duration,
         e.location,
         e.status,

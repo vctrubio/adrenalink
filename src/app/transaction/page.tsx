@@ -4,6 +4,7 @@ import { getSchoolCredentials } from "@/supabase/server/admin";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getTimeFromISO } from "@/getters/queue-getter";
 import { TransactionEventsTable } from "../(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "../(admin)/(tables)/layout";
 import Link from "next/link";
@@ -264,11 +265,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                 },
                                 {
                                     label: "Time",
-                                    value: new Date(transaction.event_date).toLocaleTimeString("en-US", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: false,
-                                    }),
+                                    value: getTimeFromISO(transaction.event_date),
                                 },
                                 { label: "Location", value: transaction.event_location || "TBD" },
                                 { label: "Status", value: transaction.event_status, isStatusBadge: true },

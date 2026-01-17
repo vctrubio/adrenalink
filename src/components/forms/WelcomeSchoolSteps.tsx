@@ -29,7 +29,7 @@ export interface SchoolFormData {
     websiteUrl?: string;
     instagramUrl?: string;
     currency: "USD" | "EUR" | "CHF";
-    ownerId: string;
+    clerkId?: string;
 }
 
 export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [

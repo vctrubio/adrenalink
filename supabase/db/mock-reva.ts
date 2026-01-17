@@ -138,6 +138,8 @@ const seedRevaKiteSchoolFresh = async () => {
             timezone: "Europe/Madrid",
             website_url: "https://revakiteschool.com",
             instagram_url: "https://instagram.com/revakiteschool",
+            email: "admin@revakiteschool.com",
+            clerk_id: "user_reva_admin"
         });
         const schoolId = school.id;
 

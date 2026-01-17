@@ -1,7 +1,6 @@
 /**
  * General date utilities for formatting, manipulation, and validation
  * Queue-specific time functions are in queue-getter.ts
- * Timezone conversions are in timezone-getter.ts
  */
 
 export function getTodayDateString(): string {

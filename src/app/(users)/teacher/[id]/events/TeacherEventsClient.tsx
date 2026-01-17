@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
-import { TeacherEventCard } from "./TeacherEventCard";
+import { EventUserConfirmation } from "@/src/components/events/EventUserConfirmation";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { getTodayDateString } from "@/getters/date-getter";
 import { useTeacherUser } from "@/src/providers/teacher-user-provider";
@@ -199,7 +199,9 @@ export function TeacherEventsClient() {
                     >
                         {sortedEvents.length > 0 ? (
                             sortedEvents.map((event) => (
-                                <TeacherEventCard key={event.id} event={event} currency={currency} />
+                                <EventUserConfirmation key={event.id} event={event} viewMode="teacher" currency={currency} onConfirm={() => {
+                                    // Optimistic update handled by revalidatePath in server action
+                                }} />
                             ))
                         ) : (
                             <div className="text-center py-12 bg-card rounded-2xl border-2 border-dashed border-border text-muted-foreground">

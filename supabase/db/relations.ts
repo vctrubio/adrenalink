@@ -202,6 +202,7 @@ export const relations = {
         foreign_keys: [
             { column: "school_id", references_table: "school", references_column: "id" },
             { column: "school_package_id", references_table: "school_package", references_column: "id" },
+            { column: "referral_id", references_table: "referral", references_column: "id" },
         ],
         one_to_many: [
             { table: "booking_student", via_column: "booking_id" },
@@ -219,6 +220,7 @@ export const relations = {
         foreign_keys: [
             { column: "booking_id", references_table: "booking", references_column: "id" },
             { column: "student_id", references_table: "student", references_column: "id" },
+            { column: "student_package_id", references_table: "student_package", references_column: "id" },
         ],
         junction_table: true,
     },

@@ -61,7 +61,10 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                     },
                     events: les.event.map((evt: any) => ({
                         id: evt.id,
-                        date: evt.date,
+                        // Force string format to preserve Wall Clock Time across the network
+                        date: typeof evt.date === 'string' 
+                            ? evt.date 
+                            : new Date(evt.date).toLocaleString('sv-SE').replace(' ', 'T'),
                         duration: evt.duration,
                         location: evt.location,
                         status: evt.status,

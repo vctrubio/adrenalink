@@ -12,9 +12,10 @@
 /** School entity - Represents a school/institution in the system */
 export interface School {
     id: string;
-    wallet_id: string;
     name: string;
     username: string;
+    email: string | null;
+    clerk_id: string | null;
     country: string;
     phone: string;
     status: string;
@@ -49,6 +50,18 @@ export interface Student {
     updated_at: string;
 }
 
+/** SchoolStudent entity - Junction table for School <-> Student */
+export interface SchoolStudent {
+    school_id: string;
+    student_id: string;
+    description: string | null;
+    email: string | null;
+    clerk_id: string | null;
+    active: boolean;
+    rental: boolean;
+    created_at: string;
+}
+
 /** Teacher entity - Represents an instructor/teacher */
 export interface Teacher {
     id: string;
@@ -56,6 +69,8 @@ export interface Teacher {
     first_name: string;
     last_name: string;
     username: string;
+    email: string | null;
+    clerk_id: string | null;
     passport: string;
     country: string;
     phone: string;
@@ -101,12 +116,20 @@ export interface Booking {
     id: string;
     school_id: string;
     school_package_id: string;
+    referral_id: string | null;
     date_start: string;
     date_end: string;
     leader_student_name: string;
     status: string;
     created_at: string;
     updated_at: string;
+}
+
+/** BookingStudent junction entity */
+export interface BookingStudent {
+    booking_id: string;
+    student_id: string;
+    student_package_id: string | null;
 }
 
 /** Lesson entity - Represents a lesson/training session */

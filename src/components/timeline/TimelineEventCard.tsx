@@ -72,7 +72,7 @@ export function TimelineEventCard({
                 <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2">
                         <span className="text-4xl font-black tracking-tighter leading-none text-foreground">
-                            {getTimeFromISO(event.date.toISOString())}
+                            {event.time}
                         </span>
                         <EventDurationTag
                             icon={<MapPin size={10} />}

@@ -15,6 +15,8 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 import { TableActions } from "../MasterTable";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTablesController } from "../layout";
+import { ENTITY_DATA } from "@/config/entities";
+import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -84,22 +86,33 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         </TableMobileGroupHeader>
     );
 
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
+    const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental");
+    const studentColor = studentEntity?.color || "#eab308";
+    const rentalColor = rentalEntity?.color || "#ef4444";
+
     const desktopColumns: ColumnDef<StudentTableData>[] = [
         {
             header: "Student Profile",
             headerClassName: HEADER_CLASSES.yellow,
             render: (data) => {
                 const isActive = data.schoolStudentStatus === "active";
+                const hasRentals = (data as any).rentals && (data as any).rentals.length > 0;
+                let iconColor = "#9ca3af"; // muted
+                if (isActive && hasRentals) {
+                    iconColor = rentalColor; // red from rental entity
+                } else if (isActive) {
+                    iconColor = studentColor; // yellow from student entity
+                }
                 return (
                     <div className="flex flex-col gap-1 items-start max-w-[400px]">
                         <Link href={`students/${data.id}`} className="flex items-center gap-2 group">
+                            <div style={{ color: iconColor }} title={isActive ? hasRentals ? "Active with Rental" : "Active" : "Inactive"}>
+                                <HelmetIcon size={16} />
+                            </div>
                             <span className="font-bold text-foreground text-sm normal-case group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
                                 {data.firstName} {data.lastName}
                             </span>
-                            <div
-                                className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
-                                title={isActive ? "Active" : "Inactive"}
-                            />
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-tight">
                             <div className="flex items-center" title={data.country}>
@@ -176,23 +189,33 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         {
             label: "Student",
             headerClassName: HEADER_CLASSES.yellow,
-            render: (data) => (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <div
-                            className={`w-1.5 h-1.5 rounded-full ${data.schoolStudentStatus === "active" ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
-                        />
-                        <div className="font-bold text-sm">
-                            {data.firstName} {data.lastName}
+            render: (data) => {
+                const isActive = data.schoolStudentStatus === "active";
+                const hasRentals = (data as any).rentals && (data as any).rentals.length > 0;
+                let iconColor = "#9ca3af"; // muted
+                if (isActive && hasRentals) {
+                    iconColor = rentalColor; // red from rental entity
+                } else if (isActive) {
+                    iconColor = studentColor; // yellow from student entity
+                }
+                return (
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <div style={{ color: iconColor }}>
+                                <HelmetIcon size={14} />
+                            </div>
+                            <div className="font-bold text-sm">
+                                {data.firstName} {data.lastName}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
+                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
+                            <span className="opacity-20 text-foreground">|</span>
+                            <span>{data.phone}</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
-                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
-                        <span className="opacity-20 text-foreground">|</span>
-                        <span>{data.phone}</span>
-                    </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             label: "Progress",

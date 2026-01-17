@@ -7,10 +7,15 @@ import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 export function StudentEventsClient() {
     const { data: studentUser, currency } = useStudentUser();
 
+    // Filter only completed events (students should only see confirmed/completed events)
+    const completedEvents = useMemo(() => {
+        return studentUser.events.filter((event) => event.status === "completed");
+    }, [studentUser.events]);
+
     // Sort events by date (most recent first)
     const sortedEvents = useMemo(() => {
-        return [...studentUser.events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [studentUser.events]);
+        return [...completedEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [completedEvents]);
 
     // Group events by date
     const eventsByDate = useMemo(() => {
@@ -27,10 +32,10 @@ export function StudentEventsClient() {
         return Array.from(groups.entries()).map(([date, events]) => ({ date, events }));
     }, [sortedEvents]);
 
-    if (studentUser.events.length === 0) {
+    if (completedEvents.length === 0) {
         return (
             <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
-                No events scheduled.
+                No confirmed events yet.
             </div>
         );
     }
@@ -39,7 +44,7 @@ export function StudentEventsClient() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-foreground">My Schedule</h2>
-                <div className="text-sm text-muted-foreground">{studentUser.events.length} total events</div>
+                <div className="text-sm text-muted-foreground">{completedEvents.length} confirmed events</div>
             </div>
 
             {eventsByDate.map(({ date, events }) => {

@@ -1,5 +1,6 @@
 import type { TransactionEventData } from "@/types/transaction-event";
 import type { TimelineEvent } from "@/src/components/timeline/types";
+import { getTimeFromISO } from "@/getters/queue-getter";
 
 /**
  * Transform lessons to TransactionEventData
@@ -41,7 +42,10 @@ export function lessonsToTransactionEvents(
                 event: {
                     id: evt.id,
                     lessonId: lesson.id,
-                    date: evt.date,
+                    // Force string format to preserve Wall Clock Time across the network
+                    date: typeof evt.date === 'string' 
+                        ? evt.date 
+                        : new Date(evt.date).toLocaleString('sv-SE').replace(' ', 'T'),
                     duration,
                     location: evt.location,
                     status: evt.status,
@@ -97,7 +101,7 @@ export function transactionEventToTimelineEvent(event: TransactionEventData): Ti
         eventId: event.event.id,
         lessonId: event.event.lessonId || "",
         date,
-        time: date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        time: getTimeFromISO(event.event.date),
         dateLabel: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         dayOfWeek: date.toLocaleDateString("en-US", { weekday: "short" }),
         duration,

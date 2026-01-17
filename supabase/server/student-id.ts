@@ -2,7 +2,6 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolContext } from "@/backend/school-context";
 import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data/StudentData";
 import { Student } from "@/supabase/db/types";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
@@ -85,13 +84,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         category_equipment: b.school_package.category_equipment,
                     },
                     lessons: safeArray(b.lesson).map((l: any) => {
-                        const events = safeArray(l.event).map((evt: any) => {
-                            if (timezone) {
-                                const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                                return { ...evt, date: convertedDate.toISOString() };
-                            }
-                            return evt;
-                        });
+                        const events = safeArray(l.event);
 
                         // Normalize to match buildTeacherLessonData expected structure
                         // Transform: events -> event (singular), add booking with school_package nested

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { TransactionEventData } from "@/types/transaction-event";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getTimeFromISO } from "@/getters/queue-getter";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -97,11 +98,7 @@ export default function TransactionEventModal({ isOpen, onClose, data }: Transac
                                     <DataPoint
                                         icon={<FlagIcon size={14} />}
                                         label="Time"
-                                        value={new Date(event.date).toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            hour12: false,
-                                        })}
+                                        value={getTimeFromISO(event.date)}
                                     />
                                     <DataPoint
                                         icon={<DurationIcon size={14} />}

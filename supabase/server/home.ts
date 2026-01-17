@@ -7,7 +7,6 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolContext } from "@/backend/school-context";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { safeArray } from "@/backend/error-handlers";
 
 /**
@@ -103,18 +102,6 @@ export async function getHomeBookings(): Promise<ClassboardModel> {
 
     // Transform raw booking data into ClassboardModel format
     const classboardData = createClassboardModel(safeArray(bookings));
-
-    // Convert all event times from UTC → school's timezone for display
-    if (timezone) {
-        classboardData.forEach((bookingData) => {
-            bookingData.lessons.forEach((lesson) => {
-                lesson.events.forEach((event) => {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(event.date), timezone!);
-                    event.date = convertedDate.toISOString();
-                });
-            });
-        });
-    }
 
     return classboardData;
 }

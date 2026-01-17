@@ -73,7 +73,8 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
             website_url: schoolData.websiteUrl,
             instagram_url: schoolData.instagramUrl,
             currency: schoolData.currency,
-            wallet_id: schoolData.ownerId, // Mapping ownerId to wallet_id
+            email: schoolData.email,
+            clerk_id: schoolData.clerkId,
             status: "pending",
         };
 

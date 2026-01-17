@@ -5,7 +5,6 @@ import { getSchoolHeader } from "@/types/headers";
 import { getSchoolContext } from "@/backend/school-context";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
 import { Booking } from "@/supabase/db/types";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
@@ -82,13 +81,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             students,
             lessons: safeArray(booking.lesson).map((l: any) => {
                 // Convert event times if timezone is available
-                const events = safeArray(l.event).map((evt: any) => {
-                    if (timezone) {
-                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                        return { ...evt, date: convertedDate.toISOString() };
-                    }
-                    return evt;
-                });
+                const events = safeArray(l.event);
 
                 return {
                     ...l,

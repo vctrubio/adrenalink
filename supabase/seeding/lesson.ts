@@ -31,13 +31,14 @@ export const createLessonsAndEvents = async (
 
     for (const dateStr of Object.keys(bookingsByDate)) {
         const dayBookings = bookingsByDate[dateStr];
-        // Sort bookings for determinism (optional)
         dayBookings.sort((a, b) => a.id.localeCompare(b.id));
 
-        let currentTime = new Date(dateStr + "T09:00:00Z");
+        // Start at 09:00:00 Wall Clock Time
+        let currentHour = 9;
+        let currentMinute = 0;
 
         for (const bk of dayBookings) {
-            // One teacher per booking
+            // ... (teacher/package logic) ...
             const teacher = teachers[Math.floor(Math.random() * teachers.length)];
             const teacherComms = teacherCommissions.filter((tc) => tc.teacher_id === teacher.id);
             if (teacherComms.length === 0) continue;
@@ -59,14 +60,15 @@ export const createLessonsAndEvents = async (
 
             lessonRecords.push(lesson);
 
-            // Schedule event to start at currentTime
+            // Construct Wall Clock Time string manually: YYYY-MM-DDTHH:MM:SS
+            const timeStr = `${currentHour.toString().padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}:00`;
+            const eventDateStr = `${dateStr}T${timeStr}`;
             const duration = schoolPkg.duration_minutes || 60;
-            const eventDate = new Date(currentTime);
 
             eventRecords.push({
                 school_id: schoolId,
-                lesson_id: "", // Will be filled after lessons created
-                date: eventDate.toISOString(),
+                lesson_id: "",
+                date: eventDateStr, // Literal string, no timezone
                 duration: duration,
                 location: faker.location.city(),
                 status: "completed",
@@ -74,8 +76,12 @@ export const createLessonsAndEvents = async (
                 _capacityEquipment: schoolPkg.capacity_equipment,
             });
 
-            // Move currentTime forward by duration (minutes)
-            currentTime = new Date(currentTime.getTime() + duration * 60000);
+            // Increment time
+            currentMinute += duration;
+            while (currentMinute >= 60) {
+                currentMinute -= 60;
+                currentHour += 1;
+            }
         }
     }
 

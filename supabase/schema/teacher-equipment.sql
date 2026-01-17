@@ -4,10 +4,10 @@
 -- ============================================================================
 
 CREATE TABLE teacher_equipment (
-    teacher_id UUID NOT NULL REFERENCES teacher(id),
-    equipment_id UUID NOT NULL REFERENCES equipment(id),
+    teacher_id UUID NOT NULL REFERENCES teacher(id) ON DELETE CASCADE,
+    equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
     active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
     PRIMARY KEY (teacher_id, equipment_id)
 );
 

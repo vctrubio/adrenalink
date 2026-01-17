@@ -204,53 +204,18 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
     const handleSeedPackages = async () => {
         setIsSeeding(true);
         try {
-            // Call package, student, teacher, and equipment seeding in parallel
-            const [packageResponse, studentResponse, teacherResponse, equipmentResponse] = await Promise.all([
-                fetch("/api/beta", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ type: "package", schoolId }),
-                }),
-                fetch("/api/beta", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ type: "student", schoolId }),
-                }),
-                fetch("/api/beta", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ type: "teacher", schoolId }),
-                }),
-                fetch("/api/beta", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ type: "equipment", schoolId }),
-                }),
-            ]);
+            const packageResponse = await fetch("/api/beta", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ type: "package", schoolId, categories: ["kite", "wing"] }),
+            });
 
-            // Check all responses
             if (!packageResponse.ok) {
                 throw new Error("Failed to populate packages");
             }
-            if (!studentResponse.ok) {
-                throw new Error("Failed to populate students");
-            }
-            if (!teacherResponse.ok) {
-                throw new Error("Failed to populate teachers");
-            }
-            if (!equipmentResponse.ok) {
-                throw new Error("Failed to populate equipment");
-            }
 
-            // Revalidate the page to show new packages
             router.refresh();
         } catch (error) {
             console.error("Error populating data:", error);

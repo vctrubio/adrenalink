@@ -2,6 +2,7 @@ import type { TransactionEventData } from "@/types/transaction-event";
 import type { TimelineEvent } from "@/src/components/timeline/types";
 import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
 import type { SortConfig } from "@/types/sort";
+import { getTimeFromISO } from "./queue-getter";
 
 // ============================================================================
 // Type Definitions
@@ -216,7 +217,7 @@ export function groupLessonsByCommission(lessonGroups: LessonGroup[]): Commissio
  */
 export function transactionEventToTimelineEvent(event: TransactionEventData): TimelineEvent {
     const date = new Date(event.event.date);
-    const timeStr = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const timeStr = getTimeFromISO(event.event.date);
     const dateLabel = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "short" });
 

@@ -37,7 +37,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        (e.date AT TIME ZONE s.timezone)::TIMESTAMP, -- Convert UTC to school timezone
+        e.date, -- Convert UTC to school timezone
         e.duration,
         e.location,
         e.status,
@@ -115,7 +115,7 @@ BEGIN
         b.id,
         l.teacher_id,
         e.school_id,
-        (e.date AT TIME ZONE s.timezone)::TIMESTAMP,
+        e.date,
         e.duration,
         e.location,
         e.status,

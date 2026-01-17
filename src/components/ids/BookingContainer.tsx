@@ -20,6 +20,7 @@ import type { SchoolPackageType } from "@/drizzle/schema";
 import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { updateLesson } from "@/supabase/server/lessons";
+import { getTimeFromISO } from "@/getters/queue-getter";
 
 const ICON_SIZE = 20;
 
@@ -392,10 +393,7 @@ function LessonRow({ lessons, schoolPackage, studentCount }: LessonRowProps) {
                                         month: "short",
                                         day: "numeric",
                                     });
-                                    const eventTime = new Date(event.date).toLocaleTimeString("en-US", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    });
+                                    const eventTime = getTimeFromISO(event.date);
                                     const hours = Math.floor(event.duration / 60);
                                     const mins = event.duration % 60;
                                     const durationText = mins > 0 ? `${hours}:${mins.toString().padStart(2, "0")}` : `${hours}h`;

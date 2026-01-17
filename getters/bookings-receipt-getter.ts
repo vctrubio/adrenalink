@@ -1,4 +1,5 @@
 import { getHMDuration } from "./duration-getter";
+import { getTimeFromISO } from "./queue-getter";
 
 interface StudentInfo {
     firstName: string;
@@ -49,7 +50,8 @@ export const formatBookingDate = (date: any): string => {
 };
 
 export const getEventReceiptDateTime = (date: any, duration: number): string => {
-    const time = new Date(date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const isoString = typeof date === "string" ? date : date.toISOString();
+    const time = getTimeFromISO(isoString);
     const durationFormatted = getHMDuration(duration);
     return `${formatBookingDate(date)}, ${time}, ${durationFormatted}`;
 };

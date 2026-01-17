@@ -6,7 +6,7 @@
 
 import type { EventNode } from "@/backend/classboard/TeacherQueue";
 import type { EventData, LessonEventRowData } from "@/types/booking-lesson-event";
-import { getMinutesFromISO, minutesToTime } from "./queue-getter";
+import { getMinutesFromISO, minutesToTime, getTimeFromISO } from "./queue-getter";
 import { getPrettyDuration } from "./duration-getter";
 
 /**
@@ -17,7 +17,7 @@ export function transformEventToRow(event: EventData): LessonEventRowData {
     return {
         eventId: event.id,
         date: eventDate,
-        time: eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        time: getTimeFromISO(event.date),
         dateLabel: eventDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         dayOfWeek: eventDate.toLocaleDateString("en-US", { weekday: "short" }),
         duration: event.duration,
@@ -56,4 +56,14 @@ export function getEventTimeRange(event: EventNode): string {
     const startTime = getMinutesFromISO(event.eventData.date);
     const endTime = getEventEndTime(event);
     return `${minutesToTime(startTime)} - ${endTime}`;
+}
+
+/**
+ * Get event confirmation status
+ *
+ * @param event - Event node
+ * @returns 'pending' if event is planned/tbc, 'completed' if event is completed
+ */
+export function getEventConfirmationStatus(event: EventNode): "pending" | "completed" {
+    return event.eventData.status === "completed" ? "completed" : "pending";
 }

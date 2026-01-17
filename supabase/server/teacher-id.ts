@@ -2,7 +2,6 @@ import { getServerConnection } from "@/supabase/connection";
 import { getSchoolContext } from "@/backend/school-context";
 import { TeacherData, TeacherUpdateForm, TeacherRelations } from "@/backend/data/TeacherData";
 import { Teacher } from "@/supabase/db/types";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
@@ -86,11 +85,6 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
                         ...evt,
                         equipments: equipments.length > 0 ? equipments : undefined,
                     };
-                    
-                    if (timezone) {
-                        const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone!);
-                        eventData.date = convertedDate.toISOString();
-                    }
                     
                     return eventData;
                 });

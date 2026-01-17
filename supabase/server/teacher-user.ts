@@ -1,6 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolContext } from "@/backend/school-context";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { logger } from "@/backend/logger";
@@ -108,12 +107,6 @@ export async function getTeacherUser(teacherId: string): Promise<{
 
             // Process events for this lesson
             for (const evt of safeArray(lesson.event)) {
-                let eventDate = evt.date;
-                if (timezone) {
-                    const convertedDate = convertUTCToSchoolTimezone(new Date(evt.date), timezone);
-                    eventDate = convertedDate.toISOString();
-                }
-
                 // Build EventNode for events page
                 const eventNode: EventNode = {
                     id: evt.id,
@@ -131,7 +124,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
                         cph: parseFloat(commission.cph || "0"),
                     },
                     eventData: {
-                        date: eventDate,
+                        date: evt.date,
                         duration: evt.duration,
                         location: evt.location,
                         status: evt.status as "planned" | "tbc" | "completed" | "uncompleted",
@@ -161,7 +154,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
                     event: {
                         id: evt.id,
                         lessonId: lesson.id,
-                        date: eventDate,
+                        date: evt.date,
                         duration: evt.duration,
                         location: evt.location,
                         status: evt.status,

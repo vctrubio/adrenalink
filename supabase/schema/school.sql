@@ -5,9 +5,10 @@
 
 CREATE TABLE school (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    wallet_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(255),
+    clerk_id VARCHAR(255) UNIQUE,
     country VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     status TEXT NOT NULL DEFAULT 'beta',
@@ -19,8 +20,8 @@ CREATE TABLE school (
     equipment_categories TEXT,
     website_url VARCHAR(255),
     instagram_url VARCHAR(255),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE TABLE school_package (
@@ -32,11 +33,11 @@ CREATE TABLE school_package (
     capacity_equipment INTEGER NOT NULL DEFAULT 1,
     category_equipment TEXT NOT NULL,
     package_type TEXT NOT NULL,
-    school_id UUID REFERENCES school(id),
+    school_id UUID REFERENCES school(id) ON DELETE CASCADE,
     is_public BOOLEAN NOT NULL DEFAULT true,
     active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX school_package_school_id_idx ON school_package(school_id);
@@ -46,21 +47,21 @@ CREATE TABLE school_subscription (
     school_id UUID NOT NULL REFERENCES school(id),
     tier TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'active',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX school_subscription_school_id_idx ON school_subscription(school_id);
 CREATE TABLE referral (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(100) NOT NULL,
-    school_id UUID NOT NULL REFERENCES school(id),
+    school_id UUID NOT NULL REFERENCES school(id) ON DELETE CASCADE,
     commission_type TEXT NOT NULL,
     commission_value VARCHAR(100) NOT NULL,
     description TEXT,
     active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX referral_school_id_idx ON referral(school_id);

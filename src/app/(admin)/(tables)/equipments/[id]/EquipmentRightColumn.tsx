@@ -6,6 +6,7 @@ import { ToggleBar } from "@/src/components/ui/ToggleBar";
 import { Calendar, Wrench, Package, MapPin, TrendingUp } from "lucide-react";
 import type { EquipmentData } from "@/backend/data/EquipmentData";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getTimeFromISO } from "@/getters/queue-getter";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 
@@ -52,11 +53,7 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
                                     day: "numeric",
                                     year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined
                                 });
-                                const time = date.toLocaleTimeString("en-US", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false
-                                });
+                                const time = getTimeFromISO(event.date);
 
                                 // Calculate revenue for this event
                                 const pkg = event.lesson?.booking?.school_package;

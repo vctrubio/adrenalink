@@ -19,16 +19,16 @@ const getTeachers = cache(getSchoolTeacherProvider);
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const [credentials, teachersResult] = await Promise.all([getSchoolCredentials(), getTeachers()]);
 
-    if (!credentials) {
-        redirect("/no-credentials");
-    }
+    // if (!credentials) {
+    //     redirect("/no-credentials");
+    // }
 
     const initialTeachersData =
         teachersResult.success && teachersResult.data
             ? {
-                  allTeachers: teachersResult.data,
-                  teachers: teachersResult.data.filter((t) => t.schema.active),
-              }
+                allTeachers: teachersResult.data,
+                teachers: teachersResult.data.filter((t) => t.schema.active),
+            }
             : null;
 
     return (

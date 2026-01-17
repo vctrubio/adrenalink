@@ -24,7 +24,7 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
         // Fetch school from Supabase
         const { data: schoolData, error } = await supabase
             .from("school")
-            .select("id, name, username, country, currency, status, timezone, wallet_id")
+            .select("id, name, username, country, currency, status, timezone, email, clerk_id")
             .eq("username", schoolUsername)
             .single();
 
@@ -37,7 +37,7 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
         const missingFields: string[] = [];
         if (!schoolData.timezone) missingFields.push("timezone");
         if (!schoolData.currency) missingFields.push("currency");
-        if (!schoolData.wallet_id) missingFields.push("wallet_id");
+        if (!schoolData.clerk_id) missingFields.push("clerk_id");
         if (!schoolData.country) missingFields.push("country");
         if (!schoolData.status) missingFields.push("status");
 
@@ -59,7 +59,8 @@ export async function getSchoolCredentials(): Promise<SchoolCredentials | null> 
             status: schoolData.status,
             country: schoolData.country,
             timezone: schoolData.timezone,
-            ownerId: schoolData.wallet_id,
+            clerkId: schoolData.clerk_id,
+            email: schoolData.email || "",
         };
 
         logger.info("Loaded school credentials", { schoolUsername, schoolId: schoolData.id });

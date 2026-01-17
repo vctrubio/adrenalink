@@ -5,13 +5,13 @@
 
 CREATE TABLE lesson (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    school_id UUID NOT NULL REFERENCES school(id),
-    teacher_id UUID NOT NULL REFERENCES teacher(id),
-    booking_id UUID NOT NULL REFERENCES booking(id),
-    commission_id UUID NOT NULL REFERENCES teacher_commission(id),
+    school_id UUID NOT NULL REFERENCES school(id) ON DELETE CASCADE,
+    teacher_id UUID NOT NULL REFERENCES teacher(id) ON DELETE CASCADE,
+    booking_id UUID NOT NULL REFERENCES booking(id) ON DELETE CASCADE,
+    commission_id UUID NOT NULL REFERENCES teacher_commission(id) ON DELETE CASCADE,
     status TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX lesson_school_id_idx ON lesson(school_id);

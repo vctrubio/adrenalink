@@ -6,7 +6,6 @@ import { useAdminClassboardEventListener, useAdminClassboardBookingListener } fr
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import toast from "react-hot-toast";
 
 interface ClassboardRealtimeSyncProps {
@@ -200,15 +199,10 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
 
             const { eventType, eventId, lessonId, date, duration, location, status } = payload;
 
-            // Convert UTC to school timezone
-            let convertedDate = date;
-            if (date && schoolTimezone) {
-                const utcDate = new Date(date);
-                const converted = convertUTCToSchoolTimezone(utcDate, schoolTimezone);
-                convertedDate = converted.toISOString();
-                console.log(`  🕐 [Timezone] Converted ${date} → ${convertedDate} (${schoolTimezone})`);
-            } else if (date) {
-                console.warn(`  ⚠️ [Timezone] No timezone found, using UTC as-is: ${date}`);
+            // Pass date directly (Wall Clock Time)
+            const convertedDate = date;
+            if (date) {
+               console.log(`  🕐 [Realtime] Date received: ${date}`);
             }
 
             // Find the teacher ID from lessonId (will be used for selective sync optimization)

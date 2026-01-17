@@ -14,6 +14,7 @@ import ReactCountryFlag from "react-country-flag";
 import Link from "next/link";
 import { COUNTRIES } from "@/config/countries";
 import { Calendar } from "lucide-react";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 
 import { filterTeachers } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
@@ -183,13 +184,14 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-1 items-start">
                     <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group">
+                        <HeadsetIcon
+                            size={16}
+                            className={data.active ? "text-emerald-500" : "text-muted-foreground/50"}
+                            title={data.active ? "Active" : "Inactive"}
+                        />
                         <span className="font-bold text-foreground text-sm normal-case group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
                             {data.username}
                         </span>
-                        <div
-                            className={`w-1.5 h-1.5 rounded-full ${data.active ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
-                            title={data.active ? "Active" : "Inactive"}
-                        />
                     </Link>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-tight">
                         <div className="flex items-center" title={data.country}>

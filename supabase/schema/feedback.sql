@@ -5,11 +5,11 @@
 
 CREATE TABLE student_lesson_feedback (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id UUID NOT NULL REFERENCES student(id),
-    lesson_id UUID NOT NULL REFERENCES lesson(id),
+    student_id UUID NOT NULL REFERENCES student(id) ON DELETE CASCADE,
+    lesson_id UUID NOT NULL REFERENCES lesson(id) ON DELETE CASCADE,
     feedback TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX student_lesson_feedback_student_id_idx ON student_lesson_feedback(student_id);

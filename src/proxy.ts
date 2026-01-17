@@ -76,16 +76,26 @@ export async function proxy(request: NextRequest) {
         let timezone: string | null = null;
         try {
             const supabase = getServerConnection();
-            const { data } = await supabase.from("school").select("id, timezone").eq("username", subdomainInfo.subdomain).single();
+            printf("🔎 [Proxy] Looking up school for subdomain:", subdomainInfo.subdomain);
+            
+            const { data, error } = await supabase.from("school").select("id, timezone").eq("username", subdomainInfo.subdomain).single();
+
+            if (error) {
+                printf("❌ [Proxy] School lookup DB error:", error);
+            }
 
             if (!data?.id) {
+                printf(`⚠️ [Proxy] School not found: ${subdomainInfo.subdomain}`);
                 logger.warn("School not found for subdomain", { subdomain: subdomainInfo.subdomain });
                 const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
                 return NextResponse.redirect(discoverUrl);
             }
+            
             schoolId = data.id;
             timezone = data.timezone;
+            printf(`✅ [Proxy] School found: ${schoolId}`);
         } catch (error) {
+            printf("💥 [Proxy] School lookup exception:", error);
             logger.error("School lookup failed", error, { subdomain: subdomainInfo.subdomain });
             const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
             return NextResponse.redirect(discoverUrl);

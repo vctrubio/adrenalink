@@ -5,8 +5,8 @@ import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { motion } from "framer-motion";
+import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 
 interface TeacherStats {
@@ -78,8 +78,11 @@ export function TeacherCommissionComponent({
         <div className="space-y-4">
             {/* Commissions Title and Filter Buttons */}
             <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold text-muted-foreground uppercase">
-                    Commissions
+                <div className="flex items-center gap-2">
+                    <HandshakeIcon size={16} className="text-muted-foreground" />
+                    <div className="text-xs font-semibold text-muted-foreground uppercase">
+                        Commissions
+                    </div>
                 </div>
                 <div className="flex items-center border border-border rounded-lg overflow-hidden">
                     <button
@@ -419,17 +422,9 @@ function TeacherTable({
 
                             {/* Name */}
                             <div className="flex items-center relative z-[1]">
-                                {teacherEntity ? (
-                                    <HoverToEntity entity={teacherEntity} id={teacher.schema.id}>
-                                        <span className="font-bold text-sm text-foreground">
-                                            {teacher.schema.username}
-                                        </span>
-                                    </HoverToEntity>
-                                ) : (
-                                    <span className="font-bold text-sm text-foreground">
-                                        {teacher.schema.username}
-                                    </span>
-                                )}
+                                <span className="font-bold text-sm text-foreground">
+                                    {teacher.schema.username}
+                                </span>
                             </div>
 
                             {/* Languages */}

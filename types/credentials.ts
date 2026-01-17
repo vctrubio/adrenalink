@@ -33,7 +33,8 @@ export interface SchoolCredentials {
     name: string;
     username: string;
     status: string;
-    ownerId: string;
+    clerkId: string;
+    email: string;
     country: string;
     timezone: string;
 }

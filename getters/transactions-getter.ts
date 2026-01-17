@@ -1,4 +1,5 @@
 import type { SchoolPackageType, EquipmentType } from "@/drizzle/schema";
+import { getTimeFromISO } from "./queue-getter";
 
 export function getEquipmentForNow(
     categoryEquipment: string,
@@ -51,12 +52,9 @@ export function getStudentNames(students: { firstName: string; lastName: string 
     return students.map((s) => `${s.firstName} ${s.lastName}`).join(", ");
 }
 
-export function formatTimeFromDate(date: Date): string {
-    return new Date(date).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
+export function formatTimeFromDate(date: string | Date): string {
+    const isoString = typeof date === "string" ? date : date.toISOString();
+    return getTimeFromISO(isoString);
 }
 
 export function formatDateFromTimestamp(date: Date): string {

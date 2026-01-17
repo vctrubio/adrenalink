@@ -111,6 +111,8 @@ const seedLisboaSchool = async () => {
             timezone: "Europe/Lisbon",
             website_url: "https://lisboakiteschool.com",
             instagram_url: "https://instagram.com/lisboakiteschool",
+            email: "admin@lisboakiteschool.com",
+            clerk_id: "user_lisboa_admin"
         });
         const schoolId = school.id;
 

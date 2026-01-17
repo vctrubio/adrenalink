@@ -5,21 +5,21 @@
 
 CREATE TABLE rental (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    school_id UUID NOT NULL REFERENCES school(id),
-    school_package_id UUID NOT NULL REFERENCES school_package(id),
+    school_id UUID NOT NULL REFERENCES school(id) ON DELETE CASCADE,
+    school_package_id UUID NOT NULL REFERENCES school_package(id) ON DELETE CASCADE,
     date DATE NOT NULL,
     location VARCHAR(255) NOT NULL,
     status TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX rental_school_id_idx ON rental(school_id);
 CREATE INDEX rental_school_package_id_idx ON rental(school_package_id);
 
 CREATE TABLE rental_student (
-    rental_id UUID NOT NULL REFERENCES rental(id),
-    student_id UUID NOT NULL REFERENCES student(id),
+    rental_id UUID NOT NULL REFERENCES rental(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES student(id) ON DELETE CASCADE,
     PRIMARY KEY (rental_id, student_id),
     UNIQUE (rental_id, student_id)
 );
@@ -28,8 +28,8 @@ CREATE INDEX rental_student_rental_id_idx ON rental_student(rental_id);
 CREATE INDEX rental_student_student_id_idx ON rental_student(student_id);
 
 CREATE TABLE rental_equipment (
-    rental_id UUID NOT NULL REFERENCES rental(id),
-    equipment_id UUID NOT NULL REFERENCES equipment(id),
+    rental_id UUID NOT NULL REFERENCES rental(id) ON DELETE CASCADE,
+    equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
     PRIMARY KEY (rental_id, equipment_id),
     UNIQUE (rental_id, equipment_id)
 );

@@ -21,7 +21,7 @@ RETURNS TABLE (
     total_event_count INTEGER,
     total_event_duration INTEGER,
     all_bookings_completed BOOLEAN,
-    created_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP
 ) AS $$
 BEGIN
     RETURN QUERY

@@ -23,6 +23,7 @@ import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { MapPin, TrendingUpDown } from "lucide-react";
 import type { LessonEventRowData } from "@/types/booking-lesson-event";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
+import { getTimeFromISO } from "@/getters/queue-getter";
 
 export interface BookingData {
     id: string;

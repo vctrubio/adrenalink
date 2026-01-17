@@ -12,12 +12,13 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import type { EventStatus } from "@/types/status";
-import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { TransactionEventData } from "@/types/transaction-event";
+import type { ApiActionResponseModel } from "@/types/actions";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
 import { getSchoolTimezone } from "@/backend/school-context";
+import { revalidatePath } from "next/cache";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -192,13 +193,10 @@ export async function getEventTransaction(
         const teacherEarnings = commCalc.earned;
         const profit = studentRevenue - teacherEarnings;
 
-        // Timezone conversion
-        const convertedDate = convertUTCToSchoolTimezone(new Date(data.date), timezone);
-
         const transactionData: TransactionEventData = {
             event: {
                 id: data.id,
-                date: convertedDate.toISOString(),
+                date: data.date,
                 duration: data.duration,
                 location: data.location,
                 status: data.status,
@@ -237,5 +235,127 @@ export async function getEventTransaction(
     } catch (error) {
         logger.error("Error fetching event transaction", error);
         return { success: false, error: "Failed to fetch data" };
+    }
+}
+
+/**
+ * Update an event's duration
+ * Used by teachers to modify event duration before confirmation
+ */
+export async function updateEventDuration(
+    eventId: string,
+    newDuration: number,
+): Promise<ApiActionResponseModel<{ id: string; duration: number }>> {
+    try {
+        logger.debug("Updating event duration", { eventId, newDuration });
+
+        const supabase = getServerConnection();
+
+        const { data, error } = await supabase
+            .from("event")
+            .update({ duration: newDuration })
+            .eq("id", eventId)
+            .select("id, duration")
+            .single();
+
+        if (error) {
+            logger.error("Error updating event duration", error);
+            return { success: false, error: "Failed to update event duration" };
+        }
+
+        // Revalidate paths to update UI
+        revalidatePath("/teachers");
+        revalidatePath("/students");
+        revalidatePath("/classboard");
+
+        return {
+            success: true,
+            data: {
+                id: data.id,
+                duration: data.duration,
+            },
+        };
+    } catch (error) {
+        logger.error("Unexpected error updating event duration", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to update event duration",
+        };
+    }
+}
+
+/**
+ * Confirm an event with equipment assignment
+ * This is a composite action that:
+ * 1. Updates duration (if provided)
+ * 2. Assigns equipment to the event
+ * 3. Changes event status to "completed"
+ *
+ * All operations are performed in sequence to ensure data consistency
+ */
+export async function confirmEventWithEquipment(
+    eventId: string,
+    equipmentId: string,
+    duration?: number,
+): Promise<ApiActionResponseModel<{ id: string; status: string }>> {
+    try {
+        logger.debug("Confirming event with equipment", { eventId, equipmentId, duration });
+
+        const supabase = getServerConnection();
+
+        // Step 1: Update duration if provided
+        if (duration !== undefined) {
+            const { error: durationError } = await supabase
+                .from("event")
+                .update({ duration })
+                .eq("id", eventId);
+
+            if (durationError) {
+                logger.error("Error updating duration during confirmation", durationError);
+                return { success: false, error: "Failed to update event duration" };
+            }
+        }
+
+        // Step 2: Assign equipment
+        const { error: equipmentError } = await supabase
+            .from("equipment_event")
+            .insert({ event_id: eventId, equipment_id: equipmentId });
+
+        if (equipmentError) {
+            logger.error("Error assigning equipment during confirmation", equipmentError);
+            return { success: false, error: "Failed to assign equipment" };
+        }
+
+        // Step 3: Update status to completed
+        const { data, error: statusError } = await supabase
+            .from("event")
+            .update({ status: "completed" })
+            .eq("id", eventId)
+            .select("id, status")
+            .single();
+
+        if (statusError || !data) {
+            logger.error("Error updating status during confirmation", statusError);
+            return { success: false, error: "Failed to complete event confirmation" };
+        }
+
+        // Revalidate paths to update UI across all views
+        revalidatePath("/teachers");
+        revalidatePath("/students");
+        revalidatePath("/classboard");
+
+        return {
+            success: true,
+            data: {
+                id: data.id,
+                status: data.status,
+            },
+        };
+    } catch (error) {
+        logger.error("Unexpected error confirming event", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to confirm event",
+        };
     }
 }

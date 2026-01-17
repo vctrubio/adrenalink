@@ -252,6 +252,8 @@ const seedTenerifeKiteSchool = async () => {
             timezone: "Atlantic/Canary",
             website_url: "https://tenerifekiteacademy.com",
             instagram_url: "https://instagram.com/tenerifekiteacademy",
+            email: "admin@tenerifekiteacademy.com",
+            clerk_id: "user_tenerife_admin"
         });
         const schoolId = school.id;
 

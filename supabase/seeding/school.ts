@@ -18,6 +18,8 @@ export interface SchoolInput {
     timezone?: string;
     website_url?: string;
     instagram_url?: string;
+    email?: string;
+    clerk_id?: string;
 }
 
 export const createSchool = async (input: SchoolInput) => {
@@ -25,7 +27,7 @@ export const createSchool = async (input: SchoolInput) => {
         .from("school")
         .insert([
             {
-                wallet_id: crypto.randomUUID(),
+                // wallet_id removed
                 name: input.name,
                 username: input.username,
                 country: input.country,
@@ -37,6 +39,8 @@ export const createSchool = async (input: SchoolInput) => {
                 timezone: input.timezone,
                 website_url: input.website_url,
                 instagram_url: input.instagram_url,
+                email: input.email || `${input.username}@example.com`,
+                clerk_id: input.clerk_id || `user_${crypto.randomUUID()}`,
             },
         ])
         .select()

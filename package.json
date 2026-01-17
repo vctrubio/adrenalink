@@ -8,9 +8,10 @@
         "start": "next start",
         "lint": "eslint . --fix",
         "prettyme": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-        "seed:reva": "npx ts-node supabase/db/mock-reva.ts",
-        "seed:students": "npx ts-node -e \"import { createStudents, associateStudentsWithSchool } from './supabase/seeding'; const run = async () => { const students = await createStudents(8); console.log('Students created:', students.length); }; run();\"",
-        "seed:teachers": "npx ts-node -e \"import { createTeachers } from './supabase/seeding'; const run = async () => { console.log('Use seed:reva to create teachers with school'); }; run();\"",
+        "db:reset": "supabase db reset --linked --yes && supabase db push --linked --yes",
+        "db:seed-all": "npx ts-node supabase/db/mock-berkley.ts",
+        "db:seed-simple": "npx ts-node supabase/db/mock-simple.ts",
+        "db:seed-5": "npx ts-node supabase/db/mock-5.ts",
         "cf:get-admin": "bun run cloudflare/get-admin-bucket.ts",
         "cf:rm": "bun run cloudflare/rm-bucket.ts",
         "cf:seed-admin": "bun run cloudflare/seed-admin-bucket.ts"

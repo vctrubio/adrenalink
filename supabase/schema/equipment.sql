@@ -11,10 +11,10 @@ CREATE TABLE equipment (
     color VARCHAR(100),
     size NUMERIC(4, 1),
     status TEXT,
-    school_id UUID NOT NULL REFERENCES school(id),
+    school_id UUID NOT NULL REFERENCES school(id) ON DELETE CASCADE,
     category TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX equipment_school_id_idx ON equipment(school_id);
@@ -22,17 +22,17 @@ CREATE INDEX equipment_category_idx ON equipment(category);
 
 CREATE TABLE equipment_repair (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    equipment_id UUID NOT NULL REFERENCES equipment(id),
+    equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
     description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX equipment_repair_equipment_id_idx ON equipment_repair(equipment_id);
 
 CREATE TABLE equipment_event (
-    equipment_id UUID NOT NULL REFERENCES equipment(id),
-    event_id UUID NOT NULL REFERENCES event(id),
+    equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+    event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
     PRIMARY KEY (equipment_id, event_id)
 );
 

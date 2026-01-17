@@ -14,16 +14,21 @@ export function minutesToTime(minutes: number): string {
 }
 
 export function getMinutesFromISO(isoString: string): number {
-    const timePart = isoString.split("T")[1].substring(0, 5);
-    return timeToMinutes(timePart);
+    const time = getTimeFromISO(isoString);
+    return timeToMinutes(time);
 }
 
 export function getTimeFromISO(isoString: string): string {
-    return isoString.split("T")[1].substring(0, 5);
+    if (!isoString) return "00:00";
+    // Handle both '2024-01-01T10:00:00' and '2024-01-01 10:00:00'
+    const parts = isoString.split(/[T ]/);
+    const timePart = parts.length > 1 ? parts[1] : parts[0];
+    return timePart.substring(0, 5);
 }
 
 export function getDatePartFromISO(isoString: string): string {
-    return isoString.split("T")[0];
+    if (!isoString) return "";
+    return isoString.split(/[T ]/)[0];
 }
 
 export function createISODateTime(datePart: string, timePart: string): string {
