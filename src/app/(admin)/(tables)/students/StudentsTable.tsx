@@ -37,6 +37,7 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         filterSearch: filterStudents,
         filterStatus: (student, status) => {
             if (status === "New") return student.stats.totalBookings === 0;
+            if (status === "Ongoing") return student.bookings?.some((b) => b.status === "active") ?? false;
             if (status === "Available") return student.stats.allBookingsCompleted === true;
             return true; // "All"
         },

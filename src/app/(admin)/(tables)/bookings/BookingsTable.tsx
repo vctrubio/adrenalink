@@ -41,7 +41,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
         data: bookings,
         filterSearch: filterBookings,
         filterStatus: (booking, status) => {
-            if (status === "Active") return booking.booking.status === "active";
+            if (status === "Ongoing") return booking.booking.status === "active";
             if (status === "Completed") return booking.booking.status === "completed";
             return true;
         },

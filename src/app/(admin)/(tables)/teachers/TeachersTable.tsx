@@ -41,6 +41,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
         filterSearch: filterTeachers,
         filterStatus: (teacher, status) => {
             if (status === "Free") return teacher.stats.totalLessons === 0;
+            if (status === "Ongoing") return teacher.lessons.some((l) => l.status === "active" || l.status === "rest");
             return true; // "All"
         },
     });

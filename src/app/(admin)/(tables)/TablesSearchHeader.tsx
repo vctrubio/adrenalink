@@ -17,13 +17,13 @@ const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Weekly", "Monthly"];
 // Determine status options based on entity
 const getStatusOptions = (entityId: string): string[] => {
     if (entityId === "student") {
-        return ["All", "Available", "New"];
+        return ["All", "Ongoing", "Available", "New"];
     }
     if (entityId === "teacher") {
-        return ["All", "Free"];
+        return ["All", "Ongoing", "Free"];
     }
     if (entityId === "booking") {
-        return ["All", "Active", "Completed"];
+        return ["All", "Ongoing", "Completed"];
     }
     if (entityId === "equipment") {
         return ["All", "Kite", "Wing", "Windsurf"];
