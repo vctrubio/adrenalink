@@ -12,13 +12,12 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import type { EventStatus } from "@/types/status";
-import { getSchoolHeader } from "@/types/headers";
 import { convertUTCToSchoolTimezone } from "@/getters/timezone-getter";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
-import { headers } from "next/headers";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
+import { getSchoolTimezone } from "@/backend/school-context";
 
 interface UpdateEventStatusResult {
     success: boolean;
@@ -75,17 +74,9 @@ export async function getEventTransaction(
     try {
         const supabase = getServerConnection();
 
-        const headersList = await headers();
-        let timezone = headersList.get("x-school-timezone");
-
-        // Fallback if header missing (e.g. direct server call without middleware)
+        const timezone = await getSchoolTimezone();
         if (!timezone) {
-            const schoolHeader = await getSchoolHeader();
-            if (schoolHeader) {
-                timezone = schoolHeader.timezone;
-            } else {
-                return { success: false, error: "School context not found" };
-            }
+            return { success: false, error: "School context not found" };
         }
 
         const { data, error } = await supabase
@@ -179,7 +170,7 @@ export async function getEventTransaction(
         const pkg = booking.school_package;
         const teacher = lesson.teacher;
         const commission = lesson.teacher_commission;
-        const students = booking.booking_student.map((bs: any) => bs.student);
+        const students = safeArray(booking.booking_student).map((bs: any) => bs.student);
         const equipments = safeArray(data.equipment_event).map((ee: any) => ee.equipment);
 
         // Financial Calculations
