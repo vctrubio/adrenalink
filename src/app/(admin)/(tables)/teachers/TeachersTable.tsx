@@ -200,11 +200,17 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
                                 countryCode={getCountryCode(data.country)}
                                 svg
                                 style={{ width: "1.2em", height: "1.2em" }}
-                            />
-                        </div>
-                        <span className="tabular-nums">{data.phone}</span>
-                    </div>
-                </div>
+                                                            />
+                                                        </div>
+                                                                                    {data.languages && data.languages.length > 0 && (
+                                                                                        <div className="flex gap-1.5 overflow-hidden normal-case">
+                                                                                            {data.languages.map((lang) => (
+                                                                                                <span key={lang} className="truncate">
+                                                                                                    {lang}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}                                                    </div>                </div>
             ),
         },
         {

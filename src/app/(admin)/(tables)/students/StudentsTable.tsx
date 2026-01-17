@@ -123,9 +123,15 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
                                     style={{ width: "1.2em", height: "1.2em" }}
                                 />
                             </div>
-                            <span className="tabular-nums">{data.phone}</span>
-                            <span className="opacity-20 text-foreground">|</span>
-                            <span className="tabular-nums">{data.id.slice(0, 8)}</span>
+                            {data.languages && data.languages.length > 0 && (
+                                <div className="flex gap-1.5 overflow-hidden normal-case">
+                                    {data.languages.map((lang) => (
+                                        <span key={lang} className="truncate">
+                                            {lang}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         {data.schoolStudentDescription && (
                             <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">
