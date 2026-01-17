@@ -15,6 +15,7 @@ import { filterPackages } from "@/types/searching-entities";
 import { TableActions } from "../MasterTable";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTablesController } from "../layout";
+import Link from "next/link";
 
 const HEADER_CLASSES = {
     blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
@@ -24,7 +25,7 @@ const HEADER_CLASSES = {
 } as const;
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
-    const { showActions } = useTablesController();
+    const { showActions, status } = useTablesController();
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const {
@@ -76,13 +77,20 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
     );
 
     const desktopColumns: ColumnDef<PackageTableData>[] = [
-        {
-            header: "Type",
-            headerClassName: HEADER_CLASSES.orange,
-            render: (data) => (
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{data.packageType}</span>
-            ),
-        },
+        // Type column - only show when viewing "All"
+        ...(status === "All"
+            ? [
+                  {
+                      header: "Type",
+                      headerClassName: HEADER_CLASSES.orange,
+                      render: (data: PackageTableData) => (
+                          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                              {data.packageType}
+                          </span>
+                      ),
+                  },
+              ]
+            : []),
         {
             header: (
                 <div className="flex items-center justify-between w-full pr-2">
@@ -93,9 +101,11 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             headerClassName: HEADER_CLASSES.orange,
             render: (data) => (
                 <div className="flex items-center justify-between w-full">
-                    <HoverToEntity entity={packageEntity} id={data.id}>
-                        <span className="font-bold text-foreground whitespace-nowrap">{data.description}</span>
-                    </HoverToEntity>
+                    <Link href={`/packages/${data.id}`}>
+                        <span className="font-bold text-foreground whitespace-nowrap hover:text-orange-600 transition-colors">
+                            {data.description}
+                        </span>
+                    </Link>
                     <EquipmentStudentPackagePriceBadge
                         categoryEquipment={data.categoryEquipment}
                         equipmentCapacity={data.capacityEquipment}
@@ -176,9 +186,11 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
             render: (data) => (
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
-                        <HoverToEntity entity={packageEntity} id={data.id}>
-                            <span className="font-bold text-sm">{data.description}</span>
-                        </HoverToEntity>
+                        <Link href={`/packages/${data.id}`}>
+                            <span className="font-bold text-sm hover:text-orange-600 transition-colors">
+                                {data.description}
+                            </span>
+                        </Link>
                     </div>
                     <div className="scale-90 origin-left">
                         <EquipmentStudentPackagePriceBadge

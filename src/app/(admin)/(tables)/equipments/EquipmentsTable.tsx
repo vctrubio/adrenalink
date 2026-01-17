@@ -14,6 +14,7 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
 import { Activity } from "lucide-react";
+import Link from "next/link";
 
 interface EquipmentDisplayProps {
     equipment: {
@@ -42,11 +43,11 @@ function EquipmentDisplay({ equipment, variant = "full", iconSize = 16, showSku 
                 <div style={{ color }}>
                     <Icon size={iconSize} />
                 </div>
-                <HoverToEntity entity={equipmentEntity} id={equipment.id}>
-                    <span className="font-bold text-foreground">
+                <Link href={`/equipments/${equipment.id}`}>
+                    <span className="font-bold text-foreground hover:text-purple-600 transition-colors">
                         {equipment.brand} {equipment.model}
                     </span>
-                </HoverToEntity>
+                </Link>
                 {equipment.size && (
                     <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
                         {equipment.size}
@@ -62,11 +63,11 @@ function EquipmentDisplay({ equipment, variant = "full", iconSize = 16, showSku 
                 <div style={{ color }}>
                     <Icon size={iconSize} />
                 </div>
-                <HoverToEntity entity={equipmentEntity} id={equipment.id}>
-                    <span className="font-bold text-foreground">
+                <Link href={`/equipments/${equipment.id}`}>
+                    <span className="font-bold text-foreground hover:text-purple-600 transition-colors">
                         {equipment.brand} {equipment.model}
                     </span>
-                </HoverToEntity>
+                </Link>
                 {equipment.size && (
                     <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
                         {equipment.size}
