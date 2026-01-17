@@ -49,8 +49,68 @@ export default function AuthLandingPage() {
                     </p>
                 </div>
 
+                {/* Route Info */}
+                <div className="text-center mb-12 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+                        Route: <code>src/app/auth/[[...rest]]/page.tsx</code>
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                        Uses catch-all pattern <code>[[...rest]]</code> for Clerk component routing compatibility
+                    </p>
+                </div>
+
                 {/* Main Content */}
                 <div className="space-y-12 mb-16">
+                    {/* Routing Architecture Section */}
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-8">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+                            Routing: Catch-All Pattern Explained
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-start gap-3">
+                                    <span className="text-blue-600 dark:text-blue-400">Why</span>
+                                    [[...rest]]?
+                                </h3>
+                                <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">
+                                    Clerk's authentication components (<code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-xs">SignIn</code>, <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-xs">SignUp</code>, etc.) manage their own routing internally. They require a catch-all route to handle their internal navigation and modal flow.
+                                </p>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">File Structure</h3>
+                                <code className="block text-xs text-slate-700 dark:text-slate-300 font-mono bg-slate-100 dark:bg-slate-900 p-3 rounded">
+{`src/app/auth/
+├── layout.tsx           (Auth-specific layout)
+└── [[...rest]]/
+    └── page.tsx         (Catch-all route for Clerk)`}
+                                </code>
+                            </div>
+
+                            <div>
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3">How It Works</h3>
+                                <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc list-inside">
+                                    <li><strong>Any URL under /auth:</strong> /auth, /auth/sign-up, /auth/verify, etc. → routes to this page</li>
+                                    <li><strong>[[...rest]]:</strong> Optional catch-all segment captures any route segments</li>
+                                    <li><strong>Clerk handles:</strong> Determines which component to show based on the route</li>
+                                    <li><strong>Mode: modal:</strong> SignIn component renders as modal overlay</li>
+                                    <li><strong>Routing: hash:</strong> Uses hash-based routing (#/sign-up) instead of path-based</li>
+                                </ul>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Alternative (Without Catch-All)</h3>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 mb-2">If using simple <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">src/app/auth/page.tsx</code>:</p>
+                                <code className="block text-xs text-slate-700 dark:text-slate-300 font-mono bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto">
+{`// Would show error:
+"The <SignIn/> component is not configured correctly.
+The '/auth' route is not a catch-all route."`}
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* DRY Refactoring Section */}
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-8">
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
