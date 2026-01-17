@@ -13,7 +13,6 @@ import { calculateLessonRevenue } from "@/getters/commission-calculator";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { toast } from "sonner";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import Image from "next/image";
@@ -294,13 +293,13 @@ export function EventUserConfirmation({ event, viewMode, currency, onConfirm }: 
             );
 
             if (result.success) {
-                toast.success("Event confirmed successfully");
+                console.log("Event confirmed successfully");
                 onConfirm?.();
             } else {
-                toast.error(result.error || "Failed to confirm event");
+                console.error(result.error || "Failed to confirm event");
             }
         } catch (error) {
-            toast.error("An unexpected error occurred");
+            console.error("An unexpected error occurred");
         } finally {
             setIsConfirming(false);
         }

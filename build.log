@@ -1,0 +1,75 @@
+
+> adrenalink-beta@0.1.0 build
+> next build --turbopack
+
+▲ Next.js 16.1.0 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.1s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+[dotenv@17.2.3] injecting env (0) from .env.local -- tip: ⚙️  override existing env vars with { override: true }
+  Generating static pages using 11 workers (0/16) ...
+[dotenv@17.2.3] injecting env (0) from .env.local -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+  Generating static pages using 11 workers (4/16) 
+⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+  Generating static pages using 11 workers (8/16) 
+  Generating static pages using 11 workers (12/16) 
+✓ Generating static pages using 11 workers (16/16) in 272.8ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /about/v2
+├ ƒ /admin
+├ ƒ /api/beta
+├ ƒ /api/cloudflare/upload
+├ ƒ /api/places/autocomplete
+├ ƒ /api/places/details
+├ ƒ /api/places/timezone
+├ ƒ /api/school/credentials
+├ ƒ /auth/[[...rest]]
+├ ƒ /bookings
+├ ƒ /bookings/[id]
+├ ƒ /classboard
+├ ƒ /discover
+├ ƒ /equipments
+├ ƒ /equipments/[id]
+├ ƒ /home
+├ ƒ /invitations
+├ ○ /no-credentials
+├ ƒ /packages
+├ ƒ /packages/[id]
+├ ○ /pillars
+├ ƒ /register
+├ ƒ /register/package
+├ ƒ /register/student
+├ ƒ /register/teacher
+├ ƒ /student/[id]
+├ ƒ /student/[id]/bookings
+├ ƒ /student/[id]/events
+├ ƒ /students
+├ ƒ /students/[id]
+├ ƒ /subdomain
+├ ƒ /subscription
+├ ƒ /teacher/[id]
+├ ƒ /teacher/[id]/commissions
+├ ƒ /teacher/[id]/equipments
+├ ƒ /teacher/[id]/events
+├ ƒ /teacher/[id]/lessons
+├ ƒ /teachers
+├ ƒ /teachers/[id]
+├ ○ /team
+├ ○ /team/pricing
+├ ƒ /transaction
+└ ○ /welcome
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
