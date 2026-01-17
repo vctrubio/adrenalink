@@ -1,64 +1,104 @@
 "use client";
-
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
+
+function NotFoundHeader() {
+    const [isSpinning, setIsSpinning] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const { theme, setTheme } = useTheme();
+    const isDarkMode = theme === "dark";
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const handleThemeToggle = () => {
+        setIsSpinning(true);
+        setTheme(isDarkMode ? "light" : "dark");
+        setTimeout(() => setIsSpinning(false), 600);
+    };
+
+    // Show fallback during SSR/hydration
+    if (!mounted) {
+        return (
+            <div className="text-center space-y-6">
+                <div className="flex justify-center mb-6">
+                    <button
+                        onClick={handleThemeToggle}
+                        className="p-6 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer bg-card/50 border-2 border-border hover:border-primary backdrop-blur-sm hover:shadow-xl"
+                        title="Toggle theme"
+                    >
+                        <AdranlinkIcon className="w-20 h-20 transition-all duration-600 text-primary" size={80} />
+                    </button>
+                </div>
+
+                <div>
+                    <h1 className="text-8xl md:text-9xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                        404
+                    </h1>
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Oh hi! I think you&apos;re lost</h2>
+                    <p className="text-lg md:text-xl text-muted-foreground">
+                        This page doesn&apos;t exist, but don&apos;t worry—let&apos;s get you back on course
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="text-center space-y-6">
+            <div className="flex justify-center mb-6">
+                <button
+                    onClick={handleThemeToggle}
+                    className={`p-6 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        isDarkMode
+                            ? "bg-card/50 border-2 border-border hover:border-primary"
+                            : "bg-card/80 border-2 border-border hover:border-primary"
+                    } backdrop-blur-sm hover:shadow-xl`}
+                    title="Toggle theme"
+                >
+                    <AdranlinkIcon
+                        size={80}
+                        className={`w-20 h-20 transition-all duration-600 ${isDarkMode ? "text-primary" : "text-primary"} ${isSpinning ? "animate-spin" : ""} ${isDarkMode ? "rotate-180" : "rotate-0"}`}
+                    />
+                </button>
+            </div>
+
+            <div>
+                <h1
+                    className={`text-8xl md:text-9xl font-bold mb-4 ${isDarkMode ? "text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent" : "text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"}`}
+                >
+                    404
+                </h1>
+                <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isDarkMode ? "text-foreground" : "text-foreground"}`}>
+                    Oh hi! I think you&apos;re lost
+                </h2>
+                <p className={`text-lg md:text-xl ${isDarkMode ? "text-muted-foreground" : "text-muted-foreground"}`}>
+                    This page doesn&apos;t exist, but don&apos;t worry—let&apos;s get you back on course
+                </p>
+            </div>
+        </div>
+    );
+}
 
 export default function NotFound() {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16">
-            <div className="w-full max-w-2xl mx-auto text-center space-y-8">
-                {/* 404 Header */}
-                <div className="space-y-4">
-                    <h1 className="text-9xl md:text-10xl font-bold text-slate-900 dark:text-slate-100">
-                        404
-                    </h1>
-                    <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-slate-100">
-                        Page Not Found
-                    </h2>
-                    <p className="text-xl text-slate-700 dark:text-slate-300">
-                        The page you&apos;re looking for doesn&apos;t exist, but don&apos;t worry—let&apos;s get you back on track.
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center px-4">
+            <div className="max-w-2xl mx-auto">
+                <NotFoundHeader />
 
-                {/* Info Box */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 font-mono mb-2">
-                        Route: Not Found
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500">
-                        This page is rendered by <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">src/app/not-found.tsx</code>
-                    </p>
-                </div>
-
-                {/* Suggestions */}
-                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 text-left">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3">Where to go:</h3>
-                    <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                        <li className="flex gap-2">
-                            <span className="text-blue-600 dark:text-blue-400">→</span>
-                            <span><Link href="/" className="hover:underline text-blue-600 dark:text-blue-400">Home</Link> - Back to the main landing page</span>
-                        </li>
-                        <li className="flex gap-2">
-                            <span className="text-blue-600 dark:text-blue-400">→</span>
-                            <span><Link href="/discover" className="hover:underline text-blue-600 dark:text-blue-400">Discover</Link> - Browse available schools</span>
-                        </li>
-                        <li className="flex gap-2">
-                            <span className="text-blue-600 dark:text-blue-400">→</span>
-                            <span><Link href="/auth" className="hover:underline text-blue-600 dark:text-blue-400">Sign In</Link> - Access your account</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
                     <Link
                         href="/"
-                        className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-center"
+                        className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-center"
                     >
                         Go Home
                     </Link>
                     <Link
                         href="/discover"
-                        className="px-8 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors text-center"
+                        className="px-8 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent/90 transition-colors text-center"
                     >
                         Browse Schools
                     </Link>
