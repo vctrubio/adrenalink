@@ -9,7 +9,7 @@ export function useSchoolTeachers() {
     const teacherSortOrder = useTeacherSortOrder();
 
     if (!context) {
-        throw new Error("useSchoolTeachers must be used within SchoolTeachersProvider");
+        throw new Error("useSchoolTeachers hook requires <SchoolTeachersProvider> parent");
     }
 
     // Sort teachers by saved order
