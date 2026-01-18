@@ -27,6 +27,7 @@ interface FormFieldConfig {
     section?: string;
     pairedField?: string; // For country-phone type, specify the paired field name
     required?: boolean;
+    description?: string; // Optional description for switches and other fields
 }
 
 interface UpdateEntityColumnCardProps<T extends z.ZodType<any, any>> {
@@ -212,7 +213,10 @@ export function UpdateEntityColumnCard<T extends z.ZodType<any, any>>({
             case "switch":
                 return (
                     <div key={field.name} className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/30 border border-border/50">
-                        <label className="text-sm font-medium text-foreground">{field.label}</label>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm font-medium text-foreground">{field.label}</label>
+                            {field.description && <span className="text-xs text-muted-foreground">{field.description}</span>}
+                        </div>
                         <Controller
                             name={field.name as any}
                             control={methods.control}

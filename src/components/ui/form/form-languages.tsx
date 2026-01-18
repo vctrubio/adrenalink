@@ -2,7 +2,6 @@
 
 import { forwardRef, useState, useCallback } from "react";
 import { LANGUAGES } from "@/supabase/db/enums";
-import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import FormInput from "./form-input";
 
 const LANGUAGE_OPTIONS = Object.values(LANGUAGES);
@@ -56,10 +55,10 @@ const FormLanguages = forwardRef<HTMLDivElement, FormLanguagesProps>(({ value = 
                         type="button"
                         onClick={() => handleToggle(language)}
                         disabled={disabled}
-                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
+                        className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${
                             standardLanguages.includes(language)
-                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                                : "bg-background text-foreground border-input hover:border-green-300/50"
+                                ? "bg-foreground/10 border-foreground/30 text-foreground"
+                                : "bg-background text-foreground border-input hover:bg-muted/50"
                         } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     >
                         {language}
@@ -71,10 +70,10 @@ const FormLanguages = forwardRef<HTMLDivElement, FormLanguagesProps>(({ value = 
                     type="button"
                     onClick={() => setShowOtherInput(!showOtherInput)}
                     disabled={disabled}
-                    className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
+                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${
                         showOtherInput
-                            ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                            : "bg-background text-foreground border-input hover:border-green-300/50"
+                            ? "bg-foreground/10 border-foreground/30 text-foreground"
+                            : "bg-background text-foreground border-input hover:bg-muted/50"
                     } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                     Other +
@@ -114,14 +113,14 @@ const FormLanguages = forwardRef<HTMLDivElement, FormLanguagesProps>(({ value = 
                     {customLanguages.map((language) => (
                         <div
                             key={language}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}
+                            className="px-4 py-2 text-sm font-medium rounded-lg border border-foreground/30 bg-foreground/10 text-foreground flex items-center gap-2"
                         >
                             {language}
                             <button
                                 type="button"
                                 onClick={() => handleRemoveLanguage(language)}
                                 disabled={disabled}
-                                className="text-xs hover:text-destructive"
+                                className="text-xs hover:text-destructive transition-colors"
                             >
                                 ✕
                             </button>

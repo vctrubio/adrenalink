@@ -192,8 +192,8 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
     const canDelete = bookings.length === 0;
 
     const formFields = [
-        { name: "active", label: "Active", type: "switch" as const, section: "settings" },
-        { name: "rental", label: "Independent", type: "switch" as const, section: "settings" },
+        { name: "active", label: "Active", type: "switch" as const, section: "settings", description: "Active User" },
+        { name: "rental", label: "Independent", type: "switch" as const, section: "settings", description: "Can Rent" },
         { name: "first_name", label: "First Name", type: "text" as const, placeholder: "Enter first name", section: "personal", required: true },
         { name: "last_name", label: "Last Name", type: "text" as const, placeholder: "Enter last name", section: "personal", required: true },
         { name: "email", label: "Email", type: "text" as const, placeholder: "Optional email", section: "personal" },
