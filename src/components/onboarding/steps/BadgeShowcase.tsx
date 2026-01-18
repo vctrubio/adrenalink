@@ -85,9 +85,6 @@ export default function BadgeShowcase() {
             <div className="space-y-8">
                 <div className="border-b border-border/50 pb-4">
                     <h3 className="text-xl font-bold text-foreground">Table Data Previews</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        How teacher and student profiles aggregate all the indicators into functional table rows within the management interface.
-                    </p>
                 </div>
 
                 <div className="space-y-10">
@@ -230,10 +227,7 @@ export default function BadgeShowcase() {
             {/* 2. User Status Badges */}
             <div className="space-y-6">
                 <div className="border-b border-border/50 pb-4">
-                    <h3 className="text-xl font-bold text-foreground">User Status Badges</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        High-level indicators for student and teacher roles, showing aggregate activity at a glance.
-                    </p>
+                    <h3 className="text-xl font-bold text-foreground">User Activity Indicators</h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -303,9 +297,6 @@ export default function BadgeShowcase() {
             <div className="space-y-6">
                 <div className="border-b border-border/50 pb-4">
                     <h3 className="text-xl font-bold text-foreground">Teacher Commissions</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Managing compensation structures: fixed hourly rates vs. revenue percentages.
-                    </p>
                 </div>
 
                 <div className="p-6 bg-card rounded-xl border border-border space-y-6">
@@ -378,19 +369,13 @@ export default function BadgeShowcase() {
             {/* 4. Booking Contexts & Equipment */}
             <div className="space-y-6">
                 <div className="border-b border-border/50 pb-4">
-                    <h3 className="text-xl font-bold text-foreground">Booking Contexts & Equipment</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Visualizing the same booking data across different administrative interfaces.
-                    </p>
+                    <h3 className="text-xl font-bold text-foreground">Data Integritiy Throughout the Application</h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Classboard Card */}
                     <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Admin View (Classboard Context)</p>
-                            <span className="text-[10px] text-muted-foreground/70 italic">Same booking, different format</span>
-                        </div>
+                     
                         <ClassboardProvider>
                             <SchoolTeachersProvider>
                                 <StudentBookingCard
@@ -438,7 +423,6 @@ export default function BadgeShowcase() {
 
                     {/* Student Table Card */}
                     <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Admin View (Table Context)</p>
                         <StudentBookingActivityCard
                             booking={{
                                 id: "booking-001",

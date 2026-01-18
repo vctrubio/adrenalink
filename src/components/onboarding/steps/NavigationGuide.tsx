@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
+import { Image as ImageIcon, MapPin, Tag, CheckCircle2 } from "lucide-react";
 
 
 const ROUTE_DESCRIPTIONS: Record<string, string> = {
-    info: "Your financial dashboard",
-    classboard: "Daily lesson command center",
-    data: "One source of truth",
-    users: "Register Bookings",
-    help: "Get help and guidance",
+    info: "Transactions Of Events.",
+    classboard: "Lesson Management.",
+    data: "Excel Done Right.",
+    users: "Register Bookings.",
+    help: "Always come back if you need to.",
 };
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -22,7 +21,6 @@ const ROUTE_LABELS: Record<string, string> = {
 const NAV_IDS = ["info", "classboard", "data", "users", "help"] as const;
 
 export default function NavigationGuide() {
-    const router = useRouter();
     // Filter and reorder routes to match NavLeft order
     const displayRoutes = NAV_IDS.map((id) => FACEBOOK_NAV_ROUTES.find((r) => r.id === id)).filter(Boolean);
     
@@ -37,7 +35,15 @@ export default function NavigationGuide() {
             className="w-full max-w-5xl flex flex-col h-full"
         >
             <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-foreground tracking-tight">Let's Get Started</h2>
+                <h2 className="text-3xl font-bold text-foreground tracking-tight border-b border-border pb-4">Let's Get Started</h2>
+            </div>
+
+            {/* Navigation Panel Header */}
+            <div className="text-center mb-6">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Navigation Panel</h3>
+                <p className="text-sm text-muted-foreground">
+                    We have seen <span className="text-primary">3</span> of the <span className="text-muted-foreground">4</span> possible routes.
+                </p>
             </div>
 
             {/* Route Labels and Descriptions */}
@@ -48,27 +54,125 @@ export default function NavigationGuide() {
                     const description = ROUTE_DESCRIPTIONS[route.id] || "";
 
                     const isExplained = explainedRoutes.includes(route.id);
+                    const isHelp = route.id === "help";
 
                     return (
-                        <motion.div
-                            key={route.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            onClick={() => router.push("/")}
-                            className={`flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl cursor-pointer transition-all ${
-                                isExplained ? "bg-muted hover:bg-muted/80" : "hover:bg-muted/30"
-                            }`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <Icon className="h-5 w-5 text-primary" />
-                                <h3 className="font-display text-sm font-bold text-foreground">{ROUTE_LABELS[route.id] || route.label}</h3>
-                            </div>
-                            <p className="text-xs text-muted-foreground text-center leading-relaxed">{description}</p>
-                        </motion.div>
+                        <div key={route.id} className="flex items-center gap-8">
+                            {isHelp && <div className="h-12 w-px bg-border" />}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                onClick={() => window.location.href = `https://wind.adrenalink.tech${route.href}`}
+                                className={`flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl cursor-pointer transition-all ${
+                                    isExplained ? "bg-muted hover:bg-muted/80" : "hover:bg-muted/30"
+                                }`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Icon className="h-5 w-5 text-primary" />
+                                    <h3 className="font-display text-sm font-bold text-foreground">{ROUTE_LABELS[route.id] || route.label}</h3>
+                                </div>
+                                <p className="text-xs text-muted-foreground text-center leading-relaxed">{description}</p>
+                            </motion.div>
+                        </div>
                     );
                 })}
             </div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-border my-16" />
+
+            {/* Register Your First School */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-16 text-center space-y-6"
+            >
+                <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Register Your First School</h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                        <Link href="/register" className="text-primary hover:underline">
+                            Welcome Form
+                        </Link>{" "}
+                        for schools looking to get started
+                    </p>
+                </div>
+
+                {/* Form Steps */}
+                <div className="flex items-center justify-center gap-8 flex-wrap">
+                    {/* Assets Step */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
+                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2">
+                            <ImageIcon className="h-5 w-5 text-primary" />
+                            <h3 className="font-display text-sm font-bold text-foreground">Assets</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                            Customise your schools landing page for students to visit
+                        </p>
+                    </motion.div>
+
+                    {/* Details Step */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
+                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2">
+                            <MapPin className="h-5 w-5 text-primary" />
+                            <h3 className="font-display text-sm font-bold text-foreground">Details</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                            Give us your full contact information
+                        </p>
+                    </motion.div>
+
+                    {/* Categories Step */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
+                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Tag className="h-5 w-5 text-primary" />
+                            <h3 className="font-display text-sm font-bold text-foreground">Categories</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+    Select your Adrenaline Activities Kite, Wing, Windsurf
+                        </p>
+                    </motion.div>
+
+                    {/* Summary Step */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
+                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                            <h3 className="font-display text-sm font-bold text-foreground">Summary</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                            Get your confirmation email and start your journey.
+                        </p>
+                    </motion.div>
+                </div>
+            </motion.div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-border my-16" />
 
             {/* Footer */}
             <motion.div

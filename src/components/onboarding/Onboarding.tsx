@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,15 +13,68 @@ export default function Onboarding() {
     const searchParams = useSearchParams();
     const skipStats = searchParams?.get("skipStats") === "true";
     const [currentStep, setCurrentStep] = useState(0);
+    const wavesCanvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const wavesCanvas = wavesCanvasRef.current;
+        if (!wavesCanvas) return;
+
+        const ctx = wavesCanvas.getContext("2d");
+        if (!ctx) return;
+
+        let animationId: number;
+        let time = 0;
+
+        const resizeCanvas = () => {
+            wavesCanvas.width = window.innerWidth;
+            wavesCanvas.height = window.innerHeight;
+        };
+
+        const draw = () => {
+            time += 0.005;
+            ctx.clearRect(0, 0, wavesCanvas.width, wavesCanvas.height);
+
+            const centerY = wavesCanvas.height / 2;
+
+            for (let layer = 0; layer < 3; layer++) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 - layer * 0.03})`;
+                ctx.lineWidth = 1.5;
+
+                for (let x = 0; x < wavesCanvas.width; x += 3) {
+                    const wave1 = Math.sin(x * 0.01 + time + layer) * 30;
+                    const wave2 = Math.sin(x * 0.005 + time * 0.5 + layer * 2) * 20;
+                    const y = centerY + wave1 + wave2;
+
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            animationId = requestAnimationFrame(draw);
+        };
+
+        resizeCanvas();
+        draw();
+
+        window.addEventListener("resize", resizeCanvas);
+
+        return () => {
+            cancelAnimationFrame(animationId);
+            window.removeEventListener("resize", resizeCanvas);
+        };
+    }, []);
 
     const handlePageClick = () => {
-        // When skipStats, max step is 5 (NavigationGuide). Without skipStats, max step is 5 (NavigationGuide)
         const maxStep = 5;
         if (currentStep < maxStep) {
             let nextStep = currentStep + 1;
-            // If skipping stats, skip step 1 (FounderIntro) only
             if (skipStats && currentStep === 0) {
-                nextStep = 2; // Skip from step 0 to step 2 (skip step 1)
+                nextStep = 2;
             }
             setCurrentStep(nextStep);
             console.log("Current Step:", nextStep);
@@ -34,38 +87,45 @@ export default function Onboarding() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col cursor-pointer" onClick={handlePageClick}>
-            <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8">
+        <div className={`min-h-screen flex flex-col cursor-pointer relative overflow-hidden ${currentStep === 0 ? "bg-white" : "bg-background"}`} onClick={handlePageClick}>
+            {currentStep === 0 && <canvas ref={wavesCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />}
+
+            <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 relative z-10">
                 {currentStep === 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4 }}
-                        className="flex flex-col items-center gap-4 mb-16"
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center gap-6"
                     >
                         <div className="flex flex-row items-center gap-6">
-                            <div className="relative w-24 h-24 flex-shrink-0">
+                            <div className="relative w-20 h-20 flex-shrink-0">
                                 <Image src="/ADR.webp" alt="Adrenalink Logo" fill className="object-contain" priority />
                             </div>
-                            <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-foreground">Adrenalink</h1>
+                            <h1 className="text-6xl md:text-7xl font-bold tracking-tight drop-shadow-lg text-slate-900">Adrenalink</h1>
                         </div>
-                        <div className="flex flex-col items-center gap-4">
-                            <p className="text-xl font-bold text-muted-foreground tracking-tight uppercase">Administration Guide</p>
-                            <div className="flex flex-col items-start gap-2">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2, duration: 0.5 }}
+                            className="flex flex-col items-center gap-4"
+                        >
+                            <p className="text-lg font-semibold text-slate-600 tracking-wide uppercase">Administration Guide</p>
+                            <div className="flex flex-col items-start gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    <p className="text-sm font-medium text-muted-foreground/80">Learn the <strong>system design</strong></p>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                    <p className="text-sm font-medium text-slate-600">Learn the <strong>system design</strong></p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    <p className="text-sm font-medium text-muted-foreground/80">Get <strong>comfortable</strong> with icons/entities</p>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                    <p className="text-sm font-medium text-slate-600">Get <strong>comfortable</strong> with icons/entities</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    <p className="text-sm font-medium text-muted-foreground/80"><strong>Register</strong> students, teachers and more</p>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                    <p className="text-sm font-medium text-slate-600"><strong>Register</strong> students, teachers and more</p>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </motion.div>
                 )}
 
@@ -78,40 +138,45 @@ export default function Onboarding() {
                 </AnimatePresence>
             </div>
 
-            <div className="p-6 md:p-8 flex flex-col items-center gap-2">
+            <div className="p-6 md:p-8 flex flex-col items-center gap-4 relative z-10">
                 {currentStep === 5 && (
-                    <p className="text-xs italic text-muted-foreground">
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`text-sm italic ${currentStep === 0 ? "text-slate-500" : "text-muted-foreground"}`}
+                    >
                         Thank you for listening.
-                    </p>
+                    </motion.p>
                 )}
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col items-center gap-4">
                     <div className="flex gap-2">
                         {Array.from({ length: skipStats ? TOTAL_STEPS_SKIP_STATS : TOTAL_STEPS }).map((_, i) => {
-                            // When skipStats, map: dot 0 -> step 0, dot 1 -> step 2, dot 2 -> step 3, dot 3 -> step 4, dot 4 -> step 5
-                            let isActive = false;
-                            if (skipStats) {
-                                const stepMapping = [0, 2, 3, 4, 5];
-                                isActive = stepMapping[i] <= currentStep;
-                            } else {
-                                isActive = i <= currentStep;
-                            }
+                            const stepMapping = skipStats ? [0, 2, 3, 4, 5] : Array.from({ length: TOTAL_STEPS }, (_, idx) => idx);
+                            const targetStep = stepMapping[i];
+                            const isActive = targetStep <= currentStep;
+                            const dotColor = currentStep === 0 ? (isActive ? "bg-blue-500" : "bg-slate-300") : (isActive ? "bg-primary" : "bg-muted");
+
                             return (
-                                <motion.div
+                                <motion.button
                                     key={i}
-                                    className={`h-2 w-8 rounded-full transition-colors ${isActive ? "bg-primary" : "bg-muted"}`}
-                                    layout
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCurrentStep(targetStep);
+                                    }}
+                                    whileHover={{ scale: 1.2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`h-2.5 w-8 rounded-full transition-colors cursor-pointer ${dotColor}`}
+                                    type="button"
+                                    aria-label={`Go to step ${i + 1}`}
                                 />
                             );
                         })}
                     </div>
-                    <p className="text-sm text-muted-foreground ml-2">
+                    <p className={`text-xs font-medium tracking-wide uppercase ${currentStep === 0 ? "text-slate-600" : "text-muted-foreground"}`}>
                         {(() => {
-                            if (skipStats) {
-                                // Map currentStep to display step: 0->1, 2->2, 3->3, 4->4, 5->5
-                                const stepMapping: Record<number, number> = { 0: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
-                                return `Step ${stepMapping[currentStep] || 1} of ${TOTAL_STEPS_SKIP_STATS}`;
-                            }
-                            return `Step ${currentStep + 1} of ${TOTAL_STEPS}`;
+                            const displayStep = currentStep + 1;
+                            const total = skipStats ? TOTAL_STEPS_SKIP_STATS : TOTAL_STEPS;
+                            return `Step ${displayStep} of ${total}`;
                         })()}
                     </p>
                 </div>
@@ -130,7 +195,7 @@ function FounderIntro({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
             className="w-full max-w-5xl cursor-pointer"
             onClick={onClick}
         >
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-2 border-border shadow-2xl">
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-2 border-slate-200 shadow-2xl">
                 <Image src="/www.webp" alt="Founder" fill className="object-cover" priority />
             </div>
         </motion.div>
