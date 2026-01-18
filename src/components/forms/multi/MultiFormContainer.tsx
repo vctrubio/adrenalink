@@ -208,7 +208,14 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                     <div className="px-6 py-4 flex items-center justify-between min-h-[84px] bg-zinc-900 text-white">
                         {/* Title - Left */}
                         <div className="flex items-center gap-5">
-                            <span className="text-xl font-bold tracking-tight">
+                            <span 
+                                className="text-xl font-mono tracking-wide leading-relaxed"
+                                style={{ 
+                                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+                                    letterSpacing: '0.05em',
+                                    lineHeight: '1.6'
+                                }}
+                            >
                                 {currentSubtitle || title || "Details"}
                             </span>
                         </div>
