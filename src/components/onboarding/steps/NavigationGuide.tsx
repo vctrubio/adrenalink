@@ -63,7 +63,10 @@ export default function NavigationGuide() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                onClick={() => window.location.href = `https://wind.adrenalink.tech${route.href}`}
+                                onClick={() => {
+                                    const href = route.id === "data" ? "/students" : route.href;
+                                    window.location.href = `https://dummy_wind.adrenalink.tech${href}`;
+                                }}
                                 className={`flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl cursor-pointer transition-all ${
                                     isExplained ? "bg-muted hover:bg-muted/80" : "hover:bg-muted/30"
                                 }`}

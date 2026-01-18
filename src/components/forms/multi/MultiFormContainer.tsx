@@ -206,47 +206,18 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                 <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/50 bg-card">
                     {/* Header (Dark Zinc) - Static Top */}
                     <div className="px-6 py-4 flex items-center justify-between min-h-[84px] bg-zinc-900 text-white">
+                        {/* Title - Left */}
                         <div className="flex items-center gap-5">
-                            {/* Step Indicator or Title */}
-                            <div className="flex flex-col">
-                                <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
-                                    Step {stepIndex + 1} of {steps.length}
-                                </span>
-                                <span className="text-lg font-bold tracking-tight">
-                                    {currentSubtitle || title || "Details"}
-                                </span>
-                            </div>
+                            <span className="text-xl font-bold tracking-tight">
+                                {currentSubtitle || title || "Details"}
+                            </span>
                         </div>
 
-                        <div className="flex-1" />
-
-                        {/* Navigation Arrows */}
-                        <div className="flex items-center gap-4">
-                            {/* Prev Arrow */}
-                            <button
-                                type="button"
-                                onClick={prev}
-                                disabled={stepIndex === 0}
-                                className={`transform -rotate-90 transition-all duration-200 ${
-                                    stepIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:scale-110 active:scale-95"
-                                }`}
-                            >
-                                <AdranlinkIcon size={32} className="text-white" />
-                            </button>
-
-                            {/* Next Arrow */}
-                            <motion.button
-                                type="button"
-                                onClick={handleNext}
-                                animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
-                                transition={{ duration: 0.4 }}
-                                className={`transform rotate-90 transition-all duration-200 hover:scale-110 active:scale-95`}
-                            >
-                                <AdranlinkIcon 
-                                    size={32} 
-                                    className={isCurrentStepValid ? "text-primary" : "text-white"} 
-                                />
-                            </motion.button>
+                        {/* Step Indicator - Right */}
+                        <div className="flex items-center gap-5">
+                            <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
+                                Step {stepIndex + 1} of {steps.length}
+                            </span>
                         </div>
                     </div>
 
@@ -259,6 +230,52 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Footer Navigation - Elegant Bottom Arrows */}
+                    <div className="px-6 py-6 flex items-center justify-between border-t border-border/30 bg-card/50 backdrop-blur-sm">
+                        {/* Prev Arrow - Left */}
+                        {stepIndex > 0 && (
+                            <motion.button
+                                type="button"
+                                onClick={prev}
+                                whileHover={{ scale: 1.05, x: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center gap-3 group transition-all duration-300 pl-4 pr-6 py-2"
+                            >
+                                <div className="transform -rotate-90 transition-all duration-300 group-hover:scale-110">
+                                    <AdranlinkIcon size={36} className="text-foreground/60" />
+                                </div>
+                                <span className="text-sm font-medium text-foreground/70 group-hover:text-foreground transition-colors">
+                                    Back
+                                </span>
+                            </motion.button>
+                        )}
+
+                        {/* Next Arrow - Right */}
+                        <motion.button
+                            type="button"
+                            onClick={handleNext}
+                            animate={isShake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
+                            whileHover={{ scale: 1.05, x: 2 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                            className="flex items-center gap-3 group transition-all duration-300 pl-6 pr-4 py-2 ml-auto"
+                        >
+                            <span className={`text-sm font-medium transition-colors ${
+                                isCurrentStepValid 
+                                    ? "text-primary group-hover:text-primary/80" 
+                                    : "text-foreground/70 group-hover:text-foreground"
+                            }`}>
+                                Next
+                            </span>
+                            <div className="transform rotate-90 transition-all duration-300 group-hover:scale-110">
+                                <AdranlinkIcon 
+                                    size={36} 
+                                    className={isCurrentStepValid ? "text-primary" : "text-foreground/60"} 
+                                />
+                            </div>
+                        </motion.button>
                     </div>
                 </div>
             </Form>
