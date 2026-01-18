@@ -33,8 +33,8 @@ import { ChevronDown, ChevronRight, ArrowRight, Activity, TrendingUpDown, Trendi
 const CORE_STATS = [
     { id: "student", number: "01", title: "Students", description: "Registration & tracking" },
     { id: "teacher", number: "02", title: "Teachers", description: "Hours & commissions" },
-    { id: "package", number: "03", title: "Packages", description: "Set your prices" },
-    { id: "equipment", number: "04", title: "Equipment", description: "Lifecycle management" },
+    { id: "equipment", number: "03", title: "Equipment", description: "Lifecycle management" },
+    { id: "package", number: "04", title: "Packages", description: "Set your prices" },
     { id: "booking", number: "05", title: "Bookings", description: "Smart scheduling" },
 ];
 
