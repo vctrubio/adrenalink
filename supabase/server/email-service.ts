@@ -22,7 +22,7 @@ const EMAIL_STYLES = `
     
     /* Header */
     .header { background-color: #18181b; padding: 40px; text-align: center; }
-    .logo-img { filter: invert(1); brightness: 100; }
+    .logo-img { filter: invert(1) brightness(2) grayscale(1); }
     
     /* Content */
     .content { padding: 40px; }
@@ -63,7 +63,7 @@ const EMAIL_STYLES = `
 function getEmailHeader(logoUrl: string): string {
     return `
         <div class="header">
-            <img src="${logoUrl}" alt="Adrenalink" width="120" class="logo-img" style="display: block; margin: 0 auto; filter: invert(1);" />
+            <img src="${logoUrl}" alt="Adrenalink" width="120" class="logo-img" style="display: block; margin: 0 auto; filter: invert(1) brightness(2) grayscale(1);" />
         </div>
     `;
 }
