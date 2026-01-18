@@ -59,10 +59,24 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
     try {
         const supabase = getServerConnection();
 
+        // Normalize username to lowercase and trim whitespace
+        const normalizedUsername = schoolData.username?.toLowerCase().trim() || "";
+
+        // Double-check username availability right before insert to catch race conditions
+        const { data: existingSchool } = await supabase
+            .from("school")
+            .select("id")
+            .eq("username", normalizedUsername)
+            .maybeSingle();
+
+        if (existingSchool) {
+            return { success: false, error: "A school with this username already exists" };
+        }
+
         // Map form data to database schema
         const insertData = {
             name: schoolData.name,
-            username: schoolData.username.toLowerCase(),
+            username: normalizedUsername,
             country: schoolData.country,
             phone: schoolData.phone,
             latitude: schoolData.latitude,
@@ -74,7 +88,7 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
             instagram_url: schoolData.instagramUrl,
             currency: schoolData.currency,
             email: schoolData.email,
-            clerk_id: schoolData.clerkId,
+            clerk_id: schoolData.clerkId || null, // Allow null for welcome form submissions
             status: "pending",
         };
 
@@ -82,7 +96,14 @@ export async function createSchool(schoolData: any): Promise<ApiActionResponseMo
 
         if (error) {
             if (isUniqueConstraintError(error)) {
-                return { success: false, error: "A school with this username already exists" };
+                // Check which unique constraint was violated
+                if (error.message?.includes("clerk_id")) {
+                    return { success: false, error: "A school with this clerk ID already exists" };
+                }
+                if (error.message?.includes("username")) {
+                    return { success: false, error: "A school with this username already exists" };
+                }
+                return { success: false, error: "A school with this information already exists" };
             }
             
             // Log critical DB error

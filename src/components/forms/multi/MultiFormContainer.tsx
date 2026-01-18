@@ -223,7 +223,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                         {/* Step Indicator - Right */}
                         <div className="flex items-center gap-5">
                             <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
-                                Step {stepIndex + 1} of {steps.length}
+                                {stepIndex === steps.length - 1 ? "Submit" : `Step ${stepIndex + 1} of ${steps.length}`}
                             </span>
                         </div>
                     </div>
@@ -274,7 +274,7 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                                     ? "text-primary group-hover:text-primary/80" 
                                     : "text-foreground/70 group-hover:text-foreground"
                             }`}>
-                                Next
+                                {stepIndex === steps.length - 1 ? submitButtonText : "Next"}
                             </span>
                             <div className="transform rotate-90 transition-all duration-300 group-hover:scale-110">
                                 <AdranlinkIcon 

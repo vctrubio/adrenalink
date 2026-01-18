@@ -62,6 +62,13 @@ export default function StatsExplainer() {
                         <TableIcon size={16} className="text-primary" />
                         <p className="text-sm font-black uppercase tracking-widest">Our six Tables</p>
                     </div>
+                    <ul className="list-disc list-inside space-y-2 mt-6 text-left max-w-2xl mx-auto">
+                        {CORE_STATS.map((stat) => (
+                            <li key={stat.id} className="text-sm text-muted-foreground">
+                                <span className="font-bold text-foreground">{stat.number} {stat.title}</span> - {stat.description}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
 
                 <AnimatePresence>

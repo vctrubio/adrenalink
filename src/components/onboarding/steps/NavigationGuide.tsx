@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { Image as ImageIcon, MapPin, Tag, CheckCircle2 } from "lucide-react";
+import { sendOnboardingEmail } from "@/supabase/server/onboarding";
 
 
 const ROUTE_DESCRIPTIONS: Record<string, string> = {
@@ -21,11 +24,34 @@ const ROUTE_LABELS: Record<string, string> = {
 const NAV_IDS = ["info", "classboard", "data", "users", "help"] as const;
 
 export default function NavigationGuide() {
+    const [email, setEmail] = useState("");
+    const [isSending, setIsSending] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
+
     // Filter and reorder routes to match NavLeft order
     const displayRoutes = NAV_IDS.map((id) => FACEBOOK_NAV_ROUTES.find((r) => r.id === id)).filter(Boolean);
     
     // Routes that have been explained (should be highlighted)
     const explainedRoutes = ["info", "classboard", "data"];
+
+    const handleEmailSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!email || !email.includes("@")) {
+            return;
+        }
+
+        setIsSending(true);
+        const result = await sendOnboardingEmail(email);
+        setIsSending(false);
+
+        if (result.success) {
+            setEmailSent(true);
+            setEmail("");
+            toast.success("Thank You For Sharing");
+            setTimeout(() => setEmailSent(false), 3000);
+        }
+    };
 
     return (
         <motion.div
@@ -205,6 +231,30 @@ export default function NavigationGuide() {
                     </a>
                     .
                 </p>
+                <div className="text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">Share.</span>{" "}
+                    <form onSubmit={handleEmailSubmit} className="inline-flex items-center justify-center gap-2">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="invitation-email"
+                            className="text-sm text-center text-primary border-b border-primary bg-transparent focus:outline-none focus:border-primary/80 placeholder:text-primary/60 placeholder:text-muted-foreground min-w-[140px]"
+                            disabled={isSending}
+                        />
+                        <button
+                            type="submit"
+                            disabled={isSending || !email || !email.includes("@")}
+                            className={`text-sm font-bold transition-all rounded px-2 py-1 ${
+                                email && email.includes("@") && !isSending
+                                    ? "text-primary hover:bg-muted"
+                                    : "text-muted-foreground hover:bg-muted"
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            {isSending ? "Sending..." : emailSent ? "Sent!" : "SEND"}
+                        </button>
+                    </form>
+                </div>
             </motion.div>
 
             {/* Part 2 - Coming Up Next */}

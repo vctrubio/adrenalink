@@ -7,6 +7,7 @@ import { z } from "zod";
 import { createSchool } from "@/supabase/server/welcome";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
+import { logger } from "@/backend/logger";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
 import {
@@ -62,18 +63,23 @@ function generateUsername(name: string): string {
 }
 
 function generateUsernameVariants(baseUsername: string, existingUsernames: string[]): string {
-    if (!existingUsernames.includes(baseUsername) && !isUsernameReserved(baseUsername)) {
-        return baseUsername;
+    // Normalize base username to lowercase for comparison
+    const normalizedBase = baseUsername.toLowerCase();
+    // Normalize existing usernames array for case-insensitive comparison
+    const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
+    
+    if (!normalizedExisting.includes(normalizedBase) && !isUsernameReserved(normalizedBase)) {
+        return normalizedBase;
     }
 
     for (let i = 1; i <= 999; i++) {
-        const variant = `${baseUsername}${i}`;
-        if (!existingUsernames.includes(variant) && !isUsernameReserved(variant)) {
+        const variant = `${normalizedBase}${i}`;
+        if (!normalizedExisting.includes(variant) && !isUsernameReserved(variant)) {
             return variant;
         }
     }
 
-    return `${baseUsername}${Date.now().toString().slice(-6)}`;
+    return `${normalizedBase}${Date.now().toString().slice(-6)}`;
 }
 
 interface WelcomeSchoolFormProps {
@@ -92,6 +98,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
     const [isNameRegistered, setIsNameRegistered] = useState(false);
     const [isResultView, setIsResultView] = useState(false);
     const [createdSchoolUsername, setCreatedSchoolUsername] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const methods = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema) as any,
@@ -152,7 +159,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                 setValue("username", finalUsername);
                 setUsernameStatus("available");
             } catch (error) {
-                console.error("Error generating username:", error);
+                logger.error("Error generating username", error);
             } finally {
                 setIsGeneratingUsername(false);
             }
@@ -172,7 +179,10 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                     return;
                 }
 
-                const isTaken = existingUsernames.includes(username.toLowerCase());
+                // Normalize for case-insensitive comparison
+                const normalizedUsername = username.toLowerCase();
+                const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
+                const isTaken = normalizedExisting.includes(normalizedUsername);
                 setUsernameStatus(isTaken ? "unavailable" : "available");
             }, 200);
         } else {
@@ -211,7 +221,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
         setPendingToBucket(true);
         setUploadStarted(true);
         setUploadStatus("Uploading assets in background...");
-        console.log("📤 Starting background upload of assets to R2...");
+        logger.info("Starting background upload of assets to R2");
 
         try {
             const formData = new FormData();
@@ -244,10 +254,10 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                 .then(async (res) => {
                     const result = await res.json();
                     if (result.success) {
-                        console.log("✅ Background upload success:", result.uploaded);
+                        logger.info("Background upload success", { uploaded: result.uploaded });
                         setUploadStatus("Upload complete");
                     } else {
-                        console.error("❌ Background upload failed:", result.error);
+                        logger.error("Background upload failed", result.error);
                         setUploadStatus("Upload failed");
                         // Allow retry if needed
                         setUploadStarted(false);
@@ -255,13 +265,13 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                     setPendingToBucket(false);
                 })
                 .catch((err) => {
-                    console.error("❌ Background upload network error:", err);
+                    logger.error("Background upload network error", err);
                     setUploadStatus("Upload network error");
                     setPendingToBucket(false);
                     setUploadStarted(false);
                 });
         } catch (e) {
-            console.error("Error triggering upload:", e);
+            logger.error("Error triggering upload", e);
             setPendingToBucket(false);
             setUploadStarted(false);
         }
@@ -278,6 +288,13 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
     };
 
     const onSubmit = async (data: SchoolFormData) => {
+        // Prevent double submission
+        if (isSubmitting) {
+            logger.debug("Submission already in progress, ignoring duplicate submit");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             // Ensure upload started if it hasn't (fallback)
             if (!uploadStarted) {
@@ -288,7 +305,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             const schoolData = {
                 ...data,
                 email: data.ownerEmail,
-                clerkId: "00000",
+                clerkId: null, // Set to null since clerk_id is not needed for welcome form submissions
                 equipmentCategories: data.equipmentCategories.join(","),
                 latitude: data.latitude?.toString(),
                 longitude: data.longitude?.toString(),
@@ -303,17 +320,17 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
 
             // Step 3: Create school in database
             setUploadStatus("Creating school...");
-            console.log("💾 Creating school in database...");
+            logger.info("Creating school in database");
             const result = await createSchool(schoolData);
 
             if (!result.success) {
-                console.error("❌ Database error:", result.error);
+                logger.error("Database error creating school", undefined, { error: result.error });
 
                 // Throw error to prevent success page
                 throw new Error(`Failed to create school: ${result.error}`);
             }
 
-            console.log("✅ School created successfully:", result.data);
+            logger.info("School created successfully", { schoolId: result.data?.id });
 
             // Save username for the success button redirect
             setCreatedSchoolUsername(data.username);
@@ -324,9 +341,11 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             setPendingToBucket(false);
             setUploadStatus("");
             setUploadStarted(false);
+            setIsSubmitting(false);
         } catch (error) {
-            console.error("Error in school creation flow:", error);
+            logger.error("Error in school creation flow", error);
             setUploadStatus("");
+            setIsSubmitting(false);
 
             // Show timeout handler for R2 connectivity issues if it was an upload related error (though upload is now backgrounded, main flow might still have DB errors)
             if (
@@ -336,7 +355,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                     error.message.includes("upload") ||
                     error.message.includes("Failed to upload assets"))
             ) {
-                console.log("🔄 R2/DB failed, showing timeout handler");
+                logger.warn("R2/DB failed, showing timeout handler");
                 setTimeoutFormData(data);
                 setShowTimeoutHandler(true);
             }
