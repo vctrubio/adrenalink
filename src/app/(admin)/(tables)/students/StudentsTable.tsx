@@ -26,6 +26,106 @@ const HEADER_CLASSES = {
     center: "px-4 py-3 font-medium text-center",
 } as const;
 
+interface StudentDisplayProps {
+    student: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        country: string;
+        phone?: string;
+        languages?: string[];
+        schoolStudentStatus?: string;
+        schoolStudentDescription?: string;
+    };
+    variant?: "full" | "compact" | "icon-only";
+    iconSize?: number;
+    showCountry?: boolean;
+    showLanguages?: boolean;
+    showDescription?: boolean;
+    rental?: boolean;
+}
+
+export function StudentDisplay({
+    student,
+    variant = "full",
+    iconSize = 16,
+    showCountry = true,
+    showLanguages = true,
+    showDescription = true,
+    rental = false,
+}: StudentDisplayProps) {
+    const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
+    const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental");
+    const studentColor = studentEntity?.color || "#eab308";
+    const rentalColor = rentalEntity?.color || "#ef4444";
+
+    const isActive = student.schoolStudentStatus === "active";
+    const hasRentals = rental;
+    let iconColor = "#9ca3af"; // muted
+    if (isActive && hasRentals) {
+        iconColor = rentalColor; // red from rental entity
+    } else if (isActive) {
+        iconColor = studentColor; // yellow from student entity
+    }
+
+    if (variant === "icon-only") {
+        return (
+            <div style={{ color: iconColor }} title={isActive ? (hasRentals ? "Active with Rental" : "Active") : "Inactive"}>
+                <HelmetIcon size={iconSize} />
+            </div>
+        );
+    }
+
+    if (variant === "compact") {
+        return (
+            <div className="flex items-center gap-2">
+                <div style={{ color: iconColor }}>
+                    <HelmetIcon size={iconSize} />
+                </div>
+                <Link href={`students/${student.id}`}>
+                    <span className="font-bold text-foreground hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors">
+                        {student.firstName} {student.lastName}
+                    </span>
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-1 items-start max-w-[400px]">
+            <Link href={`students/${student.id}`} className="flex items-center gap-2 group">
+                <div style={{ color: iconColor }} title={isActive ? (hasRentals ? "Active with Rental" : "Active") : "Inactive"}>
+                    <HelmetIcon size={iconSize} />
+                </div>
+                <span className="font-bold text-foreground text-sm normal-case group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
+                    {student.firstName} {student.lastName}
+                </span>
+            </Link>
+            {showCountry && showLanguages && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-tight">
+                    {showCountry && (
+                        <div className="flex items-center" title={student.country}>
+                            <ReactCountryFlag countryCode={getCountryCode(student.country)} svg style={{ width: "1.2em", height: "1.2em" }} />
+                        </div>
+                    )}
+                    {showLanguages && student.languages && student.languages.length > 0 && (
+                        <div className="flex gap-1.5 overflow-hidden normal-case">
+                            {student.languages.map((lang) => (
+                                <span key={lang} className="truncate">
+                                    {lang}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+            {showDescription && student.schoolStudentDescription && (
+                <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">{student.schoolStudentDescription}</p>
+            )}
+        </div>
+    );
+}
+
 export function StudentsTable({ students = [] }: { students: StudentTableData[] }) {
     const { showActions } = useTablesController();
     const {
@@ -96,51 +196,22 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         {
             header: "Student Profile",
             headerClassName: HEADER_CLASSES.yellow,
-            render: (data) => {
-                const isActive = data.schoolStudentStatus === "active";
-                const hasRentals = (data as any).rentals && (data as any).rentals.length > 0;
-                let iconColor = "#9ca3af"; // muted
-                if (isActive && hasRentals) {
-                    iconColor = rentalColor; // red from rental entity
-                } else if (isActive) {
-                    iconColor = studentColor; // yellow from student entity
-                }
-                return (
-                    <div className="flex flex-col gap-1 items-start max-w-[400px]">
-                        <Link href={`students/${data.id}`} className="flex items-center gap-2 group">
-                            <div style={{ color: iconColor }} title={isActive ? hasRentals ? "Active with Rental" : "Active" : "Inactive"}>
-                                <HelmetIcon size={16} />
-                            </div>
-                            <span className="font-bold text-foreground text-sm normal-case group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
-                                {data.firstName} {data.lastName}
-                            </span>
-                        </Link>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-tight">
-                            <div className="flex items-center" title={data.country}>
-                                <ReactCountryFlag
-                                    countryCode={getCountryCode(data.country)}
-                                    svg
-                                    style={{ width: "1.2em", height: "1.2em" }}
-                                />
-                            </div>
-                            {data.languages && data.languages.length > 0 && (
-                                <div className="flex gap-1.5 overflow-hidden normal-case">
-                                    {data.languages.map((lang) => (
-                                        <span key={lang} className="truncate">
-                                            {lang}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        {data.schoolStudentDescription && (
-                            <p className="text-xs text-muted-foreground/60 italic line-clamp-2 leading-relaxed">
-                                {data.schoolStudentDescription}
-                            </p>
-                        )}
-                    </div>
-                );
-            },
+            render: (data) => (
+                <StudentDisplay
+                    student={{
+                        id: data.id,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        country: data.country,
+                        phone: data.phone,
+                        languages: data.languages,
+                        schoolStudentStatus: data.schoolStudentStatus,
+                        schoolStudentDescription: data.schoolStudentDescription,
+                    }}
+                    variant="full"
+                    rental={(data as any).rentals && (data as any).rentals.length > 0}
+                />
+            ),
         },
         {
             header: "Bookings & Progress",
@@ -196,33 +267,33 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         {
             label: "Student",
             headerClassName: HEADER_CLASSES.yellow,
-            render: (data) => {
-                const isActive = data.schoolStudentStatus === "active";
-                const hasRentals = (data as any).rentals && (data as any).rentals.length > 0;
-                let iconColor = "#9ca3af"; // muted
-                if (isActive && hasRentals) {
-                    iconColor = rentalColor; // red from rental entity
-                } else if (isActive) {
-                    iconColor = studentColor; // yellow from student entity
-                }
-                return (
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                            <div style={{ color: iconColor }}>
-                                <HelmetIcon size={14} />
-                            </div>
-                            <div className="font-bold text-sm">
-                                {data.firstName} {data.lastName}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
-                            <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
-                            <span className="opacity-20 text-foreground">|</span>
-                            <span>{data.phone}</span>
-                        </div>
+            render: (data) => (
+                <div className="flex flex-col gap-1">
+                    <StudentDisplay
+                        student={{
+                            id: data.id,
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            country: data.country,
+                            phone: data.phone,
+                            languages: data.languages,
+                            schoolStudentStatus: data.schoolStudentStatus,
+                            schoolStudentDescription: data.schoolStudentDescription,
+                        }}
+                        variant="compact"
+                        iconSize={14}
+                        showCountry={false}
+                        showLanguages={false}
+                        showDescription={false}
+                        rental={(data as any).rentals && (data as any).rentals.length > 0}
+                    />
+                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-black uppercase">
+                        <ReactCountryFlag countryCode={getCountryCode(data.country)} svg style={{ width: "1em", height: "1em" }} />
+                        <span className="opacity-20 text-foreground">|</span>
+                        <span>{data.phone}</span>
                     </div>
-                );
-            },
+                </div>
+            ),
         },
         {
             label: "Progress",

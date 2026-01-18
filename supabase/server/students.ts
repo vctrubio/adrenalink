@@ -1,3 +1,6 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolId } from "@/backend/school-context";
 import type { StudentWithBookingsAndPayments, StudentTableData, LessonWithPayments, BookingStudentPayments } from "@/config/tables";
@@ -156,6 +159,138 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
     } catch (error) {
         logger.error("Error fetching students table", error);
         return [];
+    }
+}
+
+export async function updateStudent(studentId: string, updateData: {
+    first_name: string;
+    last_name: string;
+    passport: string;
+    country: string;
+    phone: string;
+    languages: string[];
+    description?: string | null;
+    email?: string | null;
+    active: boolean;
+    rental: boolean;
+}): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Update student table
+        const { error: studentError } = await supabase
+            .from("student")
+            .update({
+                first_name: updateData.first_name,
+                last_name: updateData.last_name,
+                passport: updateData.passport,
+                country: updateData.country,
+                phone: updateData.phone,
+                languages: updateData.languages,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", studentId);
+
+        if (studentError) {
+            logger.error("Error updating student", studentError);
+            return { success: false, error: "Failed to update student" };
+        }
+
+        // Update school_students table
+        const { error: schoolStudentError } = await supabase
+            .from("school_students")
+            .update({
+                description: updateData.description,
+                email: updateData.email,
+                active: updateData.active,
+                rental: updateData.rental,
+            })
+            .eq("school_id", schoolId)
+            .eq("student_id", studentId);
+
+        if (schoolStudentError) {
+            logger.error("Error updating school_students", schoolStudentError);
+            return { success: false, error: "Failed to update student status" };
+        }
+
+        revalidatePath("/students");
+        revalidatePath(`/students/${studentId}`);
+
+        logger.info("Student updated successfully", { studentId, schoolId });
+        return { success: true };
+    } catch (error) {
+        logger.error("Error updating student", error);
+        return { success: false, error: "Failed to update student" };
+    }
+}
+
+export async function deleteStudent(studentId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Check if student has any bookings
+        const { data: bookings, error: bookingCheckError } = await supabase
+            .from("booking_student")
+            .select("id")
+            .eq("student_id", studentId)
+            .limit(1);
+
+        if (bookingCheckError) {
+            logger.error("Error checking student bookings", bookingCheckError);
+            return { success: false, error: "Failed to check student bookings" };
+        }
+
+        // If student has bookings, only allow soft delete (set active = false)
+        if (bookings && bookings.length > 0) {
+            const { error: softDeleteError } = await supabase
+                .from("school_students")
+                .update({ active: false })
+                .eq("school_id", schoolId)
+                .eq("student_id", studentId);
+
+            if (softDeleteError) {
+                logger.error("Error soft deleting student", softDeleteError);
+                return { success: false, error: "Failed to deactivate student" };
+            }
+
+            revalidatePath("/students");
+            revalidatePath(`/students/${studentId}`);
+
+            logger.info("Student soft deleted (deactivated)", { studentId, schoolId });
+            return { success: true, canDelete: false };
+        }
+
+        // If no bookings, perform hard delete
+        const { error: deleteError } = await supabase
+            .from("school_students")
+            .delete()
+            .eq("school_id", schoolId)
+            .eq("student_id", studentId);
+
+        if (deleteError) {
+            logger.error("Error deleting student", deleteError);
+            return { success: false, error: "Failed to delete student" };
+        }
+
+        revalidatePath("/students");
+
+        logger.info("Student deleted successfully", { studentId, schoolId });
+        return { success: true, canDelete: true };
+    } catch (error) {
+        logger.error("Error deleting student", error);
+        return { success: false, error: "Failed to delete student" };
     }
 }
 

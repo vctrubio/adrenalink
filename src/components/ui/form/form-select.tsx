@@ -12,7 +12,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(({ className =
         <select
             ref={ref}
             className={`
-          w-full px-3 py-2 rounded-md border transition-colors
+          w-full h-10 px-3 rounded-lg border transition-colors text-sm
           bg-background text-foreground
           ${error ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
           focus:outline-none focus:ring-2 focus:ring-opacity-50

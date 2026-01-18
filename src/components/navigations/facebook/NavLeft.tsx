@@ -12,7 +12,7 @@ import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { NavigationWizardModal } from "@/src/components/modals/admin/NavigationWizardModal";
 
-const NAV_IDS = ["info", "classboard", "data", "users", "invitations"] as const;
+const NAV_IDS = ["info", "classboard", "data", "users", "help"] as const;
 const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavLeft = () => {

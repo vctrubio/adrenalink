@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsExplainer, AdminDashboardPreview, BadgeShowcase, NavigationGuide } from "./steps";
 
 const TOTAL_STEPS = 6;
+const TOTAL_STEPS_SKIP_STATS = 5;
 
 export default function Onboarding() {
+    const searchParams = useSearchParams();
+    const skipStats = searchParams?.get("skipStats") === "true";
     const [currentStep, setCurrentStep] = useState(0);
 
     const handlePageClick = () => {
-        if (currentStep < TOTAL_STEPS - 1) {
-            const nextStep = currentStep + 1;
+        // When skipStats, max step is 5 (NavigationGuide). Without skipStats, max step is 5 (NavigationGuide)
+        const maxStep = 5;
+        if (currentStep < maxStep) {
+            let nextStep = currentStep + 1;
+            // If skipping stats, skip step 1 (FounderIntro) only
+            if (skipStats && currentStep === 0) {
+                nextStep = 2; // Skip from step 0 to step 2 (skip step 1)
+            }
             setCurrentStep(nextStep);
             console.log("Current Step:", nextStep);
         }
@@ -60,7 +70,7 @@ export default function Onboarding() {
                 )}
 
                 <AnimatePresence mode="wait">
-                    {currentStep === 1 && <FounderIntro onClick={handleFounderClick} />}
+                    {!skipStats && currentStep === 1 && <FounderIntro onClick={handleFounderClick} />}
                     {currentStep === 2 && <StatsExplainer />}
                     {currentStep === 3 && <AdminDashboardPreview />}
                     {currentStep === 4 && <BadgeShowcase />}
@@ -68,19 +78,41 @@ export default function Onboarding() {
                 </AnimatePresence>
             </div>
 
-            <div className="p-6 md:p-8 flex justify-center">
+            <div className="p-6 md:p-8 flex flex-col items-center gap-2">
+                {currentStep === 5 && (
+                    <p className="text-xs italic text-muted-foreground">
+                        Thank you for listening.
+                    </p>
+                )}
                 <div className="flex items-center gap-4">
                     <div className="flex gap-2">
-                        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                            <motion.div
-                                key={i}
-                                className={`h-2 w-8 rounded-full transition-colors ${i <= currentStep ? "bg-primary" : "bg-muted"}`}
-                                layout
-                            />
-                        ))}
+                        {Array.from({ length: skipStats ? TOTAL_STEPS_SKIP_STATS : TOTAL_STEPS }).map((_, i) => {
+                            // When skipStats, map: dot 0 -> step 0, dot 1 -> step 2, dot 2 -> step 3, dot 3 -> step 4, dot 4 -> step 5
+                            let isActive = false;
+                            if (skipStats) {
+                                const stepMapping = [0, 2, 3, 4, 5];
+                                isActive = stepMapping[i] <= currentStep;
+                            } else {
+                                isActive = i <= currentStep;
+                            }
+                            return (
+                                <motion.div
+                                    key={i}
+                                    className={`h-2 w-8 rounded-full transition-colors ${isActive ? "bg-primary" : "bg-muted"}`}
+                                    layout
+                                />
+                            );
+                        })}
                     </div>
                     <p className="text-sm text-muted-foreground ml-2">
-                        Step {currentStep + 1} of {TOTAL_STEPS}
+                        {(() => {
+                            if (skipStats) {
+                                // Map currentStep to display step: 0->1, 2->2, 3->3, 4->4, 5->5
+                                const stepMapping: Record<number, number> = { 0: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+                                return `Step ${stepMapping[currentStep] || 1} of ${TOTAL_STEPS_SKIP_STATS}`;
+                            }
+                            return `Step ${currentStep + 1} of ${TOTAL_STEPS}`;
+                        })()}
                     </p>
                 </div>
             </div>

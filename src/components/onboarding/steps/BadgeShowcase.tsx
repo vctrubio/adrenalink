@@ -41,9 +41,13 @@ export default function BadgeShowcase() {
                         <BookingIcon size={18} className="text-muted-foreground" />
                         <span className="text-xs font-bold text-foreground uppercase tracking-wide">Booking Count</span>
                     </div>
+                    <div className="flex items-center gap-2" title="Lessons Assigned">
+                        <LessonIcon size={18} className="text-muted-foreground" />
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">Lessons Assigned</span>
+                    </div>
                     <div className="flex items-center gap-2" title="Total Events">
                         <FlagIcon size={18} className="text-muted-foreground" />
-                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">Total Event Count</span>
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">Total Events Count</span>
                     </div>
                     <div className="flex items-center gap-2" title="Total Duration">
                         <DurationIcon size={18} className="text-muted-foreground" />

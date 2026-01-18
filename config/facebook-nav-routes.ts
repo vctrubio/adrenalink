@@ -2,7 +2,7 @@ import ClassboardIcon from "@/public/appSvgs/ClassboardIcon.jsx";
 import TableIcon from "@/public/appSvgs/TableIcon.jsx";
 import SendIcon from "@/public/appSvgs/SendIcon.jsx";
 import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
-import { Users } from "lucide-react";
+import { Users, HelpCircle } from "lucide-react";
 
 export const FACEBOOK_NAV_ROUTES = [
     {
@@ -34,5 +34,11 @@ export const FACEBOOK_NAV_ROUTES = [
         label: "Invitations",
         href: "/invitations",
         icon: SendIcon,
+    },
+    {
+        id: "help",
+        label: "Help",
+        href: "/onboarding?skipStats=true",
+        icon: HelpCircle,
     },
 ];
