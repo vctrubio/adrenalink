@@ -273,6 +273,112 @@ export async function getTeachersTable(): Promise<TeacherTableData[]> {
     }
 }
 
+export async function updateTeacher(
+    teacherId: string,
+    updateData: {
+        username: string;
+        first_name: string;
+        last_name: string;
+        email?: string | null;
+        passport: string;
+        country: string;
+        phone: string;
+        languages: string[];
+        active: boolean;
+    },
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Check if username is unique within the school (excluding current teacher)
+        const { data: existingTeacher } = await supabase
+            .from("teacher")
+            .select("id")
+            .eq("school_id", schoolId)
+            .eq("username", updateData.username)
+            .neq("id", teacherId)
+            .single();
+
+        if (existingTeacher) {
+            return { success: false, error: "Username already exists for another teacher" };
+        }
+
+        // Update teacher
+        const { error } = await supabase
+            .from("teacher")
+            .update({
+                username: updateData.username,
+                first_name: updateData.first_name,
+                last_name: updateData.last_name,
+                email: updateData.email,
+                passport: updateData.passport,
+                country: updateData.country,
+                phone: updateData.phone,
+                languages: updateData.languages,
+                active: updateData.active,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", teacherId)
+            .eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "update teacher", "Failed to update teacher");
+        }
+
+        logger.info("Updated teacher", { teacherId, username: updateData.username });
+        return { success: true };
+    } catch (error) {
+        logger.error("Error updating teacher", error);
+        return { success: false, error: "Failed to update teacher" };
+    }
+}
+
+export async function deleteTeacher(teacherId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Check if teacher has any lessons
+        const { data: lessons } = await supabase.from("lesson").select("id").eq("teacher_id", teacherId).limit(1);
+
+        if (lessons && lessons.length > 0) {
+            // Soft delete: set active = false
+            const { error } = await supabase.from("teacher").update({ active: false }).eq("id", teacherId).eq("school_id", schoolId);
+
+            if (error) {
+                return handleSupabaseError(error, "deactivate teacher", "Failed to deactivate teacher");
+            }
+
+            logger.info("Deactivated teacher with lessons", { teacherId });
+            return { success: true, canDelete: false };
+        }
+
+        // Hard delete if no lessons
+        const { error } = await supabase.from("teacher").delete().eq("id", teacherId).eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "delete teacher", "Failed to delete teacher");
+        }
+
+        logger.info("Deleted teacher", { teacherId });
+        return { success: true, canDelete: true };
+    } catch (error) {
+        logger.error("Error deleting teacher", error);
+        return { success: false, error: "Failed to delete teacher" };
+    }
+}
+
 export async function updateTeacherActive(teacherId: string, active: boolean): Promise<{ success: boolean; error?: string }> {
     try {
         const supabase = getServerConnection();

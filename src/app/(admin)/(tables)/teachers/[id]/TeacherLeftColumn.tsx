@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
+import { UpdateEntityColumnCard } from "@/src/components/ids/UpdateEntityColumnCard";
 import { LessonProgressBadge } from "@/src/components/ui/badge/lessonprogress";
 import { PaymentProgressBadge } from "@/src/components/ui/badge/paymentprogress";
 import { TeacherTableGetters } from "@/getters/table-getters";
@@ -13,6 +14,8 @@ import { ENTITY_DATA } from "@/config/entities";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TeacherCommissionPanelModal } from "@/src/components/modals/admin/TeacherCommissionPanelModal";
 import { TeacherEquipmentManModal } from "@/src/components/modals/admin";
+import { teacherUpdateSchema, type TeacherUpdateForm } from "@/src/validation/teacher";
+import { updateTeacher, deleteTeacher } from "@/supabase/server/teachers";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import { Percent } from "lucide-react";
@@ -55,55 +58,124 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         background: `linear-gradient(to right, ${lessonEntity.color} ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`,
     };
 
-    // Teacher Card
-    const teacherCardData: LeftColumnCardData = {
-        name: teacher.schema.username,
-        status: teacher.updateForm.active ? "Active" : "Inactive",
-        avatar: (
-            <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
-                <TeacherIcon className="w-10 h-10" />
-            </div>
-        ),
-        fields: [
-            {
-                label: "Username",
-                value: teacher.schema.username,
-            },
-            {
-                label: "First Name",
-                value: teacher.schema.first_name,
-            },
-            {
-                label: "Last Name",
-                value: teacher.schema.last_name,
-            },
-            {
-                label: "Passport",
-                value: teacher.schema.passport,
-            },
-            {
-                label: "Country",
-                value: teacher.schema.country,
-            },
-            {
-                label: "Phone",
-                value: teacher.schema.phone,
-            },
-            {
-                label: "Languages",
-                value: teacher.schema.languages?.join(", ") || "",
-            },
-            {
-                label: "Active",
-                value: teacher.updateForm.active ? "Yes" : "No",
-            },
-            {
-                label: "Created",
-                value: formatDate(teacher.schema.created_at),
-            },
-        ],
-        accentColor: teacherEntity.color,
-        isEditable: true,
+    // Teacher Card - View mode fields
+    const teacherViewFields = [
+        {
+            label: "Username",
+            value: teacher.schema.username,
+        },
+        {
+            label: "First Name",
+            value: teacher.schema.first_name,
+        },
+        {
+            label: "Last Name",
+            value: teacher.schema.last_name,
+        },
+        {
+            label: "Email",
+            value: teacher.schema.email || "Not provided",
+        },
+        {
+            label: "Clerk ID",
+            value: teacher.schema.clerk_id ? "Verified" : "Not verified",
+        },
+        {
+            label: "Passport",
+            value: teacher.schema.passport,
+        },
+        {
+            label: "Country",
+            value: teacher.schema.country,
+        },
+        {
+            label: "Phone",
+            value: teacher.schema.phone,
+        },
+        {
+            label: "Languages",
+            value: teacher.schema.languages?.join(", ") || "",
+        },
+        {
+            label: "Active",
+            value: teacher.updateForm.active ? "Yes" : "No",
+        },
+        {
+            label: "Created",
+            value: formatDate(teacher.schema.created_at),
+        },
+    ];
+
+    const handleUpdateSubmit = async (data: TeacherUpdateForm) => {
+        const result = await updateTeacher(teacher.schema.id, {
+            username: data.username,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+            passport: data.passport,
+            country: data.country,
+            phone: data.phone,
+            languages: data.languages,
+            active: data.active,
+        });
+
+        if (result.success) {
+            router.refresh();
+        } else {
+            console.error("Failed to update teacher:", result.error);
+            throw new Error(result.error);
+        }
+    };
+
+    const handleDelete = async () => {
+        const result = await deleteTeacher(teacher.schema.id);
+
+        if (result.success) {
+            router.push("/teachers");
+        } else {
+            console.error("Failed to delete teacher:", result.error);
+            throw new Error(result.error);
+        }
+    };
+
+    const lessons = teacher.relations?.lesson || [];
+    const canDeleteTeacher = lessons.length === 0;
+
+    const formFields = [
+        { name: "active", label: "Active", type: "switch" as const, section: "settings", description: "Active User" },
+        { name: "username", label: "Username", type: "text" as const, placeholder: "Enter username", section: "personal", required: true },
+        { name: "first_name", label: "First Name", type: "text" as const, placeholder: "Enter first name", section: "personal", required: true },
+        { name: "last_name", label: "Last Name", type: "text" as const, placeholder: "Enter last name", section: "personal", required: true },
+        { name: "email", label: "Email", type: "text" as const, placeholder: "Optional email", section: "personal" },
+        {
+            name: "country",
+            label: "Country & Phone",
+            type: "country-phone" as const,
+            pairedField: "phone",
+            section: "contact",
+            required: true,
+        },
+        { name: "passport", label: "Passport", type: "text" as const, placeholder: "Enter passport number", section: "contact", required: true },
+        {
+            name: "languages",
+            label: "Languages",
+            type: "languages" as const,
+            section: "contact",
+            required: true,
+        },
+    ];
+
+    const defaultValues: TeacherUpdateForm = {
+        id: teacher.schema.id,
+        username: teacher.schema.username,
+        first_name: teacher.schema.first_name,
+        last_name: teacher.schema.last_name,
+        email: teacher.schema.email || "",
+        passport: teacher.schema.passport,
+        country: teacher.schema.country,
+        phone: teacher.schema.phone,
+        languages: teacher.schema.languages || [],
+        active: teacher.updateForm.active,
     };
 
     // Lessons Card - Group by equipment category
@@ -304,8 +376,31 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
     };
 
     return (
-        <>
-            <EntityLeftColumn cards={[teacherCardData, lessonsCardData, commissionCardData, paymentCardData, equipmentCardData]} />
+        <div className="space-y-6">
+            <UpdateEntityColumnCard
+                name={(formValues) => formValues.username || "Teacher"}
+                status={teacher.updateForm.active ? "Active" : "Inactive"}
+                avatar={() => (
+                    <div className="flex-shrink-0" style={{ color: teacherEntity.color }}>
+                        <TeacherIcon className="w-10 h-10" />
+                    </div>
+                )}
+                fields={teacherViewFields}
+                accentColor={teacherEntity.color}
+                entityId="teacher"
+                formFields={formFields}
+                schema={teacherUpdateSchema}
+                defaultValues={defaultValues}
+                onSubmit={handleUpdateSubmit}
+                onDelete={handleDelete}
+                canDelete={canDeleteTeacher}
+                deleteMessage={
+                    canDeleteTeacher
+                        ? "Are you sure you want to delete this teacher?"
+                        : "Cannot delete teacher with assigned lessons. Deactivating instead."
+                }
+            />
+            <EntityLeftColumn cards={[lessonsCardData, commissionCardData, paymentCardData, equipmentCardData]} />
             <TeacherCommissionPanelModal
                 isOpen={isCommissionPanelOpen}
                 onClose={() => setIsCommissionPanelOpen(false)}
@@ -320,6 +415,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
                 onClose={() => setIsEquipmentModalOpen(false)}
                 teacher={teacher}
             />
-        </>
+        </div>
     );
 }
