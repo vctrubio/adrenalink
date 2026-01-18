@@ -52,7 +52,7 @@ interface ClassboardContextType {
     setClassboardModel: (model: ClassboardModel | ((prev: ClassboardModel) => ClassboardModel)) => void;
 }
 
-const ClassboardContext = createContext<ClassboardContextType | undefined>(undefined);
+export const ClassboardContext = createContext<ClassboardContextType | undefined>(undefined);
 
 interface ClassboardProviderProps {
     children: ReactNode;

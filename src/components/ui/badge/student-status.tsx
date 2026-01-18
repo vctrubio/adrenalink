@@ -3,6 +3,7 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import { BADGE_STATUS_GREEN, BADGE_ACTION_CYAN, BADGE_BG_OPACITY_DARK } from "@/types/status";
 import { memo } from "react";
+import { getHMDuration } from "@/getters/duration-getter";
 
 interface StudentStatusBadgeProps {
     bookingCount: number;
@@ -31,7 +32,6 @@ export const StudentStatusBadge = memo(function StudentStatusBadge({
         );
     }
 
-    const eventDurationHours = Math.round(totalEventDuration / 60);
     const bgColor = allBookingsCompleted ? BADGE_STATUS_GREEN : BADGE_ACTION_CYAN;
 
     return (
@@ -50,7 +50,7 @@ export const StudentStatusBadge = memo(function StudentStatusBadge({
                 </>
             )}
             <DurationIcon size={14} />
-            <span>{eventDurationHours}h</span>
+            <span>{getHMDuration(totalEventDuration)}</span>
         </div>
     );
 });

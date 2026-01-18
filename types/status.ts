@@ -65,7 +65,7 @@ export interface LessonStatusConfig {
 export const LESSON_STATUS_CONFIG: Record<LessonStatus, LessonStatusConfig> = {
     active: {
         status: "active",
-        color: STATUS_GREY,
+        color: ACTION_CYAN,
         label: "Active",
     },
     rest: {
@@ -120,7 +120,7 @@ export interface BookingStatusConfig {
 export const BOOKING_STATUS_CONFIG: Record<BookingStatus, BookingStatusConfig> = {
     active: {
         status: "active",
-        color: STATUS_GREY,
+        color: ACTION_CYAN,
         label: "Active",
     },
     completed: {
@@ -147,7 +147,7 @@ export interface SchoolStudentStatusConfig {
 export const SCHOOL_STUDENT_STATUS_CONFIG: Record<SchoolStudentStatus, SchoolStudentStatusConfig> = {
     active: {
         status: "active",
-        color: STATUS_GREY,
+        color: ACTION_CYAN,
         label: "Active",
     },
     inactive: {
@@ -169,7 +169,7 @@ export interface TeacherStatusConfig {
 export const TEACHER_STATUS_CONFIG: Record<TeacherStatus, TeacherStatusConfig> = {
     active: {
         status: "active",
-        color: STATUS_GREY,
+        color: ACTION_CYAN,
         label: "Active",
     },
     inactive: {
@@ -191,7 +191,7 @@ export interface SchoolPackageStatusConfig {
 export const SCHOOL_PACKAGE_STATUS_CONFIG: Record<SchoolPackageStatus, SchoolPackageStatusConfig> = {
     active: {
         status: "active",
-        color: STATUS_GREY,
+        color: ACTION_CYAN,
         label: "Active",
     },
     inactive: {

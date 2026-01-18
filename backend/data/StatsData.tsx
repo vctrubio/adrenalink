@@ -10,7 +10,8 @@ import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import RepairIcon from "@/public/appSvgs/RepairIcon";
-import { TrendingUp, TrendingDown, TrendingUpDown, Bookmark } from "lucide-react";
+import PackageIcon from "@/public/appSvgs/PackageIcon";
+import { TrendingUp, TrendingDown, TrendingUpDown } from "lucide-react";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 
@@ -55,8 +56,8 @@ export const STAT_TYPE_CONFIG: Record<StatType, StatTypeConfig> = {
     studentPackage: { icon: RequestIcon, color: "#f59e0b", label: "Package" },
     studentPayments: { icon: CreditIcon, color: "#eab308", label: "Student Payments" },
     //
-    package: { icon: Bookmark, color: "#fb923c", label: "Package" },
-    packages: { icon: Bookmark, color: "#fb923c", label: "Packages" },
+    package: { icon: PackageIcon, color: "#fb923c", label: "Package" },
+    packages: { icon: PackageIcon, color: "#fb923c", label: "Packages" },
     request: { icon: RequestIcon, color: "#f59e0b", label: "Request" },
     requests: { icon: RequestIcon, color: "#f59e0b", label: "Requests" },
     //

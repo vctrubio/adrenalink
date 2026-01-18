@@ -11,6 +11,7 @@ import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
+import { getLeaderCapacity } from "@/getters/bookings-getter";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { AssignTeacherToLessonModal } from "@/src/components/modals/AssignTeacherToLessonModal";
 import { ClassboardProgressBar } from "./ClassboardProgressBar";
@@ -49,7 +50,6 @@ const CardHeader = ({
     dateEnd: string;
     selectedDate: string;
     leaderName: string;
-    studentCount: number;
     students: { id: string; firstName: string; lastName: string }[];
     onExpand: () => void;
 }) => {
@@ -87,7 +87,9 @@ const CardHeader = ({
                     </span>
                 </Link>
                 <div className="flex flex-col">
-                    <div className="font-semibold text-foreground truncate flex-1 text-lg text-left">{leaderName}</div>
+                    <div className="truncate flex-1 text-lg text-left">
+                        {getLeaderCapacity(leaderName, students.length)}
+                    </div>
                     <div className="text-[10px] font-medium text-muted-foreground">
                         {ratioText} {statusText && <span className={statusStyle}>{statusText}</span>}
                     </div>
