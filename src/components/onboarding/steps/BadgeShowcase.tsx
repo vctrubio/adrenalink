@@ -81,7 +81,76 @@ export default function BadgeShowcase() {
                 </div>
             </div>
 
-            {/* 1. Full Table Row Previews */}
+            {/* 1. User Status Badges */}
+            <div className="space-y-6">
+                <div className="border-b border-border/50 pb-4">
+                    <h3 className="text-xl font-bold text-foreground">User Activity Indicators</h3>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Student Status Examples */}
+                    <div className="space-y-4 p-5 bg-card rounded-xl border border-border/50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg text-yellow-600 dark:text-yellow-400">
+                                <HelmetIcon size={18} />
+                            </div>
+                            <h3 className="font-semibold text-foreground">Student Badges</h3>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">New Student</span>
+                                <StudentStatusBadge bookingCount={0} totalEventDuration={0} />
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">Active (In Progress)</span>
+                                <StudentStatusBadge 
+                                    bookingCount={1} 
+                                    totalEventDuration={120} 
+                                    eventCount={2} 
+                                    allBookingsCompleted={false} 
+                                />
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">Completed</span>
+                                <StudentStatusBadge 
+                                    bookingCount={5} 
+                                    totalEventDuration={600} 
+                                    eventCount={10} 
+                                    allBookingsCompleted={true} 
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Teacher Status Examples */}
+                    <div className="space-y-4 p-5 bg-card rounded-xl border border-border/50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg text-emerald-600 dark:text-emerald-400">
+                                <HeadsetIcon size={18} />
+                            </div>
+                            <h3 className="font-semibold text-foreground">Teacher Badges</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">No Lessons</span>
+                                <TeacherActiveLesson totalLessons={0} completedLessons={0} />
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">Ongoing (2/5 Done)</span>
+                                <TeacherActiveLesson totalLessons={5} completedLessons={2} />
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                <span className="text-sm font-medium">All Completed</span>
+                                <TeacherActiveLesson totalLessons={8} completedLessons={8} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. Full Table Row Previews */}
             <div className="space-y-8">
                 <div className="border-b border-border/50 pb-4">
                     <h3 className="text-xl font-bold text-foreground">Table Data Previews</h3>
@@ -218,75 +287,6 @@ export default function BadgeShowcase() {
                                         eventCount={3}
                                     />
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 2. User Status Badges */}
-            <div className="space-y-6">
-                <div className="border-b border-border/50 pb-4">
-                    <h3 className="text-xl font-bold text-foreground">User Activity Indicators</h3>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Student Status Examples */}
-                    <div className="space-y-4 p-5 bg-card rounded-xl border border-border/50">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg text-yellow-600 dark:text-yellow-400">
-                                <HelmetIcon size={18} />
-                            </div>
-                            <h3 className="font-semibold text-foreground">Student Badges</h3>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">New Student</span>
-                                <StudentStatusBadge bookingCount={0} totalEventDuration={0} />
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">Active (In Progress)</span>
-                                <StudentStatusBadge 
-                                    bookingCount={1} 
-                                    totalEventDuration={120} 
-                                    eventCount={2} 
-                                    allBookingsCompleted={false} 
-                                />
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">Completed</span>
-                                <StudentStatusBadge 
-                                    bookingCount={5} 
-                                    totalEventDuration={600} 
-                                    eventCount={10} 
-                                    allBookingsCompleted={true} 
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Teacher Status Examples */}
-                    <div className="space-y-4 p-5 bg-card rounded-xl border border-border/50">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg text-emerald-600 dark:text-emerald-400">
-                                <HeadsetIcon size={18} />
-                            </div>
-                            <h3 className="font-semibold text-foreground">Teacher Badges</h3>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">No Lessons</span>
-                                <TeacherActiveLesson totalLessons={0} completedLessons={0} />
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">Ongoing (2/5 Done)</span>
-                                <TeacherActiveLesson totalLessons={5} completedLessons={2} />
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <span className="text-sm font-medium">All Completed</span>
-                                <TeacherActiveLesson totalLessons={8} completedLessons={8} />
                             </div>
                         </div>
                     </div>
