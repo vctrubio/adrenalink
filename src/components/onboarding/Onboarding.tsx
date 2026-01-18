@@ -132,8 +132,8 @@ export default function Onboarding() {
                 <AnimatePresence mode="wait">
                     {!skipStats && currentStep === 1 && <FounderIntro onClick={handleFounderClick} />}
                     {currentStep === 2 && <StatsExplainer />}
-                    {currentStep === 3 && <AdminDashboardPreview />}
-                    {currentStep === 4 && <BadgeShowcase />}
+                    {currentStep === 3 && <BadgeShowcase />}
+                    {currentStep === 4 && <AdminDashboardPreview />}
                     {currentStep === 5 && <NavigationGuide />}
                 </AnimatePresence>
             </div>

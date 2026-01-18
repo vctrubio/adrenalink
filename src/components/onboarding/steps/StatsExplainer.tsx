@@ -393,8 +393,8 @@ export default function StatsExplainer() {
                                                                         <div className="scale-90 origin-left">
                                                                             <TeacherLessonStatsBadge
                                                                                 teacherId="t1"
-                                                                                teacherUsername="john_smith"
-                                                                                eventCount={1}
+                                                                                teacherUsername="John"
+                                                                                eventCount={1}  
                                                                                 durationMinutes={120}
                                                                                 showCommission={true}
                                                                                 commission={{ type: "fixed", cph: "20" }}
@@ -403,7 +403,7 @@ export default function StatsExplainer() {
                                                                         <div className="scale-90 origin-left">
                                                                             <TeacherLessonStatsBadge
                                                                                 teacherId="t2"
-                                                                                teacherUsername="sarah_lee"
+                                                                                teacherUsername="Sarah"
                                                                                 eventCount={1}
                                                                                 durationMinutes={180}
                                                                                 showCommission={true}

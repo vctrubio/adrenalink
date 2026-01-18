@@ -104,7 +104,7 @@ export default function BadgeShowcase() {
                                 <div className="p-4 space-y-1">
                                     <div className="flex items-center gap-2">
                                         <HeadsetIcon size={16} className="text-emerald-500" />
-                                        <span className="font-bold text-sm">alex_instructor</span>
+                                        <span className="font-bold text-sm">Alex</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-tight">
                                         <span className="flex items-center gap-1">🇪🇸 SPAIN</span>
@@ -344,7 +344,7 @@ export default function BadgeShowcase() {
                                 <p className="text-[10px] text-muted-foreground font-bold">Teacher with Comission</p>
                                 <TeacherUsernameCommissionBadge
                                     teacherIcon={ENTITY_DATA.find((e) => e.id === "teacher")?.icon!}
-                                    teacherUsername="alex_instructor"
+                                    teacherUsername="Alex"
                                     teacherColor={ENTITY_DATA.find((e) => e.id === "teacher")?.color!}
                                     commissionValue="25"
                                     commissionType="fixed"
@@ -354,7 +354,7 @@ export default function BadgeShowcase() {
                                 <p className="text-[10px] text-muted-foreground font-bold">Teacher Lesson Summary</p>
                                 <TeacherLessonStatsBadge
                                     teacherId="t1"
-                                    teacherUsername="alex_instructor"
+                                    teacherUsername="Alex"
                                     eventCount={3}
                                     durationMinutes={180}
                                     showCommission={true}
@@ -400,7 +400,7 @@ export default function BadgeShowcase() {
                                         lessons: [
                                             {
                                                 id: "lesson-001",
-                                                teacher: { id: "teacher-001", username: "alex_instructor" },
+                                                teacher: { id: "teacher-001", username: "Alex" },
                                                 commission: { type: "fixed", cph: "25" },
                                                 events: [
                                                     { id: "evt-001", duration: 120, status: "completed" },
@@ -441,7 +441,7 @@ export default function BadgeShowcase() {
                                     {
                                         id: "lesson-001",
                                         teacherId: "teacher-001",
-                                        teacherUsername: "alex_instructor",
+                                        teacherUsername: "Alex",
                                         commission: { type: "fixed", cph: "25" },
                                         events: {
                                             totalCount: 3,

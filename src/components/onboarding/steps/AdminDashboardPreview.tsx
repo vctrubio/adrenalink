@@ -42,7 +42,7 @@ const SHARED_MOCK_EVENTS = [
         duration: 120,
         location: "Beach",
         status: "completed",
-        teacher: { id: "teacher-001", username: "john_smith" },
+        teacher: { id: "teacher-001", username: "John" },
         studentName: "Alice Johnson",
         category: "kite",
         capacity: 2,
@@ -56,7 +56,7 @@ const SHARED_MOCK_EVENTS = [
         duration: 120,
         location: "Bay",
         status: "planned",
-        teacher: { id: "teacher-001", username: "john_smith" },
+        teacher: { id: "teacher-001", username: "John" },
         studentName: "Bob Wilson",
         category: "kite",
         capacity: 2,
@@ -70,7 +70,7 @@ const SHARED_MOCK_EVENTS = [
         duration: 90,
         location: "Beach",
         status: "tbc",
-        teacher: { id: "teacher-002", username: "sarah_lee" },
+        teacher: { id: "teacher-002", username: "Sarah" },
         studentName: "Charlie Brown",
         category: "wing",
         capacity: 1,
@@ -147,11 +147,11 @@ function MockClassboardProvider({ children }: { children: React.ReactNode }) {
     const selectedDate = "2025-01-17";
 
     const teacherQueues = useMemo(() => {
-        const q1 = new TeacherQueue({ id: "teacher-001", username: "john_smith" });
-        q1.syncEvents(SHARED_MOCK_EVENTS.filter((e) => e.teacher.username === "john_smith").map(createMockEventNode));
+        const q1 = new TeacherQueue({ id: "teacher-001", username: "John" });
+        q1.syncEvents(SHARED_MOCK_EVENTS.filter((e) => e.teacher.username === "John").map(createMockEventNode));
 
-        const q2 = new TeacherQueue({ id: "teacher-002", username: "sarah_lee" });
-        q2.syncEvents(SHARED_MOCK_EVENTS.filter((e) => e.teacher.username === "sarah_lee").map(createMockEventNode));
+        const q2 = new TeacherQueue({ id: "teacher-002", username: "Sarah" });
+        q2.syncEvents(SHARED_MOCK_EVENTS.filter((e) => e.teacher.username === "Sarah").map(createMockEventNode));
 
         return [q1, q2];
     }, []);
