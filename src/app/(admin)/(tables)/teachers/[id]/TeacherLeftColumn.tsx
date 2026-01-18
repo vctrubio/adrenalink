@@ -138,7 +138,6 @@ export function TeacherLeftColumn({ teacher }: TeacherLeftColumnProps) {
         }
     };
 
-    const lessons = teacher.relations?.lesson || [];
     const canDeleteTeacher = lessons.length === 0;
 
     const formFields = [
