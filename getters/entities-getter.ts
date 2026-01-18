@@ -1,68 +1,56 @@
 "use server";
 
-import { db } from "@/drizzle/db";
-import {
-    school,
-    student,
-    schoolPackage,
-    studentPackage,
-    booking,
-    teacher,
-    teacherCommission,
-    equipment,
-    lesson,
-    event,
-    schoolStudents,
-    referral,
-    bookingStudent,
-    equipmentEvent,
-    equipmentRepair,
-    studentLessonFeedback,
-    rental,
-    teacherEquipment,
-    teacherLessonPayment,
-} from "@/drizzle/schema";
-import { sql } from "drizzle-orm";
-import { PgTable } from "drizzle-orm/pg-core";
+import { getServerConnection } from "@/supabase/connection";
+import { handleSupabaseError } from "@/backend/error-handlers";
+import { logger } from "@/backend/logger";
 
-const ENTITY_TABLE_MAP: Record<string, PgTable<any> | null> = {
+const ENTITY_TABLE_MAP: Record<string, string> = {
     // From entities.ts
-    school: school,
-    student: student,
-    schoolPackage: schoolPackage,
-    studentPackage: studentPackage,
-    teacher: teacher,
-    commission: teacherCommission,
-    booking: booking,
-    lesson: lesson,
-    event: event,
-    equipment: equipment,
-    payment: teacherLessonPayment, // Updated from null
-    student_lesson_feedback: studentLessonFeedback,
-    userWallet: null, // No table in schema
+    school: "school",
+    student: "student",
+    schoolPackage: "school_package",
+    studentPackage: "student_package",
+    teacher: "teacher",
+    commission: "teacher_commission",
+    booking: "booking",
+    lesson: "lesson",
+    event: "event",
+    equipment: "equipment",
+    payment: "teacher_lesson_payment",
+    student_lesson_feedback: "student_lesson_feedback",
 
     // From tables.ts (the new "hidden" entities)
-    school_students: schoolStudents,
-    referral: referral,
-    booking_student: bookingStudent,
-    equipment_event: equipmentEvent,
-    equipment_repair: equipmentRepair,
-    rental: rental,
-    teacher_equipment: teacherEquipment,
+    school_students: "school_student",
+    referral: "referral",
+    booking_student: "booking_student",
+    equipment_event: "equipment_event",
+    equipment_repair: "equipment_repair",
+    rental: "rental",
+    teacher_equipment: "teacher_equipment",
 };
 
 export async function getEntityCount(entityId: string): Promise<number> {
     try {
-        const table = ENTITY_TABLE_MAP[entityId];
+        const tableName = ENTITY_TABLE_MAP[entityId];
 
-        if (!table) {
+        if (!tableName) {
+            logger.warn(`No table mapping found for entity: ${entityId}`);
             return 0;
         }
 
-        const result = await db.select({ count: sql<number>`count(*)` }).from(table);
-        return Number(result[0].count);
+        const supabase = await getServerConnection();
+        const { count, error } = await supabase
+            .from(tableName)
+            .select("*", { count: "exact", head: true });
+
+        if (error) {
+            handleSupabaseError(error, `fetch count for ${entityId}`);
+            return 0;
+        }
+
+        return count || 0;
     } catch (error) {
-        console.error(`Error fetching count for entity ${entityId}:`, error);
+        logger.error(`Error fetching count for entity ${entityId}`, error);
         return 0;
     }
 }

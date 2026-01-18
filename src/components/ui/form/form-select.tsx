@@ -14,8 +14,8 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(({ className =
             className={`
           w-full h-10 px-3 rounded-lg border transition-colors text-sm
           bg-background text-foreground
-          ${error ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
-          focus:outline-none focus:ring-2 focus:ring-opacity-50
+          ${error ? "border-destructive/50 focus:ring-destructive/20" : "border-input focus:ring-ring focus:border-ring"}
+          focus:outline-none focus:ring-2 focus:ring-opacity-20
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `}

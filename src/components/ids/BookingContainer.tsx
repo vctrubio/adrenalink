@@ -16,7 +16,18 @@ import FlagIcon from "@/public/appSvgs/FlagIcon";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { EVENT_STATUS_CONFIG, LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "@/getters/commission-calculator";
-import type { SchoolPackageType } from "@/drizzle/schema";
+interface SchoolPackageType {
+    id: string;
+    description: string;
+    pricePerStudent: number;
+    durationMinutes: number;
+    categoryEquipment: string;
+    capacityStudents: number;
+    capacityEquipment: number;
+    packageType: string;
+    active: boolean;
+    isPublic: boolean;
+}
 import type { ClassboardLesson } from "@/backend/classboard/ClassboardModel";
 import { Dropdown, DropdownLabel, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { updateLesson } from "@/supabase/server/lessons";

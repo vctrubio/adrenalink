@@ -7,7 +7,20 @@ import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import { motion } from "framer-motion";
 import { getPrettyDuration } from "@/getters/duration-getter";
-import type { SchoolPackageType } from "@/drizzle/schema";
+// import { SchoolPackage as SchoolPackageType } from "@/supabase/db/types";
+
+interface SchoolPackageType {
+    id: string;
+    description: string;
+    pricePerStudent: number;
+    durationMinutes: number;
+    categoryEquipment: string;
+    capacityStudents: number;
+    capacityEquipment: number;
+    packageType: string;
+    active: boolean;
+    isPublic: boolean;
+}
 import { SPORTS_CONFIG } from "./SportSelection";
 import { ChalkboardTable } from "@/src/components/ui/ChalkboardTable";
 import { PackageComparisonBadge } from "@/src/components/ui/badge/PackageComparisonBadge";

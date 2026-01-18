@@ -2,7 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { SchoolPackageCard } from "./SchoolPackageCard";
-import type { SchoolPackageType } from "@/drizzle/schema";
+interface SchoolPackageType {
+    id: string;
+    description: string;
+    pricePerStudent: number;
+    durationMinutes: number;
+    categoryEquipment: string;
+    capacityStudents: number;
+    capacityEquipment: number;
+    packageType: string;
+    active: boolean;
+    isPublic: boolean;
+}
 import { SPORTS_CONFIG } from "./SportSelection";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";

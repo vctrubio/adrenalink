@@ -16,19 +16,21 @@ import LessonIcon from "../public/appSvgs/LessonIcon.jsx";
 import FlagIcon from "../public/appSvgs/FlagIcon.jsx";
 import EquipmentIcon from "../public/appSvgs/EquipmentIcon.jsx";
 import RepairIcon from "../public/appSvgs/RepairIcon.jsx";
-import { SchoolDescription } from "@/src/components/rainbow/SchoolDescription";
-import { ReferralDescription } from "@/src/components/rainbow/ReferralDescription";
-import { RentalDescription } from "@/src/components/rainbow/RentalDescription";
-import { SchoolPackageDescription } from "@/src/components/rainbow/SchoolPackageDescription";
-import { StudentPackageDescription } from "@/src/components/rainbow/StudentPackageDescription";
-import { StudentDescription } from "@/src/components/rainbow/StudentDescription";
-import { TeacherDescription } from "@/src/components/rainbow/TeacherDescription";
-import { CommissionDescription } from "@/src/components/rainbow/CommissionDescription";
-import { BookingDescription } from "@/src/components/rainbow/BookingDescription";
-import { LessonDescription } from "@/src/components/rainbow/LessonDescription";
-import { EventDescription } from "@/src/components/rainbow/EventDescription";
-import { EquipmentDescription } from "@/src/components/rainbow/EquipmentDescription";
-import { RepairsDescription } from "@/src/components/rainbow/RepairsDescription";
+
+// Description components temporarily removed as they are missing
+const SchoolDescription = null;
+const ReferralDescription = null;
+const RentalDescription = null;
+const SchoolPackageDescription = null;
+const StudentPackageDescription = null;
+const StudentDescription = null;
+const TeacherDescription = null;
+const CommissionDescription = null;
+const BookingDescription = null;
+const LessonDescription = null;
+const EventDescription = null;
+const EquipmentDescription = null;
+const RepairsDescription = null;
 
 export const RAINBOW_COLORS: Record<string, { fill: string; hoverFill: string }> = {
     "purple-1": { fill: "#a855f7", hoverFill: "#d946ef" },

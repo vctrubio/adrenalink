@@ -1,5 +1,3 @@
-import type { SchoolPackageType, StudentType, EventType } from "@/drizzle/schema";
-
 export interface ClassboardBooking {
     id: string;
     dateStart: string;
@@ -8,9 +6,25 @@ export interface ClassboardBooking {
     status?: string;
 }
 
-export type ClassboardSchoolPackage = SchoolPackageType;
+export interface ClassboardSchoolPackage {
+    id: string;
+    durationMinutes: number;
+    description: string;
+    pricePerStudent: number;
+    capacityStudents: number;
+    capacityEquipment: number;
+    categoryEquipment: string;
+}
 
-export type ClassboardStudent = Pick<StudentType, "id" | "firstName" | "lastName" | "passport" | "country" | "phone" | "languages">;
+export interface ClassboardStudent {
+    id: string;
+    firstName: string;
+    lastName: string;
+    passport: string;
+    country: string;
+    phone: string;
+    languages: string[];
+}
 
 export interface ClassboardBookingStudent {
     student: ClassboardStudent & {
@@ -42,7 +56,7 @@ export interface ClassboardEvent {
 export interface ClassboardCommission {
     id: string;
     type: "fixed" | "percentage";
-    cph: string; // commission per hour
+    cph: string; // Commission per hour
     description?: string | null;
 }
 

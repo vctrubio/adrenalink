@@ -1,8 +1,11 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolId } from "@/backend/school-context";
 import type { EquipmentWithRepairsRentalsEvents, EquipmentTableData } from "@/config/tables";
 import { calculateEquipmentStats } from "@/backend/data/EquipmentData";
-import { safeArray } from "@/backend/error-handlers";
+import { safeArray, handleSupabaseError } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
@@ -129,5 +132,102 @@ export async function getEquipmentsTable(): Promise<EquipmentTableData[]> {
     } catch (error) {
         logger.error("Error fetching equipments table", error);
         return [];
+    }
+}
+
+export async function updateEquipment(
+    equipmentId: string,
+    updateData: {
+        sku: string;
+        brand: string;
+        model: string;
+        color?: string | null;
+        size?: number | null;
+        status: string;
+    },
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Update equipment
+        const { error } = await supabase
+            .from("equipment")
+            .update({
+                sku: updateData.sku,
+                brand: updateData.brand,
+                model: updateData.model,
+                color: updateData.color,
+                size: updateData.size,
+                status: updateData.status,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", equipmentId)
+            .eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "update equipment", "Failed to update equipment");
+        }
+
+        logger.info("Updated equipment", { equipmentId });
+        revalidatePath("/equipments");
+        revalidatePath(`/equipments/${equipmentId}`);
+        return { success: true };
+    } catch (error) {
+        logger.error("Error updating equipment", error);
+        return { success: false, error: "Failed to update equipment" };
+    }
+}
+
+export async function deleteEquipment(equipmentId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Check if equipment has any events
+        const { data: events } = await supabase.from("equipment_event").select("id").eq("equipment_id", equipmentId).limit(1);
+
+        if (events && events.length > 0) {
+            return {
+                success: false,
+                canDelete: false,
+                error: "Cannot delete equipment with events",
+            };
+        }
+
+        // Check if equipment has any rentals
+        const { data: rentals } = await supabase.from("rental_equipment").select("id").eq("equipment_id", equipmentId).limit(1);
+
+        if (rentals && rentals.length > 0) {
+            return {
+                success: false,
+                canDelete: false,
+                error: "Cannot delete equipment with rentals",
+            };
+        }
+
+        // Delete equipment (cascade will handle teacher_equipment and equipment_repair)
+        const { error } = await supabase.from("equipment").delete().eq("id", equipmentId).eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "delete equipment", "Failed to delete equipment");
+        }
+
+        logger.info("Deleted equipment", { equipmentId });
+        revalidatePath("/equipments");
+        return { success: true, canDelete: true };
+    } catch (error) {
+        logger.error("Error deleting equipment", error);
+        return { success: false, error: "Failed to delete equipment" };
     }
 }

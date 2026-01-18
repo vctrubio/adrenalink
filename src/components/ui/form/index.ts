@@ -6,3 +6,6 @@ export { default as FormButton } from "./form-button";
 export { default as FormSubmit } from "./form-submit";
 export { default as FormCountryPhone } from "./form-country-phone";
 export { default as FormLanguages } from "./form-languages";
+export { default as FormStatusButtons } from "./form-status-buttons";
+export { default as FormLeaderStudent } from "./form-leader-student";
+export { default as FormEquipmentStatus } from "./form-equipment-status";

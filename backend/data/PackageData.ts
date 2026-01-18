@@ -1,4 +1,8 @@
-import type { PackageWithUsageStats, PackageTableStats } from "@/config/tables";
+import type { PackageWithUsageStats, PackageTableStats, PackageTableData } from "@/config/tables";
+
+export type PackageData = PackageTableData;
+export type PackageRelations = any;
+export type PackageUpdateForm = any;
 
 /**
  * Calculate stats for a single package record

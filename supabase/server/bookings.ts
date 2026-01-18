@@ -1,8 +1,11 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolId } from "@/backend/school-context";
 import type { BookingWithLessonAndPayments, LessonWithPayments, BookingStudentPayments, BookingTableStats } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
-import { safeArray } from "@/backend/error-handlers";
+import { safeArray, handleSupabaseError } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
 export type BookingTableData = BookingWithLessonAndPayments & { stats: BookingTableStats; currency: string };
@@ -140,5 +143,103 @@ export async function getBookingsTable(): Promise<BookingTableData[]> {
     } catch (error) {
         logger.error("Error fetching bookings table", error);
         return [];
+    }
+}
+
+export async function updateBooking(
+    bookingId: string,
+    updateData: {
+        date_start: string;
+        date_end: string;
+        leader_student_name: string;
+        status: string;
+    },
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Update booking
+        const { error } = await supabase
+            .from("booking")
+            .update({
+                date_start: updateData.date_start,
+                date_end: updateData.date_end,
+                leader_student_name: updateData.leader_student_name,
+                status: updateData.status,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", bookingId)
+            .eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "update booking", "Failed to update booking");
+        }
+
+        logger.info("Updated booking", { bookingId });
+        revalidatePath("/bookings");
+        revalidatePath(`/bookings/${bookingId}`);
+        return { success: true };
+    } catch (error) {
+        logger.error("Error updating booking", error);
+        return { success: false, error: "Failed to update booking" };
+    }
+}
+
+export async function deleteBooking(bookingId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
+    try {
+        const schoolId = await getSchoolId();
+
+        if (!schoolId) {
+            return { success: false, error: "School ID not found" };
+        }
+
+        const supabase = getServerConnection();
+
+        // Check if booking has any lessons with events
+        const { data: lessons } = await supabase
+            .from("lesson")
+            .select("id, event(id)")
+            .eq("booking_id", bookingId)
+            .limit(1);
+
+        if (lessons && lessons.length > 0) {
+            const hasEvents = lessons.some((lesson: any) => lesson.event && lesson.event.length > 0);
+            if (hasEvents) {
+                return {
+                    success: false,
+                    canDelete: false,
+                    error: "Cannot delete booking with lessons that have events",
+                };
+            }
+        }
+
+        // Delete the lesson if it exists (no events)
+        if (lessons && lessons.length > 0) {
+            const { error: lessonDeleteError } = await supabase.from("lesson").delete().eq("booking_id", bookingId);
+
+            if (lessonDeleteError) {
+                return handleSupabaseError(lessonDeleteError, "delete lesson", "Failed to delete associated lesson");
+            }
+        }
+
+        // Delete booking (cascade will handle booking_student and payments)
+        const { error } = await supabase.from("booking").delete().eq("id", bookingId).eq("school_id", schoolId);
+
+        if (error) {
+            return handleSupabaseError(error, "delete booking", "Failed to delete booking");
+        }
+
+        logger.info("Deleted booking", { bookingId });
+        revalidatePath("/bookings");
+        return { success: true, canDelete: true };
+    } catch (error) {
+        logger.error("Error deleting booking", error);
+        return { success: false, error: "Failed to delete booking" };
     }
 }

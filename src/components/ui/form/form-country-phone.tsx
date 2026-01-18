@@ -78,8 +78,8 @@ const FormCountryPhone = forwardRef<HTMLDivElement, FormCountryPhoneProps>(
                             className={`
                                 w-full h-10 ${selectedCountry ? "pl-12" : "pl-3"} pr-8 rounded-lg border transition-colors text-sm
                                 bg-background text-foreground appearance-none
-                                ${countryError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
-                                focus:outline-none focus:ring-2 focus:ring-opacity-50
+                                ${countryError ? "border-destructive/50 focus:ring-destructive/20" : "border-input focus:ring-ring focus:border-ring"}
+                                focus:outline-none focus:ring-2 focus:ring-opacity-20
                                 disabled:opacity-50 disabled:cursor-not-allowed
                             `}
                         >
@@ -140,8 +140,8 @@ const FormCountryPhone = forwardRef<HTMLDivElement, FormCountryPhoneProps>(
                             className={`
                                 flex-1 h-10 px-3 rounded-lg border transition-colors text-sm
                                 bg-background text-foreground
-                                ${phoneError ? "border-destructive focus:ring-destructive" : "border-input focus:ring-ring focus:border-ring"}
-                                focus:outline-none focus:ring-2 focus:ring-opacity-50
+                                ${phoneError ? "border-destructive/50 focus:ring-destructive/20" : "border-input focus:ring-ring focus:border-ring"}
+                                focus:outline-none focus:ring-2 focus:ring-opacity-20
                                 disabled:opacity-50 disabled:cursor-not-allowed
                             `}
                         />

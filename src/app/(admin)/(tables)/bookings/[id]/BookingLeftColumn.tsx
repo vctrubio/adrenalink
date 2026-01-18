@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
+import { UpdateEntityColumnCard } from "@/src/components/ids/UpdateEntityColumnCard";
 import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
@@ -10,6 +13,8 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
 import { STAT_TYPE_CONFIG } from "@/backend/data/StatsData";
+import { bookingUpdateSchema, type BookingUpdateForm } from "@/src/validation/booking";
+import { updateBooking, deleteBooking } from "@/supabase/server/bookings";
 import type { BookingData } from "@/backend/data/BookingData";
 import type { LeftColumnCardData } from "@/types/left-column";
 
@@ -18,6 +23,7 @@ interface BookingLeftColumnProps {
 }
 
 export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
+    const router = useRouter();
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
 
@@ -28,10 +34,101 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
 
     const students = booking.relations?.students || [];
     const schoolPackage = booking.relations?.school_package;
+    const lessons = booking.relations?.lesson || [];
+
+    // Check if booking has events
+    const hasEvents = lessons.some((lesson: any) => {
+        const events = lesson.event || [];
+        return events.length > 0;
+    });
 
     const StudentIcon = studentEntity.icon;
     const PackageIcon = packageEntity.icon;
     const BookingIcon = bookingEntity.icon;
+
+    // Form handlers
+    const handleUpdateSubmit = async (data: BookingUpdateForm) => {
+        const result = await updateBooking(booking.schema.id, {
+            date_start: data.date_start,
+            date_end: data.date_end,
+            leader_student_name: data.leader_student_name,
+            status: data.status,
+        });
+
+        if (result.success) {
+            router.refresh();
+        } else {
+            console.error("Failed to update booking:", result.error);
+            throw new Error(result.error);
+        }
+    };
+
+    const handleDelete = async () => {
+        const result = await deleteBooking(booking.schema.id);
+
+        if (result.success) {
+            router.push("/bookings");
+        } else {
+            console.error("Failed to delete booking:", result.error);
+            throw new Error(result.error);
+        }
+    };
+
+    const canDeleteBooking = !hasEvents;
+    const deleteMessage = canDeleteBooking
+        ? "Are you sure you want to delete this booking?"
+        : "Cannot delete booking with lessons that have events";
+
+    // Form fields
+    const formFields = [
+        { name: "date_start", label: "Start Date", type: "date" as const, section: "dates", required: true },
+        { name: "date_end", label: "End Date", type: "date" as const, section: "dates", required: true },
+        {
+            name: "leader_student_name",
+            label: "Leader Student",
+            type: "leader-student" as const,
+            section: "students",
+            required: true,
+            students: students.map((s) => ({ id: s.id, first_name: s.first_name, last_name: s.last_name })),
+        },
+        { name: "status", label: "Status", type: "status-buttons" as const, section: "settings", required: true },
+    ];
+
+    const defaultValues: BookingUpdateForm = {
+        id: booking.schema.id,
+        date_start: booking.schema.date_start,
+        date_end: booking.schema.date_end,
+        leader_student_name: booking.schema.leader_student_name,
+        status: booking.schema.status as "active" | "completed" | "uncompleted",
+    };
+
+    // View mode fields
+    const bookingViewFields = [
+        {
+            label: "Booking ID",
+            value: booking.schema.id.toUpperCase().slice(0, 8),
+        },
+        {
+            label: "Start Date",
+            value: formatDate(booking.schema.date_start),
+        },
+        {
+            label: "End Date",
+            value: formatDate(booking.schema.date_end),
+        },
+        {
+            label: "Leader Student",
+            value: booking.schema.leader_student_name,
+        },
+        {
+            label: "Status",
+            value: booking.schema.status || "Unknown",
+        },
+        {
+            label: "Created",
+            value: formatDate(booking.schema.created_at),
+        },
+    ];
 
     // Student Fields
     const sortedStudents = [...students].sort((a, b) => {
@@ -174,5 +271,28 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
         isAddable: true,
     };
 
-    return <EntityLeftColumn cards={[bookingCardData, packageCardData, leaderCardData, paymentCardData]} />;
+    return (
+        <div className="space-y-6">
+            <UpdateEntityColumnCard
+                name={<DateRangeBadge startDate={booking.schema.date_start} endDate={booking.schema.date_end} />}
+                status={<BookingProgressBadge usedMinutes={usedMinutes} totalMinutes={totalMinutes} background={progressBarBackground} />}
+                avatar={
+                    <div className="flex-shrink-0" style={{ color: bookingEntity.color }}>
+                        <BookingIcon className="w-10 h-10" />
+                    </div>
+                }
+                fields={bookingViewFields}
+                accentColor={bookingEntity.color}
+                entityId="booking"
+                formFields={formFields}
+                schema={bookingUpdateSchema}
+                defaultValues={defaultValues}
+                onSubmit={handleUpdateSubmit}
+                onDelete={handleDelete}
+                canDelete={canDeleteBooking}
+                deleteMessage={deleteMessage}
+            />
+            <EntityLeftColumn cards={[packageCardData, leaderCardData, paymentCardData]} />
+        </div>
+    );
 }

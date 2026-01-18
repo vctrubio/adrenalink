@@ -1,7 +1,7 @@
 /**
 TYPES OF TABLE DATA
  */
-import { BOOKING_STATUS, LESSON_STATUS } from "supabase/db/enums";
+import { BOOKING_STATUS, LESSON_STATUS } from "@/supabase/db/enums";
 
 export interface Booking {
     id: string;

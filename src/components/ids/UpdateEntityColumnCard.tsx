@@ -12,10 +12,13 @@ import FormInput from "@/src/components/ui/form/form-input";
 import FormSelect from "@/src/components/ui/form/form-select";
 import FormCountryPhone from "@/src/components/ui/form/form-country-phone";
 import FormLanguages from "@/src/components/ui/form/form-languages";
+import FormStatusButtons from "@/src/components/ui/form/form-status-buttons";
+import FormLeaderStudent from "@/src/components/ui/form/form-leader-student";
+import FormEquipmentStatus from "@/src/components/ui/form/form-equipment-status";
 import { SubmitDeleteCancelReset } from "@/src/components/ui/SubmitDeleteCancelReset";
 import { ENTITY_DATA } from "@/config/entities";
 
-type FieldType = "text" | "select" | "checkbox" | "textarea" | "phone" | "multi-select" | "switch" | "country-phone" | "languages";
+type FieldType = "text" | "select" | "checkbox" | "textarea" | "phone" | "multi-select" | "switch" | "country-phone" | "languages" | "status-buttons" | "leader-student" | "date" | "number" | "equipment-status";
 
 interface FormFieldConfig {
     name: string;
@@ -28,11 +31,12 @@ interface FormFieldConfig {
     pairedField?: string; // For country-phone type, specify the paired field name
     required?: boolean;
     description?: string; // Optional description for switches and other fields
+    students?: { id: string; first_name: string; last_name: string }[]; // For leader-student type
 }
 
 interface UpdateEntityColumnCardProps<T extends z.ZodType<any, any>> {
     // View mode props
-    name: string | ((formValues: z.infer<T>) => string);
+    name: string | ReactNode | ((formValues: z.infer<T>) => string | ReactNode);
     status: ReactNode;
     avatar: ReactNode | ((formValues: z.infer<T>) => ReactNode);
     fields: { label: string; value: string | ReactNode }[];
@@ -281,6 +285,114 @@ export function UpdateEntityColumnCard<T extends z.ZodType<any, any>>({
                         />
                     </FormField>
                 );
+            case "status-buttons":
+                const statusValue = (formValues?.[field.name as keyof z.infer<T>] as any) || "active";
+                return (
+                    <FormField
+                        key={field.name}
+                        label={field.label}
+                        required={field.required}
+                        error={getFieldError(field.name)}
+                        isValid={isFieldValid(field.name)}
+                    >
+                        <Controller
+                            name={field.name as any}
+                            control={methods.control}
+                            render={() => (
+                                <FormStatusButtons
+                                    value={statusValue}
+                                    onChange={(status) => methods.setValue(field.name as any, status, { shouldValidate: true })}
+                                    disabled={field.disabled}
+                                />
+                            )}
+                        />
+                    </FormField>
+                );
+            case "leader-student":
+                const leaderValue = (formValues?.[field.name as keyof z.infer<T>] as string) || "";
+                return (
+                    <FormField
+                        key={field.name}
+                        label={field.label}
+                        required={field.required}
+                        error={getFieldError(field.name)}
+                        isValid={isFieldValid(field.name)}
+                    >
+                        <Controller
+                            name={field.name as any}
+                            control={methods.control}
+                            render={() => (
+                                <FormLeaderStudent
+                                    value={leaderValue}
+                                    students={field.students || []}
+                                    onChange={(studentName) => methods.setValue(field.name as any, studentName, { shouldValidate: true })}
+                                    disabled={field.disabled}
+                                    error={!!getFieldError(field.name)}
+                                />
+                            )}
+                        />
+                    </FormField>
+                );
+            case "date":
+                return (
+                    <FormField
+                        key={field.name}
+                        label={field.label}
+                        required={field.required}
+                        error={getFieldError(field.name)}
+                        isValid={isFieldValid(field.name)}
+                    >
+                        <FormInput
+                            {...methods.register(field.name)}
+                            type="date"
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                            error={!!getFieldError(field.name)}
+                        />
+                    </FormField>
+                );
+            case "number":
+                return (
+                    <FormField
+                        key={field.name}
+                        label={field.label}
+                        required={field.required}
+                        error={getFieldError(field.name)}
+                        isValid={isFieldValid(field.name)}
+                    >
+                        <FormInput
+                            {...methods.register(field.name, { valueAsNumber: true })}
+                            type="number"
+                            step="0.1"
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                            error={!!getFieldError(field.name)}
+                        />
+                    </FormField>
+                );
+            case "equipment-status":
+                const equipmentStatusValue = (formValues?.[field.name as keyof z.infer<T>] as any) || "rental";
+                return (
+                    <FormField
+                        key={field.name}
+                        label={field.label}
+                        required={field.required}
+                        error={getFieldError(field.name)}
+                        isValid={isFieldValid(field.name)}
+                    >
+                        <Controller
+                            name={field.name as any}
+                            control={methods.control}
+                            render={() => (
+                                <FormEquipmentStatus
+                                    value={equipmentStatusValue}
+                                    onChange={(status) => methods.setValue(field.name as any, status, { shouldValidate: true })}
+                                    disabled={field.disabled}
+                                />
+                            )}
+                        />
+                    </FormField>
+                );
             case "textarea":
                 return (
                     <FormField
@@ -325,6 +437,9 @@ export function UpdateEntityColumnCard<T extends z.ZodType<any, any>>({
             personal: "Personal Information",
             contact: "Contact Information",
             settings: "Settings",
+            details: "Details",
+            dates: "Dates",
+            students: "Students",
         };
 
         const isPersonalSection = sectionName === "personal";
@@ -335,7 +450,7 @@ export function UpdateEntityColumnCard<T extends z.ZodType<any, any>>({
                 {sectionTitles[sectionName] && (
                     <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">{sectionTitles[sectionName]}</h3>
                 )}
-                <div className={isSettingsSection ? "grid grid-cols-2 gap-3" : isPersonalSection ? "space-y-4" : "space-y-4"}>
+                <div className={isSettingsSection && sectionFields.length > 1 ? "grid grid-cols-2 gap-3" : "space-y-4"}>
                     {sectionFields.map((field) => renderField(field))}
                 </div>
             </div>

@@ -1,4 +1,8 @@
-import type { EquipmentWithRepairsRentalsEvents, EquipmentTableStats } from "@/config/tables";
+import type { EquipmentWithRepairsRentalsEvents, EquipmentTableStats, EquipmentTableData } from "@/config/tables";
+
+export type EquipmentData = EquipmentTableData;
+export type EquipmentRelations = any;
+export type EquipmentUpdateForm = any;
 
 /**
  * Calculate stats for a single equipment record

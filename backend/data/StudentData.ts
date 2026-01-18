@@ -1,4 +1,8 @@
-import type { StudentWithBookingsAndPayments, StudentTableStats } from "@/config/tables";
+import type { StudentWithBookingsAndPayments, StudentTableStats, StudentTableData } from "@/config/tables";
+
+export type StudentData = StudentTableData;
+export type StudentRelations = any; // Define properly if needed
+export type StudentUpdateForm = any; // Define properly if needed
 
 /**
  * Calculate stats for a single student record

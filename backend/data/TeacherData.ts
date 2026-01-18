@@ -1,5 +1,11 @@
-import type { TeacherWithLessonsAndPayments, TeacherTableStats } from "@/config/tables";
+import type { TeacherWithLessonsAndPayments, TeacherTableStats, TeacherTableData } from "@/config/tables";
 import type { Teacher } from "@/supabase/db/types";
+
+/**
+ * Teacher Data - complete teacher record with schema, form, and relations
+ * Aliased to TeacherTableData to match Master Table usage
+ */
+export type TeacherData = TeacherTableData;
 
 /**
  * Teacher Relations - all related data from joined tables
@@ -14,15 +20,6 @@ export interface TeacherRelations {
  * Teacher Update Form - fields that can be updated
  */
 export type TeacherUpdateForm = Omit<Teacher, "id" | "school_id" | "created_at" | "updated_at">;
-
-/**
- * Teacher Data - complete teacher record with schema, form, and relations
- */
-export interface TeacherData {
-    schema: Teacher;
-    updateForm: TeacherUpdateForm;
-    relations: TeacherRelations;
-}
 
 /**
  * Calculate stats for a single teacher record
