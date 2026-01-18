@@ -6,14 +6,14 @@ import { EVENT_STATUS, LESSON_STATUS, BOOKING_STATUS } from "@/supabase/db/enums
 export const STATUS_GREY = "rgba(107, 114, 128, 0.3)"; // Subtle, works in dark mode
 export const STATUS_DARK = "#6b7280"; // For inactive/sold statuses
 export const STATUS_PURPLE = "#a855f7"; // Equipment color
-export const STATUS_GREEN = "#22c55e"; // Teacher color
+export const STATUS_GREEN = "#16a34a"; // Muted green for completed status
 export const STATUS_ORANGE = "#fbbf24";
 export const ACTION_CYAN = "#06b6d4";
 
 // ============ BADGE COLOR AND OPACITY CONSTANTS ============
 // Darker colors for better badge contrast, with defined opacity levels
 
-export const BADGE_STATUS_GREEN = "#22c55e"; // Darker green for better contrast
+export const BADGE_STATUS_GREEN = "#16a34a"; // Muted green for better contrast
 export const BADGE_ACTION_CYAN = "#06b6d4";
 export const BADGE_STATUS_ORANGE = "#f59e0b";
 

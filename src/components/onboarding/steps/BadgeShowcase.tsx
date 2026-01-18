@@ -11,7 +11,7 @@ import { StudentStatusBadge } from "@/src/components/ui/badge/student-status";
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { SportEquipmentDurationList } from "@/src/components/ui/badge/sport-equipment-duration";
 import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
-import { StatItemUI } from "@/backend/data/StatsData";
+import { StatItemUI, STAT_TYPE_CONFIG } from "@/backend/data/StatsData";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
 import { Calendar, Info, Plus } from "lucide-react";

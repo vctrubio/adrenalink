@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ENTITY_DATA } from "@/config/entities";
@@ -78,7 +79,11 @@ const PillarsMinimal = () => {
                     }
                     titleSub="One platform."
                     descriptionMain="Home of Adrenaline Activities"
-                    descriptionSub="An abnormal documentation for schools looking to get started"
+                    descriptionSub={
+                        <Link href="/onboarding" className="hover:underline">
+                            An abnormal documentation for schools looking to get started
+                        </Link>
+                    }
                     isExiting={isExiting}
                 />
             }

@@ -8,7 +8,7 @@ interface SchoolHeaderContentProps {
     titleMain: React.ReactNode;
     titleSub: React.ReactNode;
     descriptionMain: string;
-    descriptionSub: string;
+    descriptionSub: React.ReactNode;
     isExiting?: boolean;
 }
 
