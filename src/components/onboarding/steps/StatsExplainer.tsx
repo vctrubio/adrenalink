@@ -33,9 +33,9 @@ import { ChevronDown, ChevronRight, ArrowRight, Activity, TrendingUpDown, Trendi
 const CORE_STATS = [
     { id: "student", number: "01", title: "Students", description: "Registration & tracking" },
     { id: "teacher", number: "02", title: "Teachers", description: "Hours & commissions" },
-    { id: "booking", number: "03", title: "Bookings", description: "Smart scheduling" },
+    { id: "package", number: "03", title: "Packages", description: "Set your prices" },
     { id: "equipment", number: "04", title: "Equipment", description: "Lifecycle management" },
-    { id: "package", number: "05", title: "Packages", description: "Set your prices" },
+    { id: "booking", number: "05", title: "Bookings", description: "Smart scheduling" },
 ];
 
 export default function StatsExplainer() {
@@ -60,7 +60,7 @@ export default function StatsExplainer() {
                     <h2 className="text-3xl font-bold text-foreground tracking-tight">The System Architecture</h2>
                     <div className="flex items-center justify-center gap-2 opacity-60">
                         <TableIcon size={16} className="text-primary" />
-                        <p className="text-sm font-black uppercase tracking-widest">Our six Tables</p>
+                        <p className="text-sm font-black uppercase tracking-widest">Our Five Pillars</p>
                     </div>
        
                 </div>
