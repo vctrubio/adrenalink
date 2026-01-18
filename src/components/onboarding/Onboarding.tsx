@@ -122,7 +122,7 @@ export default function Onboarding() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                    <p className="text-sm font-medium text-slate-600"><strong>Register</strong> students, teachers and more</p>
+                                    <p className="text-sm font-medium text-slate-600 tracking-wide"><strong>Register</strong> students, teachers and more</p>
                                 </div>
                             </div>
                         </motion.div>
