@@ -75,6 +75,25 @@ function getEmailFooter(): string {
 function getContactFooter(): string {
     return `
         <div style="text-align: center; padding: 40px 20px; color: #71717a; font-size: 13px; line-height: 1.8; max-width: 600px; margin: 0 auto;">
+            <!-- Coming Up Section -->
+            <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e4e4e7;">
+                <h3 style="color: rgb(22, 97, 14); font-size: 16px; font-weight: 700; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Coming Up</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; text-align: left; display: inline-block;">
+                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
+                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
+                        <span style="font-weight: 600;">Classboard Integration</span>
+                    </li>
+                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
+                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
+                        <span style="font-weight: 600;">Welcome Form and Setting Up</span>
+                    </li>
+                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
+                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
+                        <span style="font-weight: 600;">Teacher/Student View</span>
+                    </li>
+                </ul>
+            </div>
+            
             <!-- Links Section -->
             <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e4e4e7;">
                 <p style="margin: 0 0 12px 0;">
@@ -84,7 +103,7 @@ function getContactFooter(): string {
                     <a href="https://adrenalink.tech/discover" style="color: #6366f1; text-decoration: none; font-weight: 600;">See Our Schools</a> at <a href="https://adrenalink.tech/discover" style="color: #6366f1; text-decoration: none;">adrenalink.tech/discover</a>
                 </p>
                 <p style="margin: 0;">
-                    <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none; font-weight: 600;">Sign Up today</a> at <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none;">adrenalink.tech/welcome</a>
+                    <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none; font-weight: 600;">Register Forlm</a> at <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none;">adrenalink.tech/welcome</a>
                 </p>
             </div>
             
@@ -214,6 +233,9 @@ export async function sendOnboardingInvitationEmail(recipientEmail: string) {
     }
 
     const onboardingUrl = "https://adrenalink.tech/onboarding";
+    const muxPlaybackId = process.env.MUX_ONBOARDING_PLAYBACK_ID || "I0157009OTGhwluo029qpc02ye020152p01J9xDZc1E1fobuxc";
+    const muxVideoUrl = `https://player.mux.com/${muxPlaybackId}`;
+    const muxThumbnailUrl = `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=600&height=338&fit_mode=smart`;
     
     const content = `
         <div class="content">
@@ -278,13 +300,14 @@ export async function sendOnboardingInvitationEmail(recipientEmail: string) {
                     <div class="guide-number">4</div>
                     <div class="guide-content">
                         <h3 class="guide-title">Get Started</h3>
-                        <p class="guide-description">Play with real data to start understanding the app... or skip this step and access our <a href="http://dummy_wind.adrenalink.tech/register" style="color: #6366f1; text-decoration: none;">dummy school.</a>.</p>
+                        <p class="guide-description">Play with real data to start understanding the app... or skip this step and access our <a href="https://dummy_wind.adrenalink.tech/" style="color: #6366f1; text-decoration: none;">dummy school.</a></p>
                     </div>
                 </div>
             </div>
             
-            <div class="btn-container">
+            <div class="btn-container" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <a href="${onboardingUrl}" class="btn">Begin the Guide</a>
+                <a href="${onboardingUrl}/video" style="background-color: #18181b; color: #ffffff; padding: 16px 36px; border-radius: 100px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: background-color 0.2s;">Watch the Tutorial</a>
             </div>
         </div>
     `;
