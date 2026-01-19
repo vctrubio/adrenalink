@@ -75,25 +75,6 @@ function getEmailFooter(): string {
 function getContactFooter(): string {
     return `
         <div style="text-align: center; padding: 40px 20px; color: #71717a; font-size: 13px; line-height: 1.8; max-width: 600px; margin: 0 auto;">
-            <!-- Coming Up Section -->
-            <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e4e4e7;">
-                <h3 style="color: rgb(22, 97, 14); font-size: 16px; font-weight: 700; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Coming Up</h3>
-                <ul style="list-style: none; padding: 0; margin: 0; text-align: left; display: inline-block;">
-                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
-                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
-                        <span style="font-weight: 600;">Classboard Integration</span>
-                    </li>
-                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
-                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
-                        <span style="font-weight: 600;">Welcome Form and Setting Up</span>
-                    </li>
-                    <li style="margin-bottom: 8px; color: rgb(22, 97, 14);">
-                        <span style="display: inline-block; width: 6px; height: 6px; background-color: rgb(22, 97, 14); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
-                        <span style="font-weight: 600;">Teacher/Student View</span>
-                    </li>
-                </ul>
-            </div>
-            
             <!-- Links Section -->
             <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e4e4e7;">
                 <p style="margin: 0 0 12px 0;">
