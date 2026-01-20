@@ -14,6 +14,7 @@ interface ChangeTheWindFooterProps {
     variant?: "primary" | "secondary";
     extraActions?: React.ReactNode;
     getStartedUrl?: string;
+    getStartedText?: string;
     registerUrl?: string;
     minimal?: boolean;
 }
@@ -25,6 +26,7 @@ export function ChangeTheWindFooter({
     variant = "primary",
     extraActions,
     getStartedUrl = "/",
+    getStartedText = "Get Started",
     registerUrl = "/",
     minimal = false,
 }: ChangeTheWindFooterProps) {
@@ -59,7 +61,7 @@ export function ChangeTheWindFooter({
                                         duration={isStarting ? 0.3 : 0.8}
                                         size={20}
                                     />
-                                    <span>Get Started</span>
+                                    <span>{getStartedText}</span>
                                 </Link>
 
                                 <Link

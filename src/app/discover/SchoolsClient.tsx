@@ -137,6 +137,7 @@ const SchoolsClient = ({ schools }: { schools: SchoolWithAssets[] }) => {
                 onGetStarted={() => setIsStarting(true)}
                 variant="secondary"
                 getStartedUrl="/onboarding"
+                getStartedText="Get Onboarded"
             />
         </section>
     );
