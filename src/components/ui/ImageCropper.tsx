@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { getCroppedImg } from "@/src/utils/canvasUtils";
+import { getCroppedImg } from "@/src/landing/canvasUtils";
 import { Slider } from "@/src/components/ui/slider"; // Assuming you have a slider or I'll use a standard input
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/src/components/ui/dialog"; // Assuming standard UI components
 import { FormButton } from "@/src/components/ui/form";
