@@ -302,10 +302,14 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             }
 
             // Step 2: Prepare school data (no longer storing asset URLs)
+            // Generate random 8-character string for clerk_id
+            const randomChars = Array.from({ length: 8 }, () => 
+                'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]
+            ).join('');
             const schoolData = {
                 ...data,
                 email: data.ownerEmail,
-                clerkId: null, // Set to null since clerk_id is not needed for welcome form submissions
+                clerkId: `beta-${randomChars}`, // Generate beta- prefix with random 8 chars
                 equipmentCategories: data.equipmentCategories.join(","),
                 latitude: data.latitude?.toString(),
                 longitude: data.longitude?.toString(),
