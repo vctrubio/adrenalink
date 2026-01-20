@@ -84,7 +84,7 @@ function getContactFooter(): string {
                     <a href="https://adrenalink.tech/discover" style="color: #6366f1; text-decoration: none; font-weight: 600;">See Our Schools</a> at <a href="https://adrenalink.tech/discover" style="color: #6366f1; text-decoration: none;">adrenalink.tech/discover</a>
                 </p>
                 <p style="margin: 0;">
-                    <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none; font-weight: 600;">Register Forlm</a> at <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none;">adrenalink.tech/welcome</a>
+                    <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none; font-weight: 600;">Register Form</a> at <a href="https://adrenalink.tech/welcome" style="color: #6366f1; text-decoration: none;">adrenalink.tech/welcome</a>
                 </p>
             </div>
             
