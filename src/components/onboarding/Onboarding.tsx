@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsExplainer, AdminDashboardPreview, BadgeShowcase, NavigationGuide } from "./steps";
-import { Play } from "lucide-react";
+import { Play, ArrowLeft, ArrowRight } from "lucide-react";
 
 const TOTAL_STEPS = 6;
 const TOTAL_STEPS_SKIP_STATS = 5;
@@ -88,6 +88,37 @@ export default function Onboarding() {
         handlePageClick();
     };
 
+    // Handle keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Don't handle if user is typing in an input field
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            // Get the valid step mapping based on skipStats
+            const stepMapping = skipStats ? [0, 2, 3, 4, 5] : Array.from({ length: TOTAL_STEPS }, (_, idx) => idx);
+            const currentIndex = stepMapping.indexOf(currentStep);
+
+            if (e.key === "ArrowRight") {
+                e.preventDefault();
+                if (currentIndex < stepMapping.length - 1) {
+                    setCurrentStep(stepMapping[currentIndex + 1]);
+                }
+            } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    setCurrentStep(stepMapping[currentIndex - 1]);
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [currentStep, skipStats]);
+
     return (
         <div className={`min-h-screen flex flex-col cursor-pointer relative overflow-hidden ${currentStep === 0 ? "bg-white" : "bg-background"}`} onClick={handlePageClick}>
             {currentStep === 0 && <canvas ref={wavesCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />}
@@ -156,6 +187,18 @@ export default function Onboarding() {
             </div>
 
             <div className="p-6 md:p-8 flex flex-col items-center gap-4 relative z-10">
+                {currentStep === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        className="flex items-center gap-3 text-slate-600"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-xs font-medium tracking-wide">Navigate with arrow keys</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </motion.div>
+                )}
                 {currentStep === 5 && (
                     <motion.p
                         initial={{ opacity: 0 }}

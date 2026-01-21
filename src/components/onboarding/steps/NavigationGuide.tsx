@@ -3,10 +3,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
 import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
-import { Image as ImageIcon, MapPin, Tag, CheckCircle2 } from "lucide-react";
 import { sendOnboardingEmail } from "@/supabase/server/onboarding";
+import { Plus, Send, Users } from "lucide-react";
+import AdminIcon from "@/public/appSvgs/AdminIcon";
+import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
+import { WindToggle } from "@/src/components/themes/WindToggle";
+import { useRouter } from "next/navigation";
 
 
 const ROUTE_DESCRIPTIONS: Record<string, string> = {
@@ -24,6 +29,7 @@ const ROUTE_LABELS: Record<string, string> = {
 const NAV_IDS = ["info", "classboard", "data", "users", "help"] as const;
 
 export default function NavigationGuide() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [isSending, setIsSending] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
@@ -60,202 +66,201 @@ export default function NavigationGuide() {
             exit={{ opacity: 0, y: -20 }}
             className="w-full max-w-5xl flex flex-col h-full"
         >
+            {/* Header */}
             <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-foreground tracking-tight border-b border-border pb-4">Let's Get Started</h2>
-            </div>
-
-            {/* Navigation Panel Header */}
-            <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">Navigation Panel</h3>
-                <p className="text-sm text-muted-foreground">
-                    We have seen <span className="text-primary">3</span> of the <span className="text-muted-foreground">4</span> possible routes.
+                <h2 className="text-3xl font-bold text-foreground tracking-tight border-b border-border pb-4 mb-4">Let's Get Started</h2>
+                <h3 className="text-xl font-semibold text-foreground mb-4">Administration Navigation</h3>
+                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                    We have talked about 3 of the 4 routes available, enough to get you started. Click on any of the links below, and enter the <a href="https://dummy_wind.adrenalink.tech/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">dummy wind school</a> for more information.
                 </p>
             </div>
 
-            {/* Route Labels and Descriptions */}
-            <div className="flex items-center justify-center gap-8 flex-wrap">
+            {/* FacebookNav Replica */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-12"
+            >
+                <header className="w-full bg-card border-t border-facebook/30 border-b border-facebook shadow-sm shadow-[0_-4px_6px_-1px_rgb(var(--secondary)/0.1)] rounded-lg overflow-hidden">
+                    <div className="container flex h-14 md:h-16 items-center justify-between px-3 sm:px-6 lg:px-8 mx-auto">
+                        {/* NavLeft */}
+                        <div className="flex items-center gap-1">
+                            <a
+                                href="https://dummy_wind.adrenalink.tech/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center cursor-pointer"
+                            >
+                                <Image
+                                    src="/prototypes/north-icon.png"
+                                    alt="School Logo"
+                                    width={56}
+                                    height={56}
+                                    className="rounded-full object-cover w-14 h-14"
+                                    priority
+                                />
+                            </a>
+                            {displayRoutes.map((route) => {
+                                if (!route) return null;
+                                const Icon = route.icon;
+                                const isExplained = explainedRoutes.includes(route.id);
+                                const href = route.id === "data" ? "/students" : route.href;
+                                
+                                return (
+                                    <a
+                                        key={route.id}
+                                        href={`https://dummy_wind.adrenalink.tech${href}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                                            isExplained ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                                        }`}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                    </a>
+                                );
+                            })}
+                        </div>
+
+                        {/* NavCenter */}
+                        <div className="hidden lg:flex flex-col items-center justify-center text-center">
+                            <h1 className="text-2xl font-semibold text-foreground">Adrenalink</h1>
+                        </div>
+
+                        {/* NavRight */}
+                        <div className="flex items-center gap-2">
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
+                                <HeadsetIcon className="h-5 w-5" />
+                            </button>
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
+                                <Plus className="h-5 w-5" />
+                            </button>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted overflow-hidden">
+                                <WindToggle compact />
+                            </div>
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent">
+                                <AdminIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                    </div>
+                </header>
+            </motion.div>
+
+            {/* Route List */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="space-y-4 mb-8"
+            >
                 {displayRoutes.map((route, index) => {
                     if (!route) return null;
                     const Icon = route.icon;
                     const description = ROUTE_DESCRIPTIONS[route.id] || "";
-
+                    const href = route.id === "data" ? "/students" : route.href;
                     const isExplained = explainedRoutes.includes(route.id);
-                    const isHelp = route.id === "help";
+                    const displayDescription = route.id === "users" 
+                        ? "Go Register Your First Booking" 
+                        : route.id === "help"
+                        ? "Always come back here if you need"
+                        : description;
 
                     return (
-                        <div key={route.id} className="flex items-center gap-8">
-                            {isHelp && <div className="h-12 w-px bg-border" />}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                onClick={() => {
-                                    const href = route.id === "data" ? "/students" : route.href;
-                                    window.location.href = `https://dummy_wind.adrenalink.tech${href}`;
-                                }}
-                                className={`flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl cursor-pointer transition-all ${
-                                    isExplained ? "bg-muted hover:bg-muted/80" : "hover:bg-muted/30"
-                                }`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Icon className="h-5 w-5 text-primary" />
-                                    <h3 className="font-display text-sm font-bold text-foreground">{ROUTE_LABELS[route.id] || route.label}</h3>
+                        <motion.a
+                            key={route.id}
+                            href={`https://dummy_wind.adrenalink.tech${href}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 + index * 0.1 }}
+                            className={`relative flex items-center gap-4 p-4 rounded-lg transition-colors cursor-pointer ${
+                                isExplained ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted/30"
+                            }`}
+                        >
+                            {isExplained && (
+                                <div className="absolute top-0 right-0 z-20">
+                                    <div className="bg-card border-border/50 px-2 py-1 rounded-bl-lg border-b border-l flex items-center shadow-sm">
+                                        <span className="text-xs font-medium text-primary">
+                                            Explained
+                                        </span>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground text-center leading-relaxed">{description}</p>
-                            </motion.div>
-                        </div>
+                            )}
+                            <Icon className={`h-6 w-6 flex-shrink-0 ${isExplained ? "text-primary" : "text-primary"}`} />
+                            <div className="flex-1">
+                                <h3 className="font-display text-sm font-bold text-foreground">{ROUTE_LABELS[route.id] || route.label}</h3>
+                                <p className="text-xs text-muted-foreground">{displayDescription}</p>
+                            </div>
+                        </motion.a>
                     );
                 })}
-            </div>
-
-            {/* Divider */}
-            <div className="w-full h-px bg-border my-16" />
-
-            {/* Register Your First School */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mt-16 text-center space-y-6"
-            >
-                <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Register Your First School</h3>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        <Link href="/register" className="text-primary hover:underline">
-                            Welcome Form
-                        </Link>{" "}
-                        for schools looking to get started
-                    </p>
-                </div>
-
-                {/* Form Steps */}
-                <div className="flex items-center justify-center gap-8 flex-wrap">
-                    {/* Assets Step */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 }}
-                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
-                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
-                    >
-                        <div className="flex items-center gap-2">
-                            <ImageIcon className="h-5 w-5 text-primary" />
-                            <h3 className="font-display text-sm font-bold text-foreground">Assets</h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                            Customise your schools landing page for students to visit
-                        </p>
-                    </motion.div>
-
-                    {/* Details Step */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
-                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
-                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
-                    >
-                        <div className="flex items-center gap-2">
-                            <MapPin className="h-5 w-5 text-primary" />
-                            <h3 className="font-display text-sm font-bold text-foreground">Details</h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                            Give us your full contact information
-                        </p>
-                    </motion.div>
-
-                    {/* Categories Step */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 }}
-                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
-                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
-                    >
-                        <div className="flex items-center gap-2">
-                            <Tag className="h-5 w-5 text-primary" />
-                            <h3 className="font-display text-sm font-bold text-foreground">Categories</h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-    Select your Adrenaline Activities Kite, Wing, Windsurf
-                        </p>
-                    </motion.div>
-
-                    {/* Summary Step */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9 }}
-                        onClick={() => window.location.href = "https://adrenalink.tech/welcome"}
-                        className="flex flex-col items-center gap-2 max-w-[200px] p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all cursor-pointer"
-                    >
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-primary" />
-                            <h3 className="font-display text-sm font-bold text-foreground">Summary</h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                            Get your confirmation email and start your journey.
-                        </p>
-                    </motion.div>
-                </div>
             </motion.div>
 
             {/* Divider */}
             <div className="w-full h-px bg-border my-16" />
 
-            {/* Footer */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="mt-16 text-center space-y-2"
-            >
-                <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">Mission.</span> To Facilitate Lesson Planning
-                </p>
-                <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">Try.</span>{" "}
-                    <Link href="/register" className="text-primary hover:underline">
-                        Adding your first register.
-                    </Link>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">Questions?</span>{" "}
-                    <a 
-                        href="https://wa.me/+34686516248" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                    >
-                        Contact me
-                    </a>
-                    .
-                </p>
-                <div className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">Share.</span>{" "}
-                    <form onSubmit={handleEmailSubmit} className="inline-flex items-center justify-center gap-2">
+            {/* Sign Up Call to Action */}
+            <div className="w-full max-w-[1600px] bg-white border border-zinc-200 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                {/* Banner Section */}
+                <div className="relative w-full h-64 md:h-96 shrink-0 bg-zinc-100 flex items-center justify-center overflow-hidden border-b border-zinc-200">
+                    <div className="opacity-20 grayscale">
+                        <Image src="/ADR.webp" alt="Adrenalink" width={120} height={120} priority />
+                    </div>
+                </div>
+                
+                {/* Content Section */}
+                <div className="px-6 md:px-10 py-8 md:py-12 bg-white/50 backdrop-blur-3xl">
+                    <div className="text-center">
+                        <Link 
+                            href="/welcome"
+                            className="inline-block text-5xl md:text-7xl font-black text-zinc-900 tracking-tight hover:text-zinc-700 transition-colors cursor-pointer"
+                        >
+                            SIGN UP
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-border my-16" />
+
+            {/* Share Section */}
+            <div className="w-full">
+                <div className="max-w-md mx-auto">
+                    <form onSubmit={handleEmailSubmit} className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Share.</span>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="invitation-email"
-                            className="text-sm text-center text-primary border-b border-primary bg-transparent focus:outline-none focus:border-primary/80 placeholder:text-primary/60 placeholder:text-muted-foreground min-w-[140px]"
+                            placeholder="invitation-email@example.com"
+                            className="flex-1 px-3 py-2 text-sm border-b border-border bg-transparent focus:outline-none focus:border-primary placeholder:text-muted-foreground"
                             disabled={isSending}
                         />
                         <button
                             type="submit"
                             disabled={isSending || !email || !email.includes("@")}
-                            className={`text-sm font-bold transition-all rounded px-2 py-1 ${
+                            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold transition-all ${
                                 email && email.includes("@") && !isSending
-                                    ? "text-primary hover:bg-muted"
-                                    : "text-muted-foreground hover:bg-muted"
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    ? "text-primary hover:text-primary/80"
+                                    : "text-muted-foreground cursor-not-allowed"
+                            } disabled:opacity-50`}
                         >
+                            <Send className="h-4 w-4" />
                             {isSending ? "Sending..." : emailSent ? "Sent!" : "SEND"}
                         </button>
                     </form>
                 </div>
-            </motion.div>
+            </div>
+
+            {/* Mission */}
+            <div className="mt-16 text-center">
+                <p className="text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">Mission.</span> To Facilitate Lesson Planning
+                </p>
+            </div>
 
             {/* Part 2 - Coming Up Next */}
             {/* <motion.div
