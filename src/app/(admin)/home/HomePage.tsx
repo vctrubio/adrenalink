@@ -7,7 +7,7 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { HomeHeader } from "./HomeHeader";
 import { HomeViewHeader } from "./HomeViewHeader";
 import { HomeGrouped } from "./HomeGrouped";
-import { HomeTable } from "./HomeTable";
+import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { HomeActivity } from "./HomeActivity";
 import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./getters";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
@@ -121,8 +121,8 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "table" && (
                         <div className="space-y-4">
-                            <TablesSearchHeader entityId="booking" />
-                            <HomeTable events={allTransactionEvents} />
+                            <TablesSearchHeader entityId="event" />
+                            <TransactionEventsTable events={allTransactionEvents} />
                         </div>
                     )}
 

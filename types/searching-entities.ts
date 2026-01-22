@@ -7,6 +7,7 @@ export const SEARCH_FIELDS_DESCRIPTION = {
     booking: ["Leader Student Name", "Teacher Username"],
     schoolPackage: ["Description", "Type", "Category"],
     equipment: ["Brand", "Model", "SKU", "Size"],
+    event: ["Students", "Teacher Username"],
     transactionEvent: ["Student Name", "Teacher Username", "Location"],
 };
 

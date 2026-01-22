@@ -25,6 +25,9 @@ const getStatusOptions = (entityId: string): string[] => {
     if (entityId === "booking") {
         return ["All", "Ongoing", "Completed"];
     }
+    if (entityId === "event") {
+        return ["All", "Planned", "TBC", "Completed", "Uncompleted"];
+    }
     if (entityId === "equipment") {
         return ["All", "Kite", "Wing", "Windsurf"];
     }
@@ -57,14 +60,14 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                     entityColor={entity.color}
                     value={controller.search}
                     onChange={(e) => controller.onSearchChange(e.target.value)}
-                    placeholder={`Search ${entity.name.toLowerCase()}...`}
+                    placeholder={entity.id === "event" ? "Search students or teachers..." : `Search ${entity.name.toLowerCase()}...`}
                 />
             </div>
 
             {/* Filters */}
             <div className="flex items-center gap-2">
                 {/* Use SortDropdown for event/booking entities */}
-                {(entity.id === "event" || entity.id === "booking") && (
+                {entity.id === "booking" && (
                     <SortDropdown
                         value={controller.sort}
                         options={ENTITY_SORT_OPTIONS.event || ENTITY_SORT_OPTIONS.booking || []}
@@ -101,18 +104,20 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                 )}
 
                 {/* Actions Toggle */}
-                <button
-                    type="button"
-                    onClick={() => controller.onShowActionsChange(!controller.showActions)}
-                    className={`p-2 rounded-lg border transition-all ${
-                        controller.showActions
-                            ? "bg-primary/10 border-primary text-primary shadow-sm"
-                            : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    }`}
-                    title="Toggle Actions"
-                >
-                    <Settings2 size={16} />
-                </button>
+                {entity.id !== "event" && (
+                    <button
+                        type="button"
+                        onClick={() => controller.onShowActionsChange(!controller.showActions)}
+                        className={`p-2 rounded-lg border transition-all ${
+                            controller.showActions
+                                ? "bg-primary/10 border-primary text-primary shadow-sm"
+                                : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        }`}
+                        title="Toggle Actions"
+                    >
+                        <Settings2 size={16} />
+                    </button>
+                )}
             </div>
         </div>
     );

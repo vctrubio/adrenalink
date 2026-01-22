@@ -1,4 +1,4 @@
-s/**
+/**
  * Mock Berkley Windsurf Academy - Complete Seed
  *
  * Comprehensive seeding flow:

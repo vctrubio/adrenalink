@@ -182,6 +182,10 @@ export function TransactionEventsTable({
     } = useTableLogic({
         data: events,
         filterSearch: filterTransactionEvents,
+        filterStatus: (item, status) => {
+            if (status === "All") return true;
+            return item.event.status.toLowerCase() === status.toLowerCase();
+        },
         dateField: (row) => row.event.date,
     });
 
