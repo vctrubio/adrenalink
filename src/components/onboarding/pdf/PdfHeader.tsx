@@ -40,7 +40,7 @@ export function PdfHeader() {
       try {
         await navigator.share({
           title: 'Adrenalink Onboarding',
-          text: 'Check out the Adrenalink school management overview.',
+          text: 'Adrenalink: Administration Guide for Schools looking to get started',
           url: window.location.href,
         });
       } catch (err) {
@@ -55,7 +55,7 @@ export function PdfHeader() {
 
   return (
     <div className="flex items-center justify-between my-8 w-full px-[10mm]">
-      <Link href="https://adrenalink.tech" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+      <Link href="https://adrenalink.tech/onboarding" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
         <AdrenalinkBranding />
       </Link>
 

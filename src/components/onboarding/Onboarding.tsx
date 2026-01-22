@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsExplainer, AdminDashboardPreview, BadgeShowcase, NavigationGuide } from "./steps";
-import { Play, ArrowLeft, ArrowRight } from "lucide-react";
+import { Play, ArrowLeft, ArrowRight, FileText } from "lucide-react";
 
 const TOTAL_STEPS = 6;
 const TOTAL_STEPS_SKIP_STATS = 5;
@@ -162,7 +162,7 @@ export default function Onboarding() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.4, duration: 0.5 }}
-                                className="mt-6"
+                                className="mt-6 flex flex-col items-center gap-3"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <Link
@@ -171,6 +171,13 @@ export default function Onboarding() {
                                 >
                                     <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
                                     <span className="text-sm font-medium tracking-wide">Watch The Video</span>
+                                </Link>
+                                <Link
+                                    href="/onboarding/pdf"
+                                    className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors duration-200 group"
+                                >
+                                    <FileText className="w-4 h-4 transition-transform group-hover:scale-110" />
+                                    <span className="text-sm font-medium tracking-wide">Download PDF</span>
                                 </Link>
                             </motion.div>
                         </motion.div>
