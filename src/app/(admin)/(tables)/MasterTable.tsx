@@ -14,6 +14,7 @@ export type GroupingType = "all" | "date" | "week" | "month";
 export interface ColumnDef<T> {
     header: string;
     headerClassName?: string;
+    className?: string;
     render: (row: T) => ReactNode;
 }
 
@@ -96,7 +97,7 @@ function DesktopTable<T extends Record<string, any>>({
                 <thead className="text-[10px] uppercase bg-muted/50 text-muted-foreground border-b border-border">
                     <tr>
                         {columns.map((col, idx) => (
-                            <th key={idx} className={col.headerClassName || "px-4 py-3 font-medium"}>
+                            <th key={idx} className={`${col.headerClassName || "px-2 py-3 font-medium"} ${col.className || ""}`}>
                                 {col.header}
                             </th>
                         ))}
@@ -113,7 +114,7 @@ function DesktopTable<T extends Record<string, any>>({
                                     className="hover:bg-muted/5 transition-colors border-b border-border/40 last:border-0 group/row"
                                 >
                                     {columns.map((col, colIdx) => (
-                                        <td key={colIdx} className="px-4 py-3 whitespace-nowrap">
+                                        <td key={colIdx} className={`px-2 py-3 whitespace-nowrap ${col.className || ""}`}>
                                             {col.render(row)}
                                         </td>
                                     ))}

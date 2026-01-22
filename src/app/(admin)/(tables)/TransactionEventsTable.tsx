@@ -148,12 +148,12 @@ function EquipmentFulfillmentCell({
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
-    blue: "px-4 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
-    orange: "px-4 py-3 font-medium text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/10",
-    zinc: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10",
-    zincRight: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right",
-    zincRightBold: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right font-bold",
-    purple: "px-4 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
+    blue: "px-2 py-3 font-medium text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10",
+    orange: "px-2 py-3 font-medium text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/10",
+    zinc: "px-2 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10",
+    zincRight: "px-2 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right",
+    zincRightBold: "px-2 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right font-bold",
+    purple: "px-2 py-3 font-medium text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10",
 } as const;
 
 // --- Main component ---
@@ -161,9 +161,11 @@ const HEADER_CLASSES = {
 export function TransactionEventsTable({
     events: initialEvents = [],
     groupBy,
+    showYear = false,
 }: {
     events: TransactionEventData[];
     groupBy?: GroupingType;
+    showYear?: boolean;
 }) {
     const [events, setEvents] = useState(initialEvents);
     const { sort } = useTablesController();
@@ -233,12 +235,15 @@ export function TransactionEventsTable({
         {
             header: "Date",
             headerClassName: HEADER_CLASSES.blue,
+            className: "w-[100px]",
             render: (data) => {
                 // Manually parse ISO string parts to avoid timezone shifts
                 const [datePart] = data.event.date.split("T");
                 const [year, month, day] = datePart.split("-");
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                const formattedDate = `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+                const formattedDate = showYear 
+                    ? `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`
+                    : `${months[parseInt(month) - 1]} ${parseInt(day)}`;
 
                 return (
                     <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
@@ -250,6 +255,7 @@ export function TransactionEventsTable({
         {
             header: "Time",
             headerClassName: HEADER_CLASSES.blue,
+            className: "w-[50px]",
             render: (data) => {
                 // Manually extract time from ISO: "2025-01-12T14:00:00Z" -> "14:00"
                 const timeMatch = data.event.date.match(/T(\d{2}:\d{2})/);
@@ -265,6 +271,7 @@ export function TransactionEventsTable({
         {
             header: "Dur",
             headerClassName: HEADER_CLASSES.blue,
+            className: "w-[60px]",
             render: (data) => (
                 <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
                     {getHMDuration(data.event.duration)}
@@ -274,6 +281,7 @@ export function TransactionEventsTable({
         {
             header: "Loc",
             headerClassName: HEADER_CLASSES.blue,
+            className: "w-[100px]",
             render: (data) => (
                 <span className="text-muted-foreground bg-blue-50/[0.03] dark:bg-blue-900/[0.02] text-xs">
                     {data.event.location || "-"}
@@ -342,19 +350,19 @@ export function TransactionEventsTable({
             render: (data) => <EquipmentFulfillmentCell data={data} onUpdate={handleEquipmentUpdate} />,
         },
         {
-            header: "Commission",
-            headerClassName: HEADER_CLASSES.zincRight,
+            header: "Comm.",
+            headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
+                <span className="tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
                     {getCompactNumber(data.financials.teacherEarnings)}
                 </span>
             ),
         },
         {
-            header: "Revenue",
-            headerClassName: HEADER_CLASSES.zincRight,
+            header: "Rev.",
+            headerClassName: HEADER_CLASSES.zinc,
             render: (data) => (
-                <span className="text-right tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
+                <span className="tabular-nums font-medium text-zinc-900/80 dark:text-zinc-100/80 bg-zinc-50/[0.03] dark:bg-zinc-900/[0.02]">
                     {getCompactNumber(data.financials.studentRevenue)}
                 </span>
             ),
