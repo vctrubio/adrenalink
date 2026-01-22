@@ -10,7 +10,7 @@ const servicesConfig = [
   {
     entityId: "teacher",
     title: "Teacher Management",
-    description: "Track hours, commissions, and availability."
+    description: "Track hours, commissions and availability."
   },
   {
     entityId: "booking",
