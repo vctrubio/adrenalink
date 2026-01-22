@@ -286,7 +286,7 @@ function AdminSection({
                     <div className="flex items-center gap-4 sm:gap-6 text-sm">
                         {/* Completed */}
                         <div className="flex items-center gap-4 border-r border-border/50 pr-4">
-                            <div className="hidden xl:block">
+                            <div className="hidden xl:block print:block">
                                 <StatItemUI
                                     type="completed"
                                     value={`${todayStats.completedCount}/${todayStats.totalEvents}`}
@@ -294,7 +294,7 @@ function AdminSection({
                                     hideLabel={false}
                                 />
                             </div>
-                            <div className="xl:hidden">
+                            <div className="xl:hidden print:hidden">
                                 <StatItemUI
                                     type="completed"
                                     value={`${todayStats.completedCount}/${todayStats.totalEvents}`}
@@ -305,38 +305,38 @@ function AdminSection({
                         </div>
 
                         {/* Students */}
-                        <div className="hidden md:block">
-                            <div className="hidden xl:block">
+                        <div className="hidden md:block print:block">
+                            <div className="hidden xl:block print:block">
                                 <StatItemUI type="students" value={todayStats.studentCount} className="justify-center" hideLabel={false} />
                             </div>
-                            <div className="xl:hidden">
+                            <div className="xl:hidden print:hidden">
                                 <StatItemUI type="students" value={todayStats.studentCount} className="justify-center" hideLabel={true} />
                             </div>
                         </div>
 
                         {/* Teachers */}
-                        <div className="hidden md:block">
-                            <div className="hidden xl:block">
+                        <div className="hidden md:block print:block">
+                            <div className="hidden xl:block print:block">
                                 <StatItemUI type="teachers" value={todayStats.teacherCount} className="justify-center" hideLabel={false} />
                             </div>
-                            <div className="xl:hidden">
+                            <div className="xl:hidden print:hidden">
                                 <StatItemUI type="teachers" value={todayStats.teacherCount} className="justify-center" hideLabel={true} />
                             </div>
                         </div>
 
                         {/* Duration */}
-                        <div className="hidden md:block">
-                            <div className="hidden xl:block">
+                        <div className="hidden md:block print:block">
+                            <div className="hidden xl:block print:block">
                                 <StatItemUI type="duration" value={todayStats.durationCount} className="justify-center" hideLabel={false} />
                             </div>
-                            <div className="xl:hidden">
+                            <div className="xl:hidden print:hidden">
                                 <StatItemUI type="duration" value={todayStats.durationCount} className="justify-center" hideLabel={true} />
                             </div>
                         </div>
 
                         {/* Commission & Revenue */}
-                        <div className="hidden lg:flex items-center gap-4 border-l border-border/50 pl-4">
-                            <div className="hidden xl:flex items-center gap-4">
+                        <div className="hidden lg:flex print:flex items-center gap-4 border-l border-border/50 pl-4">
+                            <div className="hidden xl:flex print:flex items-center gap-4">
                                 <StatItemUI 
                                     type="commission" 
                                     value={todayStats.revenue.commission} 
@@ -357,7 +357,7 @@ function AdminSection({
                                     hideLabel={false}
                                 />
                             </div>
-                            <div className="xl:hidden flex items-center gap-4">
+                            <div className="xl:hidden print:hidden flex items-center gap-4">
                                 <StatItemUI 
                                     type="commission" 
                                     value={todayStats.revenue.commission} 
@@ -381,7 +381,7 @@ function AdminSection({
                         </div>
 
                         {/* Profit - Visible on sm and md */}
-                        <div className="md:block lg:hidden">
+                        <div className="md:block lg:hidden print:hidden">
                             <StatItemUI type="profit" value={todayStats.revenue.profit} variant="profit" className="justify-center" hideLabel={true} />
                         </div>
                     </div>

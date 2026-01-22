@@ -279,7 +279,7 @@ export function TransactionEventsTable({
             ),
         },
         {
-            header: "Loc",
+            header: "Location",
             headerClassName: HEADER_CLASSES.blue,
             className: "w-[100px]",
             render: (data) => (

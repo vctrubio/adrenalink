@@ -8,7 +8,6 @@ import ClassboardContentHeader from "@/src/components/classboard/ClassboardConte
 import ClassboardContentBoard from "./ClassboardContentBoard";
 import { ClassboardSkeleton } from "@/src/components/skeletons/ClassboardSkeleton";
 import ClassboardRealtimeSync from "./ClassboardRealtimeSync";
-import ClassboardFooter from "./ClassboardFooter";
 
 type ContentHeaderViewType = "/" | "config" | "gap" | "lesson" | "admin" | "update";
 
@@ -61,7 +60,6 @@ function ClassboardContent() {
 
             <ClassboardContentBoard />
 
-            {/* <ClassboardFooter /> */}
         </div>
     );
 }
