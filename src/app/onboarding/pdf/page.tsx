@@ -4,6 +4,9 @@ import { Services } from "@/src/components/onboarding/pdf/Services";
 import { WhoWeAre } from "@/src/components/onboarding/pdf/WhoWeAre";
 import Link from "next/link";
 
+export const PDF_DESCRIPTION_TEXT_CLASS = "text-base text-muted-foreground tracking-wider";
+export const PDF_DESCRIPTION_LABEL_WIDTH = "min-w-[80px]";
+
 export default function PdfPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center py-12 print:bg-white print:p-0 print:m-0">
@@ -16,6 +19,12 @@ export default function PdfPage() {
           body {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+          }
+          * {
+            box-shadow: none !important;
+            text-shadow: none !important;
+            transition: none !important;
+            animation: none !important;
           }
         }
       `}} />
