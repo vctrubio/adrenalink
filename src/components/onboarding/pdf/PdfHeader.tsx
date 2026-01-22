@@ -4,6 +4,30 @@ import Image from "next/image";
 import { Printer, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 
+export function AdrenalinkBranding({ logoSize = "w-16 h-16", gap = "gap-2" }: { logoSize?: string; gap?: string }) {
+  return (
+    <div className={`flex items-center ${gap}`}>
+      <div className={`relative ${logoSize} transition-transform duration-300`}>
+        <Image 
+          src="/ADR.webp" 
+          alt="Adrenalink Logo" 
+          fill 
+          className="object-contain"
+          priority
+        />
+      </div>
+      <div className="flex flex-col">
+        <h1 className="text-4xl font-semibold text-foreground tracking-wide">
+          Adrenalink
+        </h1>
+        <span className="text-sm text-muted-foreground font-mono tracking-wide uppercase">
+          Connecting Students
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function PdfHeader() {
   const handlePrint = () => {
     window.print();
@@ -29,26 +53,7 @@ export function PdfHeader() {
 
   return (
     <div className="flex items-center justify-between mb-12 w-full pt-12 px-[10mm]">
-      {/* Left side: Logo and Text side-by-side */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 transition-transform duration-300">
-          <Image 
-            src="/ADR.webp" 
-            alt="Adrenalink Logo" 
-            fill 
-            className="object-contain"
-            priority
-          />
-        </div>
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase leading-none">
-            Adrenalink
-          </h1>
-          <span className="text-[10px] font-bold text-primary tracking-[0.3em] uppercase mt-1">
-            Focus on the water
-          </span>
-        </div>
-      </div>
+      <AdrenalinkBranding />
 
       {/* Right side: Actions */}
       <div className="flex items-center gap-3">

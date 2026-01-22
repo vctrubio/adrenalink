@@ -1,6 +1,5 @@
 import { Examples } from "@/src/components/onboarding/pdf/Examples";
 import { PdfHeader } from "@/src/components/onboarding/pdf/PdfHeader";
-import { PowerOfAdrenalink } from "@/src/components/onboarding/pdf/PowerOfAdrenalink";
 import { Services } from "@/src/components/onboarding/pdf/Services";
 import { WhoWeAre } from "@/src/components/onboarding/pdf/WhoWeAre";
 
@@ -29,7 +28,6 @@ export default function PdfPage() {
           <WhoWeAre />
           <Services />
           <Examples />
-          <PowerOfAdrenalink />
         </div>
       </div>
     </div>
