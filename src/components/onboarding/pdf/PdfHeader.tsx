@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Printer, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -52,8 +53,10 @@ export function PdfHeader() {
   };
 
   return (
-    <div className="flex items-center justify-between mb-12 w-full pt-12 px-[10mm]">
-      <AdrenalinkBranding />
+    <div className="flex items-center justify-between my-8 w-full px-[10mm]">
+      <Link href="https://adrenalink.tech" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+        <AdrenalinkBranding />
+      </Link>
 
       {/* Right side: Actions */}
       <div className="flex items-center gap-3">
@@ -73,6 +76,35 @@ export function PdfHeader() {
           <span className="text-xs font-bold uppercase tracking-wider">Share</span>
         </button>
       </div>
+    </div>
+  );
+}
+
+export function PdfDescription() {
+  return (
+    <div className="border-t-2 border-border py-6 px-[10mm]">
+      <p className="text-base text-muted-foreground mb-3">
+        An operating system designed specifically for <em>adrenaline sports</em>.
+      </p>
+      <p className="text-base text-muted-foreground mb-3">
+        Where conditions never stand still, we synchronise lesson planning between students and teachers.
+      </p>
+      <p className="text-base text-muted-foreground mb-3">
+        Our mission is to eliminate heavy administrative tasks through automation, bringing clarity and transparency to the entire school.
+      </p>
+      <p className="text-base text-muted-foreground">
+        Born from the need to streamline complexity, Adrenalink is a unified platform that empowers you to focus on what matters most: the student experience.
+      </p>
+    </div>
+  );
+}
+
+export function FindOutMoreFooter() {
+  return (
+    <div className="py-6 px-[10mm] bg-muted/60">
+      <p className="text-base text-muted-foreground text-center">
+        Visit <Link href="https://adrenalink.tech/onboarding" className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech/onboarding</Link> to find out more, or <Link href="https://adrenalink.tech/welcome" className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech/welcome</Link> to register your school.
+      </p>
     </div>
   );
 }

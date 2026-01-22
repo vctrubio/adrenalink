@@ -5,6 +5,8 @@ import { Users } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import ClassboardIcon from "@/public/appSvgs/ClassboardIcon";
+import AdminIcon from "@/public/appSvgs/AdminIcon";
+import SchoolIcon from "@/public/appSvgs/SchoolIcon";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
@@ -19,6 +21,7 @@ import type { TransactionEventData } from "@/types/transaction-event";
 import type { SchoolCredentials } from "@/types/credentials";
 import { TeacherEventCard } from "@/src/app/(users)/teacher/[id]/events/TeacherEventCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
+import { StatItemUI } from "@/backend/data/StatsData";
 
 // --- Mock Data ---
 
@@ -82,7 +85,9 @@ const MOCK_TRANSACTION_EVENTS: TransactionEventData[] = SHARED_MOCK_EVENTS.map((
         location: e.location,
         status: e.status as any,
     },
-    teacher: e.teacher,
+    teacher: {
+        username: e.teacher.username,
+    },
     leaderStudentName: e.studentNames[0],
     studentCount: e.studentNames.length,
     studentNames: e.studentNames,
@@ -94,6 +99,11 @@ const MOCK_TRANSACTION_EVENTS: TransactionEventData[] = SHARED_MOCK_EVENTS.map((
         capacityEquipment: e.capacity,
         capacityStudents: e.capacity,
     },
+    commission: {
+        id: "c1",
+        type: "fixed",
+        cph: 21,
+    },
     financials: {
         teacherEarnings: e.earnings,
         studentRevenue: e.revenue,
@@ -104,12 +114,9 @@ const MOCK_TRANSACTION_EVENTS: TransactionEventData[] = SHARED_MOCK_EVENTS.map((
     },
     equipments: Array(e.capacity).fill(null).map((_, i) => ({
         id: `eq-${e.id}-${i}`,
-        name: `North Reach ${i === 0 ? '10' : '12'}`,
-        category: "kite",
-        status: "active",
         brand: "North",
         model: "Reach",
-        size: i === 0 ? "10" : "12",
+        size: i === 0 ? 10 : 12,
     })),
 }));
 
@@ -130,7 +137,7 @@ function createMockEventNode(e: (typeof SHARED_MOCK_EVENTS)[0]): EventNode {
             phone: "",
         })),
         capacityStudents: e.capacity,
-        pricePerStudent: e.packageTotal,
+        pricePerStudent: e.pricePerStudent, // Use hourly rate, not package total
         packageDuration: e.packageHours * 60,
         categoryEquipment: e.category,
         capacityEquipment: e.capacity,
@@ -215,17 +222,191 @@ function AdminSection({
     queue: TeacherQueue;
     events: EventNode[];
 }) {
-    return (
-        <div className="space-y-4">
-            {/* Events Table (No container/header) */}
-       
-            <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
-                <TablesProvider>
-                    <TransactionEventsTable events={MOCK_TRANSACTION_EVENTS} />
-                </TablesProvider>
-            </SchoolCredentialsProvider>
+    // Calculate stats from today's events
+    const todayStats = useMemo(() => {
+        const completedCount = MOCK_TRANSACTION_EVENTS.filter(
+            (e) => e.event.status === "completed" || e.event.status === "uncompleted"
+        ).length;
+        const totalEvents = MOCK_TRANSACTION_EVENTS.length;
+        const studentCount = MOCK_TRANSACTION_EVENTS.reduce((sum, e) => sum + e.studentCount, 0);
+        const uniqueTeachers = new Set(MOCK_TRANSACTION_EVENTS.map((e) => e.teacher.username)).size;
+        const durationMinutes = MOCK_TRANSACTION_EVENTS.reduce((sum, e) => sum + e.event.duration, 0);
+        const revenue = MOCK_TRANSACTION_EVENTS.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
+        const commission = MOCK_TRANSACTION_EVENTS.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+        const profit = MOCK_TRANSACTION_EVENTS.reduce((sum, e) => sum + e.financials.profit, 0);
 
-            {/* Classboard Preview (No container/header) */}
+        return {
+            completedCount,
+            totalEvents,
+            studentCount,
+            teacherCount: uniqueTeachers,
+            durationCount: durationMinutes,
+            revenue: {
+                revenue: Math.round(revenue * 100) / 100,
+                commission: Math.round(commission * 100) / 100,
+                profit: Math.round(profit * 100) / 100,
+            },
+        };
+    }, []);
+
+    // Format today's date (from mock data: "2025-01-17")
+    const todayDate = "2025-01-17";
+    const [year, month, day] = todayDate.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const formattedDate = `${weekdays[date.getUTCDay()]} ${date.getUTCDate()} ${months[date.getUTCMonth()]}`;
+
+    return (
+        <div>
+            {/* Administration Header */}
+            <div className="py-3 pl-6 pr-3">
+                <div className="flex items-center gap-2 text-foreground/90">
+                    <div className="p-2 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20" style={{ color: "#6366f1" }}>
+                        <AdminIcon size={24} />
+                    </div>
+                    <h3 className="font-bold text-lg leading-tight tracking-tight">Administration</h3>
+                </div>
+            </div>
+
+            {/* Events Table Header and Table - Combined Container */}
+            <div className="rounded-2xl bg-card border border-border overflow-hidden shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+                    <div className="flex flex-col gap-1 min-w-[140px]">
+                        <span className="font-bold text-xl tracking-tight">
+                            {formattedDate}
+                        </span>
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            {year}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 sm:gap-6 text-sm">
+                        {/* Completed */}
+                        <div className="flex items-center gap-4 border-r border-border/50 pr-4">
+                            <div className="hidden xl:block">
+                                <StatItemUI
+                                    type="completed"
+                                    value={`${todayStats.completedCount}/${todayStats.totalEvents}`}
+                                    className="justify-center"
+                                    hideLabel={false}
+                                />
+                            </div>
+                            <div className="xl:hidden">
+                                <StatItemUI
+                                    type="completed"
+                                    value={`${todayStats.completedCount}/${todayStats.totalEvents}`}
+                                    className="justify-center"
+                                    hideLabel={true}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Students */}
+                        <div className="hidden md:block">
+                            <div className="hidden xl:block">
+                                <StatItemUI type="students" value={todayStats.studentCount} className="justify-center" hideLabel={false} />
+                            </div>
+                            <div className="xl:hidden">
+                                <StatItemUI type="students" value={todayStats.studentCount} className="justify-center" hideLabel={true} />
+                            </div>
+                        </div>
+
+                        {/* Teachers */}
+                        <div className="hidden md:block">
+                            <div className="hidden xl:block">
+                                <StatItemUI type="teachers" value={todayStats.teacherCount} className="justify-center" hideLabel={false} />
+                            </div>
+                            <div className="xl:hidden">
+                                <StatItemUI type="teachers" value={todayStats.teacherCount} className="justify-center" hideLabel={true} />
+                            </div>
+                        </div>
+
+                        {/* Duration */}
+                        <div className="hidden md:block">
+                            <div className="hidden xl:block">
+                                <StatItemUI type="duration" value={todayStats.durationCount} className="justify-center" hideLabel={false} />
+                            </div>
+                            <div className="xl:hidden">
+                                <StatItemUI type="duration" value={todayStats.durationCount} className="justify-center" hideLabel={true} />
+                            </div>
+                        </div>
+
+                        {/* Commission & Revenue */}
+                        <div className="hidden lg:flex items-center gap-4 border-l border-border/50 pl-4">
+                            <div className="hidden xl:flex items-center gap-4">
+                                <StatItemUI 
+                                    type="commission" 
+                                    value={todayStats.revenue.commission} 
+                                    className="justify-center" 
+                                    hideLabel={false}
+                                />
+                                <StatItemUI 
+                                    type="revenue" 
+                                    value={todayStats.revenue.revenue} 
+                                    className="justify-center" 
+                                    hideLabel={false}
+                                />
+                                <StatItemUI 
+                                    type="profit" 
+                                    value={todayStats.revenue.profit} 
+                                    variant="profit" 
+                                    className="justify-center" 
+                                    hideLabel={false}
+                                />
+                            </div>
+                            <div className="xl:hidden flex items-center gap-4">
+                                <StatItemUI 
+                                    type="commission" 
+                                    value={todayStats.revenue.commission} 
+                                    className="justify-center" 
+                                    hideLabel={true}
+                                />
+                                <StatItemUI 
+                                    type="revenue" 
+                                    value={todayStats.revenue.revenue} 
+                                    className="justify-center" 
+                                    hideLabel={true}
+                                />
+                                <StatItemUI 
+                                    type="profit" 
+                                    value={todayStats.revenue.profit} 
+                                    variant="profit" 
+                                    className="justify-center" 
+                                    hideLabel={true}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Profit - Visible on sm and md */}
+                        <div className="md:block lg:hidden">
+                            <StatItemUI type="profit" value={todayStats.revenue.profit} variant="profit" className="justify-center" hideLabel={true} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Events Table */}
+                <div className="[&_div.rounded-2xl]:!rounded-none [&_div.rounded-2xl]:!border-0 [&_div.rounded-2xl]:!shadow-none [&_div.rounded-2xl]:!bg-transparent">
+                    <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
+                        <TablesProvider>
+                            <TransactionEventsTable events={MOCK_TRANSACTION_EVENTS} />
+                        </TablesProvider>
+                    </SchoolCredentialsProvider>
+                </div>
+            </div>
+
+            {/* Classboard Header */}
+            <div className="py-3 pl-6 pr-3">
+                <div className="flex items-center gap-2 text-foreground/90">
+                    <div className="p-2 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center" style={{ color: "#6366f1" }}>
+                        <ClassboardIcon size={24} className="block" />
+                    </div>
+                    <h3 className="font-bold text-lg leading-tight tracking-tight">Classboard</h3>
+                </div>
+            </div>
+
+            {/* Classboard Preview */}
             <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
                 <MockClassboardProvider teacherQueues={teacherQueues}>
                     <div className="space-y-3">
@@ -336,12 +517,15 @@ export function Examples() {
     const userViewEvent = events.find(e => e.id === "evt-001");
 
     return (
-        <section className="mb-8">
-            <h2 className="text-xl font-bold uppercase mb-6 text-primary border-b border-border pb-1">
-                Examples
+        <section className="mb-6    ">
+            <h2 className="text-xl font-bold uppercase mb-3 text-primary border-b border-border pb-1">
+                Transparency
             </h2>
+            <p className="text-base text-muted-foreground mb-6">
+                Below is an example of data integrity across the app. Administration hold all the information of full date, Classboard is the foundation (A real time synchronisation lesson planner), followed by the teacher and student view.
+            </p>
 
-            <div className="space-y-8">
+            <div className="space-y-4">
                 <AdminSection teacherQueues={teacherQueues} queue={queue} events={events} />
                 <UsersSection userViewEvent={userViewEvent} queue={queue} />
             </div>
