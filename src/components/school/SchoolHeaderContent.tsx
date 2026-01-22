@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import adrLogo from "@/public/ADR.webp";
 import { motion } from "framer-motion";
 
 interface SchoolHeaderContentProps {
@@ -32,24 +31,32 @@ export const SchoolHeaderContent = ({
     return (
         <div className="space-y-8">
             {/* Sequential Branding Animation */}
-            <div className="flex items-end gap-4 overflow-hidden h-12">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                    <Image src={adrLogo} alt="Adrenalink" width={48} height={48} className="rounded-md dark:invert" />
-                </motion.div>
-
-                <motion.h1
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3, ease: "circOut" }}
-                    className="text-primary text-4xl leading-none font-black tracking-tighter uppercase"
-                >
-                    Adrenalink
-                </motion.h1>
-            </div>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="overflow-hidden"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16 transition-transform duration-300">
+                        <Image 
+                            src="/ADR.webp" 
+                            alt="Adrenalink Logo" 
+                            fill 
+                            className="object-contain"
+                            priority
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <h1 className="text-4xl font-semibold text-primary tracking-wide">
+                            Adrenalink
+                        </h1>
+                        <span className="text-sm text-muted-foreground font-mono tracking-wide uppercase">
+                            Connecting Students
+                        </span>
+                    </div>
+                </div>
+            </motion.div>
 
             <div className="space-y-6">
                 {/* Main Titles - Staggered after branding */}

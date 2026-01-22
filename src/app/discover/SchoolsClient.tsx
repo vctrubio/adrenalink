@@ -65,7 +65,7 @@ const SchoolsClient = ({ schools }: { schools: SchoolWithAssets[] }) => {
                                 titleMain="The Schools."
                                 titleSub="The Network."
                                 descriptionMain="Home of Adrenaline Activities"
-                                descriptionSub="Find your next school."
+                                descriptionSub="Find your next adventure."
                                 isExiting={isExiting}
                             />
                             <motion.div

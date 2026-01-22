@@ -19,7 +19,7 @@ export function AdrenalinkBranding({ logoSize = "w-16 h-16", gap = "gap-2" }: { 
         />
       </div>
       <div className="flex flex-col">
-        <h1 className="text-4xl font-semibold text-foreground tracking-wide">
+        <h1 className="text-4xl font-semibold text-primary tracking-wide">
           Adrenalink
         </h1>
         <span className="text-sm text-muted-foreground font-mono tracking-wide uppercase">
