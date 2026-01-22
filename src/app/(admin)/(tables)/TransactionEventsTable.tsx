@@ -234,8 +234,8 @@ export function TransactionEventsTable({
     const desktopColumns: ColumnDef<TransactionEventData>[] = [
         {
             header: "Date",
-            headerClassName: HEADER_CLASSES.blue,
-            className: "w-[100px]",
+            headerClassName: `${HEADER_CLASSES.blue} text-center`,
+            className: "w-[100px] text-center",
             render: (data) => {
                 // Manually parse ISO string parts to avoid timezone shifts
                 const [datePart] = data.event.date.split("T");
@@ -246,7 +246,7 @@ export function TransactionEventsTable({
                     : `${months[parseInt(month) - 1]} ${parseInt(day)}`;
 
                 return (
-                    <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                    <span className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] text-center block">
                         {formattedDate}
                     </span>
                 );
@@ -270,10 +270,10 @@ export function TransactionEventsTable({
         },
         {
             header: "Dur",
-            headerClassName: HEADER_CLASSES.blue,
-            className: "w-[60px]",
+            headerClassName: `${HEADER_CLASSES.blue} text-center`,
+            className: "w-[60px] text-center",
             render: (data) => (
-                <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                <span className="text-blue-900/80 dark:text-blue-100/80 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] text-center block">
                     {getHMDuration(data.event.duration)}
                 </span>
             ),

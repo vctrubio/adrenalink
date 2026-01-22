@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import ClassboardIcon from "@/public/appSvgs/ClassboardIcon";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
@@ -182,7 +183,7 @@ function MockClassboardProvider({ children, teacherQueues }: { children: React.R
         ],
     }));
 
-    const globalFlag = useMemo(() => new GlobalFlag(teacherQueues, () => {}), [teacherQueues]);
+    const globalFlag = useMemo(() => new GlobalFlag(teacherQueues, () => { }), [teacherQueues]);
 
     const contextValue = {
         classboardModel: bookingsForSelectedDate,
@@ -191,18 +192,134 @@ function MockClassboardProvider({ children, teacherQueues }: { children: React.R
         mounted: true,
         error: null,
         selectedDate,
-        setSelectedDate: () => {},
+        setSelectedDate: () => { },
         draggedBooking: null,
-        setDraggedBooking: () => {},
-        addLessonEvent: async () => {},
-        deleteEvent: async () => {},
-        updateEventStatus: async () => {},
+        setDraggedBooking: () => { },
+        addLessonEvent: async () => { },
+        deleteEvent: async () => { },
+        updateEventStatus: async () => { },
         getEventCardStatus: () => undefined,
         globalFlag,
-        setClassboardModel: () => {},
+        setClassboardModel: () => { },
     };
 
     return <ClassboardContext.Provider value={contextValue as any}>{children}</ClassboardContext.Provider>;
+}
+
+function AdminSection({
+    teacherQueues,
+    queue,
+    events,
+}: {
+    teacherQueues: TeacherQueue[];
+    queue: TeacherQueue;
+    events: EventNode[];
+}) {
+    return (
+        <div className="space-y-4">
+            {/* Events Table (No container/header) */}
+       
+            <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
+                <TablesProvider>
+                    <TransactionEventsTable events={MOCK_TRANSACTION_EVENTS} />
+                </TablesProvider>
+            </SchoolCredentialsProvider>
+
+            {/* Classboard Preview (No container/header) */}
+            <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
+                <MockClassboardProvider teacherQueues={teacherQueues}>
+                    <div className="space-y-3">
+
+                        <div className="w-full flex ml-4">
+                            <div className="flex-shrink-0 w-[340px] pr-4  ">
+                                <TeacherClassCard
+                                    queue={queue}
+                                    viewMode="expanded"
+                                    hasChanges={false}
+                                />
+                            </div>
+                            <div className="flex-1 min-w-0 pl-4 overflow-hidden">
+                                <div className="flex items-center gap-4">
+                                    {events.map((event) => (
+                                        <div key={event.id} className="w-[320px] flex-shrink-0">
+                                            <EventCard
+                                                event={event}
+                                                showLocation={true}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </MockClassboardProvider>
+            </SchoolCredentialsProvider>
+        </div>
+    );
+}
+
+function UsersSection({
+    userViewEvent,
+    queue
+}: {
+    userViewEvent: EventNode | undefined;
+    queue: TeacherQueue;
+}) {
+    return (
+        <div className="space-y-2">
+            <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
+                <div>
+                    {/* Table Header */}
+                    <div className="grid grid-cols-2 border-b-2 border-border">
+                        <div className="py-3 pl-6 pr-3 border-r-2 border-border">
+                            <div className="flex items-center gap-2 text-foreground/90">
+                                <div className="p-2 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20" style={{ color: "#22c55e" }}>
+                                    <HeadsetIcon size={24} />
+                                </div>
+                                <h3 className="font-bold text-lg leading-tight tracking-tight">Teacher</h3>
+                            </div>
+                        </div>
+                        <div className="py-3 pl-6 pr-3">
+                            <div className="flex items-center gap-2 text-foreground/90">
+                                <div className="p-2 rounded-lg bg-[#eab308]/10 border border-[#eab308]/20" style={{ color: "#eab308" }}>
+                                    <HelmetIcon size={24} />
+                                </div>
+                                <h3 className="font-bold text-lg leading-tight tracking-tight">Student</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Table Body with Event Cards */}
+                    <div className="grid grid-cols-2">
+                        {userViewEvent && (
+                            <>
+                                <div className="p-4 border-r-2 border-border">
+                                    <TeacherEventCard
+                                        event={userViewEvent}
+                                        currency="€"
+                                    />
+                                </div>
+                                <div className="p-4">
+                                    <EventStudentCard
+                                        teacherName={queue.teacher.username}
+                                        location={userViewEvent.eventData.location}
+                                        date={userViewEvent.eventData.date}
+                                        duration={userViewEvent.eventData.duration}
+                                        categoryEquipment={userViewEvent.categoryEquipment}
+                                        capacityEquipment={userViewEvent.capacityEquipment}
+                                        packageDescription="Zero to Hero"
+                                        pricePerHour={75}
+                                        status={userViewEvent.eventData.status}
+                                        schoolLogo={null}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </SchoolCredentialsProvider>
+        </div>
+    );
 }
 
 export function Examples() {
@@ -218,101 +335,16 @@ export function Examples() {
     const events = queue.getAllEvents();
     const userViewEvent = events.find(e => e.id === "evt-001");
 
-  return (
-    <section className="mb-8">
-      <h2 className="text-xl font-bold uppercase mb-6 text-primary border-b border-border pb-1">
-        Examples
-      </h2>
-      
-      <div className="space-y-8">
-        
-        {/* Events Table (No container/header) */}
-        <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
-            <TablesProvider>
-                <TransactionEventsTable events={MOCK_TRANSACTION_EVENTS} />
-            </TablesProvider>
-        </SchoolCredentialsProvider>
+    return (
+        <section className="mb-8">
+            <h2 className="text-xl font-bold uppercase mb-6 text-primary border-b border-border pb-1">
+                Examples
+            </h2>
 
-        {/* Classboard Preview (No container/header) */}
-        <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
-            <MockClassboardProvider teacherQueues={teacherQueues}>
-                <div className="w-full flex flex-row items-stretch gap-0">
-                    <div className="flex-shrink-0 w-[340px] pr-4 border-r-2 border-background/0">
-                        <TeacherClassCard
-                            queue={queue}
-                            viewMode="expanded"
-                            hasChanges={false}
-                        />
-                    </div>
-                    <div className="flex-1 min-w-0 pl-4 overflow-hidden">
-                        <div className="flex items-center gap-4">
-                            {events.map((event) => (
-                                <div key={event.id} className="w-[320px] flex-shrink-0">
-                                    <EventCard
-                                        event={event}
-                                        showLocation={true}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </MockClassboardProvider>
-        </SchoolCredentialsProvider>
-
-        {/* Users (Teacher first, then Student) using Real Components */}
-        <div className="space-y-4 pt-4">
-            <div className="flex items-center gap-2">
-                <Users size={24} className="text-primary" />
-                <h3 className="text-lg font-bold text-foreground tracking-tight">Users</h3>
+            <div className="space-y-8">
+                <AdminSection teacherQueues={teacherQueues} queue={queue} events={events} />
+                <UsersSection userViewEvent={userViewEvent} queue={queue} />
             </div>
-            
-            <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
-                <div className="grid grid-cols-2 gap-6">
-                    {userViewEvent && (
-                        <>
-                            {/* Teacher Column */}
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-foreground/80 pl-1">
-                                    <div className="text-green-500">
-                                        <HeadsetIcon size={18} />
-                                    </div>
-                                    <span className="text-sm font-bold">{queue.teacher.username}</span>
-                                </div>
-                                <TeacherEventCard 
-                                    event={userViewEvent} 
-                                    currency="€"
-                                />
-                            </div>
-
-                            {/* Student Column */}
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-foreground/80 pl-1">
-                                    <div className="text-yellow-500">
-                                        <HelmetIcon size={18} />
-                                    </div>
-                                    <span className="text-sm font-bold">{userViewEvent.bookingLeaderName}</span>
-                                </div>
-                                <EventStudentCard 
-                                    teacherName={queue.teacher.username}
-                                    location={userViewEvent.eventData.location}
-                                    date={userViewEvent.eventData.date}
-                                    duration={userViewEvent.eventData.duration}
-                                    categoryEquipment={userViewEvent.categoryEquipment}
-                                    capacityEquipment={userViewEvent.capacityEquipment}
-                                    packageDescription="Zero to Hero"
-                                    pricePerHour={75}
-                                    status={userViewEvent.eventData.status}
-                                    schoolLogo={null}
-                                />
-                            </div>
-                        </>
-                    )}
-                </div>
-            </SchoolCredentialsProvider>
-        </div>
-
-      </div>
-    </section>
-  );
+        </section>
+    );
 }
