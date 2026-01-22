@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Printer, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { PDF_DESCRIPTION_TEXT_CLASS, PDF_DESCRIPTION_LABEL_WIDTH } from "@/src/app/onboarding/pdf/page";
 
 export function AdrenalinkBranding({ logoSize = "w-16 h-16", gap = "gap-2" }: { logoSize?: string; gap?: string }) {
   return (
@@ -83,18 +84,32 @@ export function PdfHeader() {
 export function PdfDescription() {
   return (
     <div className="border-t-2 border-border py-6 px-[10mm]">
-      <p className="text-base text-muted-foreground mb-3">
-        An operating system designed specifically for <em>adrenaline sports</em>.
-      </p>
-      <p className="text-base text-muted-foreground mb-3">
-        Where conditions never stand still, we synchronise lesson planning between students and teachers.
-      </p>
-      <p className="text-base text-muted-foreground mb-3">
-        Our mission is to eliminate heavy administrative tasks through automation, bringing clarity and transparency to the entire school.
-      </p>
-      <p className="text-base text-muted-foreground">
-        Born from the need to streamline complexity, Adrenalink is a unified platform that empowers you to focus on what matters most: the student experience.
-      </p>
+      <div className="space-y-4">
+        <div className="flex items-start gap-4">
+          <span className={`text-primary font-bold uppercase text-sm tracking-wide ${PDF_DESCRIPTION_LABEL_WIDTH}`}>Who:</span>
+          <p className={`${PDF_DESCRIPTION_TEXT_CLASS} flex-1`}>
+            An operating system designed specifically for <em className="text-black">Adrenaline Activity</em>.
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
+          <span className={`text-primary font-bold uppercase text-sm tracking-wide ${PDF_DESCRIPTION_LABEL_WIDTH}`}>What:</span>
+          <p className={`${PDF_DESCRIPTION_TEXT_CLASS} flex-1`}>
+            Where conditions never stand still, we synchronize lesson planning between administrations, students and teachers.
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
+          <span className={`text-primary font-bold uppercase text-sm tracking-wide ${PDF_DESCRIPTION_LABEL_WIDTH}`}>Why:</span>
+          <p className={`${PDF_DESCRIPTION_TEXT_CLASS} flex-1`}>
+            This platform empowers you to focus on what matters most: <span className="text-black">the student experience</span>.
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
+          <span className={`text-primary font-bold uppercase text-sm tracking-wide ${PDF_DESCRIPTION_LABEL_WIDTH}`}>Mission:</span>
+          <p className={`${PDF_DESCRIPTION_TEXT_CLASS} flex-1`}>
+            To eliminate heavy directorial tasks through automation, bringing clarity and transparency to the entire school.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -22,6 +22,7 @@ import type { SchoolCredentials } from "@/types/credentials";
 import { TeacherEventCard } from "@/src/app/(users)/teacher/[id]/events/TeacherEventCard";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { PDF_DESCRIPTION_TEXT_CLASS } from "@/src/app/onboarding/pdf/page";
 
 // --- Mock Data ---
 
@@ -451,7 +452,7 @@ function UsersSection({
             <SchoolCredentialsProvider credentials={MOCK_CREDENTIALS}>
                 <div>
                     {/* Table Header */}
-                    <div className="grid grid-cols-2 border-b-2 border-border">
+                    <div className="grid grid-cols-2 border-b-2 border-border pt-1">
                         <div className="py-3 pl-6 pr-3 border-r-2 border-border">
                             <div className="flex items-center gap-2 text-foreground/90">
                                 <div className="p-2 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20" style={{ color: "#22c55e" }}>
@@ -521,8 +522,8 @@ export function Examples() {
             <h2 className="text-xl font-bold uppercase mb-3 text-primary border-b border-border pb-1">
                 Transparency
             </h2>
-            <p className="text-base text-muted-foreground mb-6">
-                Below is an example of data integrity across the app. Administration hold all the information of full date, Classboard is the foundation (A real time synchronisation lesson planner), followed by the teacher and student view.
+            <p className={`${PDF_DESCRIPTION_TEXT_CLASS} mb-2`}>
+                Data integrity flows seamlessly across the app. Administration holds a complete record, Classboard powers daily lesson activity, and teachers/students see what matters. <span className="italic">Below is an example of 2 lessons that occurred on Friday, 17 January, 2026.</span>
             </p>
 
             <div className="space-y-4">
