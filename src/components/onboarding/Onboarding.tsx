@@ -158,28 +158,6 @@ export default function Onboarding() {
                                     <p className="text-sm font-medium text-slate-600 tracking-wide"><strong>Register</strong> students, teachers and more</p>
                                 </div>
                             </div>
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.4, duration: 0.5 }}
-                                className="mt-6 flex flex-col items-center gap-3"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <Link
-                                    href="/onboarding/video"
-                                    className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors duration-200 group"
-                                >
-                                    <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
-                                    <span className="text-sm font-medium tracking-wide">Watch The Video</span>
-                                </Link>
-                                <Link
-                                    href="/onboarding/pdf"
-                                    className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors duration-200 group"
-                                >
-                                    <FileText className="w-4 h-4 transition-transform group-hover:scale-110" />
-                                    <span className="text-sm font-medium tracking-wide">Download PDF</span>
-                                </Link>
-                            </motion.div>
                         </motion.div>
                     </motion.div>
                 )}
@@ -195,16 +173,40 @@ export default function Onboarding() {
 
             <div className="p-6 md:p-8 flex flex-col items-center gap-4 relative z-10">
                 {currentStep === 0 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="flex items-center gap-3 text-slate-600"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="text-xs font-medium tracking-wide">Navigate with arrow keys</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </motion.div>
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
+                            className="flex flex-col sm:flex-row items-center gap-4 mb-2"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Link
+                                href="/onboarding/video"
+                                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 group"
+                            >
+                                <Play className="w-5 h-5 transition-transform group-hover:scale-110" />
+                                <span className="tracking-wide">Watch The Video</span>
+                            </Link>
+                            <Link
+                                href="/onboarding/pdf"
+                                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-700 hover:bg-slate-800 text-white font-semibold text-lg rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 group"
+                            >
+                                <FileText className="w-5 h-5 transition-transform group-hover:scale-110" />
+                                <span className="tracking-wide">Download PDF</span>
+                            </Link>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6, duration: 0.5 }}
+                            className="flex items-center gap-3 text-slate-600"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span className="text-xs font-medium tracking-wide">Navigate with arrow keys</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </motion.div>
+                    </>
                 )}
                 {currentStep === 5 && (
                     <motion.p
