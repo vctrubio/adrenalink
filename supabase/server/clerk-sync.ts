@@ -92,3 +92,54 @@ export async function syncUserRole(clerkId: string) {
         return { success: false, error: "Failed to sync user role" };
     }
 }
+
+/**
+ * Links a database entity (Teacher or Student) to a Clerk User ID.
+ * This is used for manual identity mapping in the Demo/Portal view.
+ */
+export async function linkEntityToClerk(
+    entityId: string, 
+    entityType: "teacher" | "student" | "school", 
+    clerkId: string
+) {
+    const supabase = getServerConnection();
+    const client = await clerkClient();
+
+    // 1. Validate Clerk User exists before updating DB
+    try {
+        await client.users.getUser(clerkId);
+    } catch (error: any) {
+        if (error.status === 404) {
+            throw new Error(`Clerk User ID '${clerkId}' not found.`);
+        }
+        throw error;
+    }
+    
+    if (entityType === "teacher") {
+        const { error } = await supabase
+            .from("teacher")
+            .update({ clerk_id: clerkId })
+            .eq("id", entityId);
+        if (error) throw error;
+    } else if (entityType === "school") {
+        // Linking owner/admin to the school table
+        const { error } = await supabase
+            .from("school")
+            .update({ clerk_id: clerkId })
+            .eq("id", entityId);
+        if (error) throw error;
+    } else {
+        // Students are linked via school_students table
+        const { error } = await supabase
+            .from("school_students")
+            .update({ clerk_id: clerkId })
+            .eq("student_id", entityId);
+        if (error) throw error;
+    }
+
+    // Immediately sync the role to Clerk metadata so the UI reflects changes
+    const syncResult = await syncUserRole(clerkId);
+    if (!syncResult.success) throw new Error(syncResult.error);
+
+    return { success: true };
+}

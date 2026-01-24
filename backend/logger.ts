@@ -3,12 +3,6 @@
  *
  * Replaces 202+ scattered console.error/console.log calls throughout codebase.
  * Single source of truth for logging format and behavior.
- *
- * Usage:
- *   logger.error("Failed to fetch student", error, { studentId: "123" });
- *   logger.warn("Retrying operation...", { attempt: 2 });
- *   logger.info("Created new booking", { bookingId: "abc" });
- *   logger.debug("Processing completed", { duration: 234 });
  */
 
 type LogLevel = "error" | "warn" | "info" | "debug";
@@ -65,12 +59,6 @@ function formatError(error: unknown): string {
  * Logger instance
  */
 export const logger = {
-    /**
-     * Log error
-     * @param message Human-readable message
-     * @param error Error object or message
-     * @param context Additional context
-     */
     error: (message: string, error?: unknown, context?: LogContext) => {
         const logFn = getConsoleMethod("error");
         const contextStr = formatContext(context);
@@ -78,66 +66,21 @@ export const logger = {
         logFn(`[ERROR] ${message}${errorStr} ${contextStr}`);
     },
 
-    /**
-     * Log warning
-     * @param message Human-readable message
-     * @param context Additional context
-     */
     warn: (message: string, context?: LogContext) => {
         const logFn = getConsoleMethod("warn");
         const contextStr = formatContext(context);
         logFn(`[WARN] ${message} ${contextStr}`);
     },
 
-    /**
-     * Log info
-     * @param message Human-readable message
-     * @param context Additional context
-     */
     info: (message: string, context?: LogContext) => {
         const logFn = getConsoleMethod("info");
         const contextStr = formatContext(context);
         logFn(`[INFO] ${message} ${contextStr}`);
     },
 
-    /**
-     * Log debug
-     * @param message Human-readable message
-     * @param context Additional context
-     */
     debug: (message: string, context?: LogContext) => {
         const logFn = getConsoleMethod("debug");
         const contextStr = formatContext(context);
         logFn(`[DEBUG] ${message} ${contextStr}`);
     },
 };
-
-/**
- * Examples:
- *
- * BEFORE:
- * console.error("Error fetching student:", error);
- *
- * AFTER:
- * logger.error("Failed to fetch student", error, { studentId: "123" });
- *
- * ---
- *
- * BEFORE:
- * console.error("Unexpected error in getStudentById:", error);
- *
- * AFTER:
- * logger.error("Unexpected error in getStudentById", error);
- *
- * ---
- *
- * BEFORE:
- * if (result.length === 0) {
- *   console.error("No students found for school");
- * }
- *
- * AFTER:
- * if (result.length === 0) {
- *   logger.warn("No students found for school", { schoolId });
- * }
- */
