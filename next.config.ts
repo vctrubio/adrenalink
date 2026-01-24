@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
     // experimental: {
     //     instrumentationHook: true,
     // },
+    logging: {
+    incomingRequests: false,
+  },
     typescript: {
         ignoreBuildErrors: true,
     },
