@@ -1,23 +1,18 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createSchool } from "@/supabase/server/welcome";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 import { logger } from "@/backend/logger";
+import { SignInButton } from "@clerk/nextjs";
+import { UserAuth } from "@/types/user";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import {
-    DetailsStep,
-    CategoriesStep,
-    AssetsStep,
-    SummaryStep,
-    WELCOME_SCHOOL_STEPS,
-    type SchoolFormData,
-} from "./WelcomeSchoolSteps";
+import { DetailsStep, CategoriesStep, AssetsStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
 import { WelcomeHeader } from "./WelcomeHeader";
 import { WelcomeSchoolNameRegistration } from "./WelcomeSchoolNameRegistration";
 import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
@@ -66,8 +61,8 @@ function generateUsernameVariants(baseUsername: string, existingUsernames: strin
     // Normalize base username to lowercase for comparison
     const normalizedBase = baseUsername.toLowerCase();
     // Normalize existing usernames array for case-insensitive comparison
-    const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
-    
+    const normalizedExisting = existingUsernames.map((u) => u?.toLowerCase() || "");
+
     if (!normalizedExisting.includes(normalizedBase) && !isUsernameReserved(normalizedBase)) {
         return normalizedBase;
     }
@@ -84,9 +79,10 @@ function generateUsernameVariants(baseUsername: string, existingUsernames: strin
 
 interface WelcomeSchoolFormProps {
     existingUsernames: string[];
+    user: UserAuth | null;
 }
 
-export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps) {
+export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolFormProps) {
     const [isGeneratingUsername, setIsGeneratingUsername] = useState(false);
     const [usernameStatus, setUsernameStatus] = useState<"available" | "unavailable" | "checking" | null>(null);
     const [pendingToBucket, setPendingToBucket] = useState(false);
@@ -114,7 +110,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             equipmentCategories: [],
             iconFile: undefined,
             bannerFile: undefined,
-            ownerEmail: "",
+            ownerEmail: user?.email || "",
             referenceNote: "",
             websiteUrl: "",
             instagramUrl: "",
@@ -128,6 +124,13 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
 
     // Watch all fields for live preview
     const formValues = watch();
+
+    // Sync email if user changes
+    useEffect(() => {
+        if (user?.email) {
+            setValue("ownerEmail", user.email);
+        }
+    }, [user, setValue]);
 
     const editField = (field: keyof SchoolFormData, goToStep?: (stepIndex: number) => void) => {
         const targetIdx = WELCOME_SCHOOL_STEPS.findIndex((s) => s.fields?.includes(field));
@@ -153,7 +156,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             try {
                 // Simulate minimal delay for UX
                 await new Promise((resolve) => setTimeout(resolve, 300));
-                
+
                 const baseUsername = generateUsername(name);
                 const finalUsername = generateUsernameVariants(baseUsername, existingUsernames);
                 setValue("username", finalUsername);
@@ -170,7 +173,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
         const username = e.target.value;
         if (username && username.length > 0) {
             setUsernameStatus("checking");
-            
+
             // Debounce or just check immediately since it's local
             // Using a tiny timeout to let the UI show "checking" for feedback
             setTimeout(() => {
@@ -181,7 +184,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
 
                 // Normalize for case-insensitive comparison
                 const normalizedUsername = username.toLowerCase();
-                const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
+                const normalizedExisting = existingUsernames.map((u) => u?.toLowerCase() || "");
                 const isTaken = normalizedExisting.includes(normalizedUsername);
                 setUsernameStatus(isTaken ? "unavailable" : "available");
             }, 200);
@@ -288,6 +291,11 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
     };
 
     const onSubmit = async (data: SchoolFormData) => {
+        if (!user) {
+            logger.error("Submission attempted without authenticated user");
+            return;
+        }
+
         // Prevent double submission
         if (isSubmitting) {
             logger.debug("Submission already in progress, ignoring duplicate submit");
@@ -301,15 +309,11 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                 triggerUpload(data);
             }
 
-            // Step 2: Prepare school data (no longer storing asset URLs)
-            // Generate random 8-character string for clerk_id
-            const randomChars = Array.from({ length: 8 }, () => 
-                'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]
-            ).join('');
+            // Step 2: Prepare school data
             const schoolData = {
                 ...data,
                 email: data.ownerEmail,
-                clerkId: `beta-${randomChars}`, // Generate beta- prefix with random 8 chars
+                clerkId: user.id, // Use actual user.id instead of random generation
                 equipmentCategories: data.equipmentCategories.join(","),
                 latitude: data.latitude?.toString(),
                 longitude: data.longitude?.toString(),
@@ -393,7 +397,7 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
             onLocationChange: handleLocationChange,
             triggerPhoneClear,
         },
-        1: {},
+        1: { user },
         2: {},
         3: {
             onEditField: editField,
@@ -446,6 +450,18 @@ export function WelcomeSchoolForm({ existingUsernames }: WelcomeSchoolFormProps)
                         </div>
                     </motion.div>
                 </>
+            ) : !user ? (
+                <div className="w-full max-w-xl mx-auto bg-card rounded-xl border border-border/50 shadow-lg p-12 text-center space-y-6">
+                    <h2 className="text-2xl font-bold">Authenticated Identity Required</h2>
+                    <p className="text-muted-foreground">
+                        To register your school, please sign in. This ensures your account is securely linked to your identity.
+                    </p>
+                    <SignInButton mode="modal">
+                        <button className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all active:scale-95">
+                            Sign In to Adrenalink
+                        </button>
+                    </SignInButton>
+                </div>
             ) : (
                 <MultiFormContainer<SchoolFormData>
                     steps={WELCOME_SCHOOL_STEPS}

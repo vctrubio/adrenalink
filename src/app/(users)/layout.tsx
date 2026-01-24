@@ -1,25 +1,39 @@
 import { type ReactNode, Suspense } from "react";
 import { SchoolCredentialsProvider } from "@/src/providers/school-credentials-provider";
 import NavAdrBarShell from "@/src/components/NavAdrBarShell";
-import { LeftIconsServer, RightIconsServer } from "@/src/components/NavAdrBarIconsServer";
-import { getSchoolCredentials } from "@/supabase/server/admin";
+import { RightIconsServer } from "@/src/components/NavAdrBarIconsServer";
 import { NavIconsSkeleton, NavIconsRightSkeleton } from "@/src/components/NavAdrBarIcons";
 import NavIns from "@/src/components/NavIns";
+import { getUserSchoolContext } from "@/types/user-school-provider";
+import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
 
 interface UsersLayoutProps {
     children: ReactNode;
 }
 
 export default async function UsersLayout({ children }: UsersLayoutProps) {
-    const credentials = await getSchoolCredentials();
+    const context = await getUserSchoolContext();
+    const serverRole = context.user?.role;
+    
+    // Transform context school into credentials format for provider
+    const credentials = context.school ? {
+        id: context.school.id,
+        name: context.school.username, // Using username as name placeholder if needed
+        username: context.school.username,
+        logoUrl: "/prototypes/north-icon.png", // Fallback logo
+        bannerUrl: "/kritaps_ungurs_unplash/forest.jpg",
+        currency: "EUR",
+        status: "active",
+        timezone: context.school.timezone
+    } : null;
 
     return (
-        <SchoolCredentialsProvider credentials={credentials}>
+        <SchoolCredentialsProvider credentials={credentials as any}>
             {/* Shell with Adrenalink is ALWAYS visible - never suspended */}
             <NavAdrBarShell
                 leftSlot={
                     <Suspense fallback={<NavIconsSkeleton />}>
-                        <LeftIconsServer />
+                        <ClerkUserDropdown serverRole={serverRole} />
                     </Suspense>
                 }
                 rightSlot={

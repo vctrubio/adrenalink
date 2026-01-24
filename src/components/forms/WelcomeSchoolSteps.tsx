@@ -9,6 +9,8 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ImageCropper } from "@/src/components/ui/ImageCropper";
 import { getPhoneCodeByCountryCode, COUNTRIES } from "@/config/countries";
 
+import { UserAuth } from "@/types/user";
+
 // Define the type directly for the multi-step form
 export interface SchoolFormData {
     name: string;
@@ -49,7 +51,11 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 4, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
-export function DetailsStep({ formMethods }: BaseStepProps<SchoolFormData>) {
+interface DetailsStepProps extends BaseStepProps<SchoolFormData> {
+    user?: UserAuth | null;
+}
+
+export function DetailsStep({ formMethods, user }: DetailsStepProps) {
     const {
         register,
         formState: { errors },
@@ -76,13 +82,27 @@ export function DetailsStep({ formMethods }: BaseStepProps<SchoolFormData>) {
                     </div>
                 </FormField>
 
-                <FormField label="Contact Email" error={errors.ownerEmail?.message}>
+                <FormField label="Contact Email" error={errors.ownerEmail?.message} isValid={!!user}>
                     <div className="relative">
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
                             <Mail className="w-4 h-4" />
                         </div>
-                        <FormInput type="email" placeholder="your@email.com" {...register("ownerEmail")} className="pl-10" />
+                        <FormInput 
+                            type="email" 
+                            placeholder="your@email.com" 
+                            {...register("ownerEmail")} 
+                            className={`pl-10 ${user ? "bg-muted cursor-not-allowed opacity-80" : ""}`}
+                            readOnly={!!user}
+                        />
+                        {user && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <span className="text-[10px] font-black uppercase tracking-tighter text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">
+                                    Verified
+                                </span>
+                            </div>
+                        )}
                     </div>
+                    {user && <p className="text-[10px] text-muted-foreground mt-1">Identity linked to your Clerk account.</p>}
                 </FormField>
 
                 <FormField label="How did you hear about us?" error={errors.referenceNote?.message}>

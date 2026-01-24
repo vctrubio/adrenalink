@@ -13,9 +13,8 @@ export interface SchoolCredentialsProviderProps {
 
 export function SchoolCredentialsProvider({ credentials, children }: SchoolCredentialsProviderProps) {
     if (!credentials) {
-        // This should not happen if the layout handles redirection, but safe to return null or fallback
-        console.log("ERROR: SchoolCredentialsProvider missing credentials");
-        return null;
+        // Allow rendering children even without credentials (e.g. for /welcome page)
+        return <>{children}</>;
     }
 
     return <SchoolCredentialsContext.Provider value={{ credentials }}>{children}</SchoolCredentialsContext.Provider>;
