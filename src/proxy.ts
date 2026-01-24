@@ -4,7 +4,7 @@ import { detectSubdomain } from "../types/domain";
 import { getServerConnection } from "@/supabase/connection";
 import { HEADER_KEYS, setHeader } from "@/types/header-constants";
 import { logger } from "@/backend/logger";
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { isPublicPath } from "@/types/clerk-utils";
 
 /**
@@ -38,14 +38,16 @@ function injectSchoolHeaders(
     }
 }
 
-export async function proxy(request: NextRequest) {
+async function customProxy(authObject: any, request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
-    // Early return for public paths (no auth needed)
+    // Early return for public paths (no auth/context needed)
     if (isPublicPath(pathname)) {
         return NextResponse.next();
     }
+
+    console.log(`//////////////////////////////// STARTING: ${pathname} //////////////////////////////`);
 
     printf("🚀 [REQUEST START]", {
         time: new Date().toISOString(),
@@ -103,7 +105,8 @@ export async function proxy(request: NextRequest) {
         injectSchoolHeaders(response, subdomainInfo.subdomain, schoolId!, timezone);
         
         // Clerk Auth Integration
-        const { userId, sessionClaims } = getAuth(request);
+        // We use the auth object passed by clerkMiddleware
+        const { userId, sessionClaims } = authObject;
         
         if (userId) {
             setHeader(response, HEADER_KEYS.USER_ID, userId);
@@ -116,12 +119,6 @@ export async function proxy(request: NextRequest) {
 
             if (role) setHeader(response, HEADER_KEYS.USER_ROLE, role);
             setHeader(response, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
-
-            printf("DEV:DEBUG 👤 SET USER HEADERS:", {
-                userId,
-                role,
-                authorized: isAuthorized,
-            });
         } else {
             printf("DEV:DEBUG ℹ️ NO USER AUTHENTICATED");
         }
@@ -163,10 +160,11 @@ export async function proxy(request: NextRequest) {
     }
 }
 
+export default clerkMiddleware(async (auth, req) => {
+    return customProxy(await auth(), req);
+});
+
 // Matcher excludes static files, fonts, and images to reduce middleware invocations
-// Next.js 16 optimization: Early returns in function are more efficient than complex matchers
 export const config = {
     matcher: ["/((?!_next/static|_next/image|favicon.ico|apple-touch-icon.png|robots.txt|sitemap.xml).*)"],
 };
-
-export default proxy;

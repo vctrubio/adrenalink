@@ -17,8 +17,9 @@ import { currentUser } from "@clerk/nextjs/server";
 
 /**
  * Get current user from Clerk
+ * Direct replacement for previous wrapper
  */
-async function getCurrentUser(): Promise<UserAuth | null> {
+export async function getUserContext(): Promise<UserAuth | null> {
     const user = await currentUser();
     
     if (!user) return null;
@@ -81,6 +82,21 @@ export const getUserSchoolContext = cache(
     async (): Promise<UserSchoolContext> => {
         // Normal auth flow - get school from subdomain headers
         const school = await getSchoolContext();
+        
+        // Get current user
+        const user = await getUserContext();
+
+        // Debug Log for Identity
+        console.log("🔍 CLERK_ID_DEBUG:", {
+            userId: user?.id || "not_authenticated",
+            role: user?.role || "none",
+            metadata: {
+                schoolId: user?.schoolId,
+                entityId: user?.entityId
+            },
+            targetSchool: school?.id || "no_school_detected"
+        });
+
         if (!school) {
             return {
                 user: null as any,
@@ -89,9 +105,6 @@ export const getUserSchoolContext = cache(
                 error: "School not found. Invalid subdomain.",
             };
         }
-
-        // Get current user
-        const user = await getCurrentUser();
         if (!user) {
             return {
                 user: null as any,
@@ -136,13 +149,6 @@ export async function getSchoolHeader() {
         name: school.username,
         zone: school.timezone,
     };
-}
-
-/**
- * Shorthand for getting just the user context
- */
-export async function getUserContext(): Promise<UserAuth | null> {
-    return getCurrentUser();
 }
 
 /**

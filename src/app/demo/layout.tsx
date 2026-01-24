@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
+import { getUserSchoolContext } from "@/types/user-school-provider";
 
-export default function DemoLayout({ children }: { children: ReactNode }) {
+export default async function DemoLayout({ children }: { children: ReactNode }) {
+    // Verify server-side context resolution
+    const context = await getUserSchoolContext();
+    const serverRole = context.user?.role;
+
     return (
         <div className="min-h-screen bg-background">
             {/* Demo Navigation */}
@@ -23,8 +28,8 @@ export default function DemoLayout({ children }: { children: ReactNode }) {
                         </div>
                     </div>
                     
-                    {/* Auth Status */}
-                    <ClerkUserDropdown />
+                    {/* Auth Status - Powered by Server Context */}
+                    <ClerkUserDropdown serverRole={serverRole} />
                 </div>
             </nav>
 

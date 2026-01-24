@@ -4,13 +4,11 @@
  * Centralized configuration for authentication paths and helpers.
  */
 
+// Paths that should SKIP the proxy middleware entirely (no DB lookup, no context)
 export const PUBLIC_PATHS = [
     "/_next/",
     "/api/public/",
-    "/discover",
-    "/about",
-    "/welcome",
-    "/demo",
+    "/discover", 
     /\.(js|css|woff|woff2|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp)$/,
 ];
 

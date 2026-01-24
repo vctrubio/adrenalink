@@ -12,6 +12,24 @@ Adrenalink uses a **Hybrid Authentication Architecture** that combines the secur
 
 ---
 
+## Dual-Layer Context
+
+Our authentication state exists in two layers to balance performance at the Edge with rich data availability in the app.
+
+### 1. The Proxy Layer (`src/proxy.ts`)
+**Purpose: Edge Gatekeeper**
+Happens at the Middleware level. It extracts the `role` and `schoolId` from the Clerk session and injects them as **HTTP Headers** (`x-user-role`, `x-school-id`, etc.).
+- **Pros**: Zero-latency, available before routing, allows fast redirects/blocks at the Edge.
+- **Headers**: Strictly strings (IDs, roles, authorization status).
+
+### 2. The Application Layer (`types/user-school-provider.ts`)
+**Purpose: rich Hydration**
+Happens within Server Components. It consumes the headers set by the proxy (for School context) and calls Clerk's `currentUser()` to get the full user profile.
+- **Pros**: Provides the full User object (names, email, full metadata object).
+- **Function**: `getUserSchoolContext()` is the primary consumer.
+
+---
+
 ## Data Flow
 
 1.  **User Logs In** (via Clerk).
@@ -98,6 +116,25 @@ export function MyComponent() {
   const isTeacher = user?.publicMetadata.role === "teacher";
 }
 ```
+
+---
+
+## Observability & User Journeys
+
+The Dual-Layer Context is not just for permissions; it is the foundation for our backend observability and debugging strategy.
+
+### 1. Request Tracing
+Because the Proxy injects standard headers (`x-user-id`, `x-school-id`), our centralized `logger.ts` and `error-handlers.ts` can automatically decorate every backend log entry with this context.
+
+### 2. Journey Pinpointing
+We use this metadata to pinpoint the exact origin of issues across three dimensions:
+- **Who**: Identify if an error is specific to a `userId` or a `role`.
+- **Where**: Filter logs by `schoolId` to see if a bug is tenant-specific.
+- **How**: Capture `userAgent` and browser context to correlate errors with specific client environments.
+
+### 3. Log Decoration Goal
+Every log entry in the backend should ideally follow this trace pattern:
+`[LEVEL] [SCHOOL_ID] [USER_ID] [PATH] message {context}`
 
 ---
 

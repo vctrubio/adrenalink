@@ -5,16 +5,20 @@ import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 
-function RoleBasedIcon() {
+interface ClerkUserDropdownProps {
+    serverRole?: string;
+}
+
+function RoleBasedIcon({ serverRole }: { serverRole?: string }) {
     const { user } = useUser();
-    const role = user?.publicMetadata?.role as string;
+    // Prioritize server-derived role if available, otherwise client metadata
+    const role = serverRole || (user?.publicMetadata?.role as string);
 
     if (role === "school_admin" || role === "admin" || role === "owner") {
         return <AdminIcon className="text-foreground" size={22} />;
     }
     
     if (role === "teacher") {
-        // We can add the inactive check here if we want the icon to reflect state instantly
         const isActive = user?.publicMetadata?.isActive !== false;
         return <HeadsetIcon className={isActive ? "text-foreground" : "text-muted-foreground"} size={22} />;
     }
@@ -28,7 +32,7 @@ function RoleBasedIcon() {
     return <HelmetIcon className="text-secondary" size={22} />;
 }
 
-export function ClerkUserDropdown() {
+export function ClerkUserDropdown({ serverRole }: ClerkUserDropdownProps) {
     return (
         <div className="flex items-center gap-4">
             <SignedOut>
@@ -42,7 +46,7 @@ export function ClerkUserDropdown() {
                 <div className="relative w-10 h-10">
                     {/* Custom Icon (Background Layer) */}
                     <div className="absolute inset-0 w-full h-full rounded-full bg-muted/30 flex items-center justify-center border border-border shadow-sm pointer-events-none">
-                        <RoleBasedIcon />
+                        <RoleBasedIcon serverRole={serverRole} />
                     </div>
                     
                     {/* Invisible Clerk Button (Interaction Layer) */}
