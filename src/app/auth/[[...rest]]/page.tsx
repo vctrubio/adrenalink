@@ -40,21 +40,15 @@ export default function AuthLandingPage() {
             <div className="w-full max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4">
-                        Adrenalink
-                    </h1>
-                    <p className="text-xl text-muted-foreground">
-                        Next-generation booking and event management platform
-                    </p>
+                    <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4">Adrenalink</h1>
+                    <p className="text-xl text-muted-foreground">Next-generation booking and event management platform</p>
                 </div>
 
                 {/* Main Content */}
                 <div className="space-y-12 mb-16">
                     {/* DRY Refactoring Section */}
                     <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
-                        <h2 className="text-2xl font-bold text-foreground mb-6">
-                            DRY Refactoring Complete
-                        </h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-6">DRY Refactoring Complete</h2>
 
                         <div className="grid md:grid-cols-2 gap-8 mb-8">
                             {/* Centralized Utilities */}
@@ -67,22 +61,21 @@ export default function AuthLandingPage() {
                                     <li className="flex gap-2">
                                         <span className="text-primary">→</span>
                                         <span>
-                                            <code className="bg-muted px-2 py-1 rounded text-sm">logger.ts</code>
-                                            - Structured logging
+                                            <code className="bg-muted px-2 py-1 rounded text-sm">logger.ts</code>- Structured logging
                                         </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-primary">→</span>
                                         <span>
-                                            <code className="bg-muted px-2 py-1 rounded text-sm">error-handlers.ts</code>
-                                            - Safe error handling
+                                            <code className="bg-muted px-2 py-1 rounded text-sm">error-handlers.ts</code>- Safe error
+                                            handling
                                         </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-primary">→</span>
                                         <span>
-                                            <code className="bg-muted px-2 py-1 rounded text-sm">school-context.ts</code>
-                                            - Unified context
+                                            <code className="bg-muted px-2 py-1 rounded text-sm">school-context.ts</code>- Unified
+                                            context
                                         </span>
                                     </li>
                                 </ul>
@@ -130,12 +123,11 @@ export default function AuthLandingPage() {
 
                     {/* Providers Section */}
                     <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
-                        <h2 className="text-2xl font-bold text-foreground mb-6">
-                            Providers Architecture
-                        </h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-6">Providers Architecture</h2>
 
                         <p className="text-muted-foreground mb-6">
-                            The application uses a provider-based architecture to manage authentication, theme, and UI state across the app:
+                            The application uses a provider-based architecture to manage authentication, theme, and UI state across the
+                            app:
                         </p>
 
                         <div className="space-y-4">
@@ -170,12 +162,12 @@ export default function AuthLandingPage() {
 
                     {/* GlobalFlag Section */}
                     <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
-                        <h2 className="text-2xl font-bold text-foreground mb-6">
-                            GlobalFlag: Classboard Live Sync
-                        </h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-6">GlobalFlag: Classboard Live Sync</h2>
 
                         <p className="text-muted-foreground mb-6">
-                            The classboard page uses a centralized <code className="bg-muted px-2 py-1 rounded text-sm">GlobalFlag</code> instance to manage complex state for real-time event scheduling and teacher queue adjustments.
+                            The classboard page uses a centralized{" "}
+                            <code className="bg-muted px-2 py-1 rounded text-sm">GlobalFlag</code> instance to manage complex state for
+                            real-time event scheduling and teacher queue adjustments.
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -184,19 +176,27 @@ export default function AuthLandingPage() {
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex gap-2">
                                         <span className="text-primary">•</span>
-                                        <span><strong>Real-time Updates:</strong> Live event changes across all teachers</span>
+                                        <span>
+                                            <strong>Real-time Updates:</strong> Live event changes across all teachers
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-primary">•</span>
-                                        <span><strong>Cascade Locking:</strong> Sync time/location across all teachers</span>
+                                        <span>
+                                            <strong>Cascade Locking:</strong> Sync time/location across all teachers
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-primary">•</span>
-                                        <span><strong>Optimistic Updates:</strong> Instant UI feedback with rollback</span>
+                                        <span>
+                                            <strong>Optimistic Updates:</strong> Instant UI feedback with rollback
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-primary">•</span>
-                                        <span><strong>Conflict Detection:</strong> Auto-exit on server changes</span>
+                                        <span>
+                                            <strong>Conflict Detection:</strong> Auto-exit on server changes
+                                        </span>
                                     </li>
                                 </ul>
                             </div>
@@ -206,19 +206,27 @@ export default function AuthLandingPage() {
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex gap-2">
                                         <span className="text-accent">✓</span>
-                                        <span><strong>Event Mutations:</strong> Tracks creating/updating spinners</span>
+                                        <span>
+                                            <strong>Event Mutations:</strong> Tracks creating/updating spinners
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-accent">✓</span>
-                                        <span><strong>Adjustment Mode:</strong> Multi-teacher edit sessions</span>
+                                        <span>
+                                            <strong>Adjustment Mode:</strong> Multi-teacher edit sessions
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-accent">✓</span>
-                                        <span><strong>Single Source of Truth:</strong> All classboard state here</span>
+                                        <span>
+                                            <strong>Single Source of Truth:</strong> All classboard state here
+                                        </span>
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-accent">✓</span>
-                                        <span><strong>localStorage Persistence:</strong> Settings survive reload</span>
+                                        <span>
+                                            <strong>localStorage Persistence:</strong> Settings survive reload
+                                        </span>
                                     </li>
                                 </ul>
                             </div>
@@ -226,26 +234,28 @@ export default function AuthLandingPage() {
 
                         <div className="p-4 bg-muted/50 rounded-lg">
                             <p className="text-sm text-muted-foreground">
-                                <strong>Example:</strong> When a teacher adjusts event times, GlobalFlag instantly updates the UI, syncs to all teachers in cascade mode, and persists changes to the database with optimistic updates.
+                                <strong>Example:</strong> When a teacher adjusts event times, GlobalFlag instantly updates the UI,
+                                syncs to all teachers in cascade mode, and persists changes to the database with optimistic updates.
                             </p>
                         </div>
                     </div>
 
                     {/* User Roles Section */}
                     <div className="bg-gradient-to-br from-indigo-50 dark:from-indigo-950/30 to-indigo-50/50 dark:to-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-8 shadow-sm">
-                        <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-6">
-                            User Roles & Permissions
-                        </h2>
+                        <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-6">User Roles & Permissions</h2>
 
                         <p className="text-indigo-800 dark:text-indigo-200 mb-6">
-                            Adrenalink supports three distinct user roles with different permissions and capabilities within each school.
+                            Adrenalink supports three distinct user roles with different permissions and capabilities within each
+                            school.
                         </p>
 
                         <div className="grid md:grid-cols-3 gap-6">
                             {/* Admin Role */}
                             <div className="bg-white/50 dark:bg-slate-900/50 p-6 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                 <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-4 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">👨‍💼</span>
+                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">
+                                        👨‍💼
+                                    </span>
                                     Admin
                                 </h3>
                                 <ul className="space-y-2 text-sm text-indigo-800 dark:text-indigo-200">
@@ -275,7 +285,9 @@ export default function AuthLandingPage() {
                             {/* Teacher Role */}
                             <div className="bg-white/50 dark:bg-slate-900/50 p-6 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                 <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-4 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">👨‍🏫</span>
+                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">
+                                        👨‍🏫
+                                    </span>
                                     Teacher
                                 </h3>
                                 <ul className="space-y-2 text-sm text-indigo-800 dark:text-indigo-200">
@@ -305,7 +317,9 @@ export default function AuthLandingPage() {
                             {/* Student Role */}
                             <div className="bg-white/50 dark:bg-slate-900/50 p-6 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                 <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-4 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">👨‍🎓</span>
+                                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold">
+                                        👨‍🎓
+                                    </span>
                                     Student
                                 </h3>
                                 <ul className="space-y-2 text-sm text-indigo-800 dark:text-indigo-200">
@@ -347,11 +361,13 @@ export default function AuthLandingPage() {
                         <div className="space-y-4">
                             <div className="p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-purple-100 dark:border-purple-800">
                                 <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-3 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">1</span>
+                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">
+                                        1
+                                    </span>
                                     Database Schema Updates
                                 </h3>
                                 <code className="block bg-slate-100 dark:bg-slate-950 p-3 rounded text-xs overflow-auto text-slate-900 dark:text-slate-100 font-mono">
-{`-- Store Clerk user IDs
+                                    {`-- Store Clerk user IDs
 ALTER TABLE student ADD COLUMN clerk_id VARCHAR(255) UNIQUE;
 ALTER TABLE teacher ADD COLUMN clerk_id VARCHAR(255) UNIQUE;
 
@@ -368,12 +384,19 @@ CREATE TABLE school_users (
 
                             <div className="p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-purple-100 dark:border-purple-800">
                                 <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-3 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">2</span>
+                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">
+                                        2
+                                    </span>
                                     Sync User on Sign-In
                                 </h3>
-                                <p className="text-sm text-purple-800 dark:text-purple-200 mb-2">Create server action: <code className="bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded">supabase/server/sync-clerk-user.ts</code></p>
+                                <p className="text-sm text-purple-800 dark:text-purple-200 mb-2">
+                                    Create server action:{" "}
+                                    <code className="bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded">
+                                        supabase/server/sync-clerk-user.ts
+                                    </code>
+                                </p>
                                 <code className="block bg-slate-100 dark:bg-slate-950 p-3 rounded text-xs overflow-auto text-slate-900 dark:text-slate-100 font-mono">
-{`export async function syncClerkUser(clerkId: string, email: string) {
+                                    {`export async function syncClerkUser(clerkId: string, email: string) {
   // 1. Check if clerk_id exists in student or teacher
   // 2. If not, create new record
   // 3. Link clerk_id to entity
@@ -384,11 +407,14 @@ CREATE TABLE school_users (
 
                             <div className="p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-purple-100 dark:border-purple-800">
                                 <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-3 flex items-center gap-2">
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">3</span>
+                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white text-sm font-bold">
+                                        3
+                                    </span>
                                     School Selection Flow
                                 </h3>
                                 <p className="text-sm text-purple-800 dark:text-purple-200">
-                                    After sign-in, show user list of schools they belong to with role assignments. Redirect to appropriate dashboard.
+                                    After sign-in, show user list of schools they belong to with role assignments. Redirect to
+                                    appropriate dashboard.
                                 </p>
                             </div>
 
@@ -407,12 +433,11 @@ CREATE TABLE school_users (
 
                     {/* Authentication Section */}
                     <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30 rounded-lg p-8 shadow-sm">
-                        <h2 className="text-2xl font-bold text-foreground mb-6">
-                            Authentication
-                        </h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-6">Authentication</h2>
 
                         <p className="text-muted-foreground mb-8">
-                            Sign in with Clerk to access Adrenalink. After authentication, you'll be guided to select your school and role.
+                            Sign in with Clerk to access Adrenalink. After authentication, you'll be guided to select your school and
+                            role.
                         </p>
 
                         <div className="space-y-4">
@@ -420,9 +445,12 @@ CREATE TABLE school_users (
                             <SignedOut>
                                 <div className="flex flex-col gap-4">
                                     <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                        <p className="text-sm text-blue-900 dark:text-blue-100 font-semibold mb-2">🔐 Sign In Required</p>
+                                        <p className="text-sm text-blue-900 dark:text-blue-100 font-semibold mb-2">
+                                            🔐 Sign In Required
+                                        </p>
                                         <p className="text-xs text-blue-800 dark:text-blue-200">
-                                            Click the button below to sign in with Clerk. New users will be onboarded to select their school and role.
+                                            Click the button below to sign in with Clerk. New users will be onboarded to select their
+                                            school and role.
                                         </p>
                                     </div>
                                     <SignIn mode="modal" routing="hash" />

@@ -92,6 +92,7 @@ export const PUBLIC_PATHS = [
     "/discover",
     "/about",
     "/welcome",
+    "/demo",
     /\.(js|css|woff|woff2|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp)$/,
 ];
 
