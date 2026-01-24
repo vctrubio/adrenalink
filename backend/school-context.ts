@@ -21,7 +21,7 @@ import type { ApiActionResponseModel } from "@/types/actions";
  */
 export interface SchoolContext {
     schoolId: string;
-    timezone: string;
+    timezone: string; //not needed noo more
 }
 
 /**
@@ -39,38 +39,36 @@ export interface SchoolContext {
  *   if (!context) return { success: false, error: "School not found" };
  *   const { schoolId, timezone } = context;
  */
-export const getSchoolContext = cache(
-    async (): Promise<SchoolContext | null> => {
-        try {
-            // Try headers first (set by proxy.ts)
-            const headersList = await headers();
-            const schoolIdHeader = headersList.get("x-school-id");
-            const timezoneHeader = headersList.get("x-school-timezone");
+export const getSchoolContext = cache(async (): Promise<SchoolContext | null> => {
+    try {
+        // Try headers first (set by proxy.ts)
+        const headersList = await headers();
+        const schoolIdHeader = headersList.get("x-school-id");
+        const timezoneHeader = headersList.get("x-school-timezone");
 
-            if (schoolIdHeader) {
-                return {
-                    schoolId: schoolIdHeader,
-                    timezone: timezoneHeader || "UTC",
-                };
-            }
-
-            // Fall back to database lookup
-            const schoolHeader = await getSchoolHeader();
-            if (!schoolHeader) {
-                logger.warn("School context not found in headers or database");
-                return null;
-            }
-
+        if (schoolIdHeader) {
             return {
-                schoolId: schoolHeader.id,
-                timezone: schoolHeader.zone,
+                schoolId: schoolIdHeader,
+                timezone: timezoneHeader || "UTC",
             };
-        } catch (error) {
-            logger.error("Failed to get school context", error);
+        }
+
+        // Fall back to database lookup
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            logger.warn("School context not found in headers or database");
             return null;
         }
+
+        return {
+            schoolId: schoolHeader.id,
+            timezone: schoolHeader.zone,
+        };
+    } catch (error) {
+        logger.error("Failed to get school context", error);
+        return null;
     }
-);
+});
 
 /**
  * Get school context or return error response
@@ -83,9 +81,7 @@ export const getSchoolContext = cache(
  *   if (!contextResult.success) return contextResult;
  *   const { schoolId, timezone } = contextResult.data;
  */
-export async function getSchoolContextOrFail(): Promise<
-    ApiActionResponseModel<SchoolContext>
-> {
+export async function getSchoolContextOrFail(): Promise<ApiActionResponseModel<SchoolContext>> {
     const context = await getSchoolContext();
     if (!context) {
         return {
@@ -108,68 +104,3 @@ export async function getSchoolId(): Promise<string | null> {
     const context = await getSchoolContext();
     return context?.schoolId || null;
 }
-
-/**
- * Get just the timezone
- *
- * Convenience method for timezone-specific operations.
- */
-export async function getSchoolTimezone(): Promise<string> {
-    const context = await getSchoolContext();
-    return context?.timezone || "UTC";
-}
-
-/**
- * Examples of replacing duplicate code:
- *
- * ===== BEFORE (12+ duplicates) =====
- *
- * // In student-id.ts
- * const headersList = await headers();
- * let schoolId = headersList.get("x-school-id");
- * let timezone = headersList.get("x-school-timezone");
- *
- * if (!schoolId) {
- *     const schoolHeader = await getSchoolHeader();
- *     if (!schoolHeader) {
- *         return { success: false, error: "School context not found" };
- *     }
- *     schoolId = schoolHeader.id;
- *     timezone = schoolHeader.timezone;
- * } else if (!timezone) {
- *     const schoolHeader = await getSchoolHeader();
- *     if (schoolHeader) timezone = schoolHeader.timezone;
- * }
- *
- * // In teacher-id.ts
- * const headersList = await headers();
- * let schoolId = headersList.get("x-school-id");
- * let timezone = headersList.get("x-school-timezone");
- *
- * if (!schoolId) {
- *     const schoolHeader = await getSchoolHeader();
- *     if (!schoolHeader) {
- *         return { success: false, error: "School context not found" };
- *     }
- *     schoolId = schoolHeader.id;
- *     timezone = schoolHeader.timezone;
- * } else if (!timezone) {
- *     const schoolHeader = await getSchoolHeader();
- *     if (schoolHeader) timezone = schoolHeader.timezone;
- * }
- *
- * // REPEATED IN EVERY FILE...
- *
- * ===== AFTER (One-liner) =====
- *
- * // In ANY server action file
- * const contextResult = await getSchoolContextOrFail();
- * if (!contextResult.success) return contextResult;
- * const { schoolId, timezone } = contextResult.data;
- *
- * // OR if you want just schoolId
- * const schoolId = await getSchoolId();
- *
- * // OR if you want just timezone
- * const timezone = await getSchoolTimezone();
- */

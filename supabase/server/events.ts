@@ -17,7 +17,6 @@ import type { ApiActionResponseModel } from "@/types/actions";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
-import { getSchoolTimezone } from "@/backend/school-context";
 import { revalidatePath } from "next/cache";
 
 interface UpdateEventStatusResult {
@@ -74,11 +73,6 @@ export async function getEventTransaction(
 ): Promise<{ success: boolean; data?: TransactionEventData; error?: string }> {
     try {
         const supabase = getServerConnection();
-
-        const timezone = await getSchoolTimezone();
-        if (!timezone) {
-            return { success: false, error: "School context not found" };
-        }
 
         const { data, error } = await supabase
             .from("event")
@@ -305,10 +299,7 @@ export async function confirmEventWithEquipment(
 
         // Step 1: Update duration if provided
         if (duration !== undefined) {
-            const { error: durationError } = await supabase
-                .from("event")
-                .update({ duration })
-                .eq("id", eventId);
+            const { error: durationError } = await supabase.from("event").update({ duration }).eq("id", eventId);
 
             if (durationError) {
                 logger.error("Error updating duration during confirmation", durationError);
