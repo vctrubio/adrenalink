@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
 
 export default function DemoLayout({ children }: { children: ReactNode }) {
     return (
@@ -21,6 +22,9 @@ export default function DemoLayout({ children }: { children: ReactNode }) {
                             </Link>
                         </div>
                     </div>
+                    
+                    {/* Auth Status */}
+                    <ClerkUserDropdown />
                 </div>
             </nav>
 
