@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import printf from "../printf.js";
 import { detectSubdomain } from "../types/domain";
 import { getServerConnection } from "@/supabase/connection";
-import {
-    getCurrentUserFromRequest,
-    validateUserSchoolAccess,
-    injectUserHeaders,
-    isPublicPath,
-} from "@/types/auth-utils";
 import { HEADER_KEYS, setHeader } from "@/types/header-constants";
 import { logger } from "@/backend/logger";
+import { getAuth } from "@clerk/nextjs/server";
+import { isPublicPath } from "@/types/clerk-utils";
 
 /**
  * Helper to construct discover redirect URL based on domain type
@@ -105,31 +101,27 @@ export async function proxy(request: NextRequest) {
         // Create response with school headers
         const response = NextResponse.next();
         injectSchoolHeaders(response, subdomainInfo.subdomain, schoolId!, timezone);
-        printf("DEV:DEBUG 📝 SET SCHOOL HEADERS:", {
-            username: subdomainInfo.subdomain,
-            id: schoolId,
-            zone: timezone,
-        });
+        
+        // Clerk Auth Integration
+        const { userId, sessionClaims } = getAuth(request);
+        
+        if (userId) {
+            setHeader(response, HEADER_KEYS.USER_ID, userId);
+            
+            // Extract role/school from claims (session metadata)
+            const metadata = (sessionClaims?.publicMetadata as any) || {};
+            const role = metadata.role;
+            const userSchoolId = metadata.schoolId;
+            const isAuthorized = userSchoolId === schoolId;
 
-        // Check for user authentication
-        const user = getCurrentUserFromRequest(request);
-        if (user) {
-            const isAuthorized = validateUserSchoolAccess(user.id, schoolId!);
-            injectUserHeaders(response, user, isAuthorized);
+            if (role) setHeader(response, HEADER_KEYS.USER_ROLE, role);
+            setHeader(response, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
+
             printf("DEV:DEBUG 👤 SET USER HEADERS:", {
-                userId: user.id,
-                email: user.email,
-                role: user.role,
+                userId,
+                role,
                 authorized: isAuthorized,
             });
-
-            if (!isAuthorized) {
-                printf("DEV:DEBUG ⚠️ USER NOT AUTHORIZED FOR SCHOOL:", {
-                    userId: user.id,
-                    schoolId,
-                });
-                // Allow through for now, let layout handle unauthorized
-            }
         } else {
             printf("DEV:DEBUG ℹ️ NO USER AUTHENTICATED");
         }
@@ -142,8 +134,11 @@ export async function proxy(request: NextRequest) {
             printf("🔄 REWRITING TO:", url.toString());
             const rewriteResponse = NextResponse.rewrite(url);
             injectSchoolHeaders(rewriteResponse, subdomainInfo.subdomain, schoolId!, timezone);
-            if (user) {
-                injectUserHeaders(rewriteResponse, user, validateUserSchoolAccess(user.id, schoolId!));
+            
+            if (userId) {
+                const metadata = (sessionClaims?.publicMetadata as any) || {};
+                setHeader(rewriteResponse, HEADER_KEYS.USER_ID, userId);
+                setHeader(rewriteResponse, HEADER_KEYS.USER_AUTHORIZED, metadata.schoolId === schoolId ? "true" : "false");
             }
             return rewriteResponse;
         }
@@ -162,10 +157,9 @@ export async function proxy(request: NextRequest) {
             user_agent: request.headers.get("user-agent"),
             url: request.url,
             ip: (request as any).ip || request.headers.get("x-forwarded-for"),
-            user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined, // To be defined by a relevant cookie supressing part of the value
-            user_header: request.headers.get("user1") // To be defined by a relevant header
-        }
-        );
+            user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined,
+            user_header: request.headers.get("user1")
+        });
     }
 }
 

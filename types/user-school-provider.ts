@@ -13,46 +13,31 @@
 import { headers } from "next/headers";
 import { cache } from "react";
 import type { UserSchoolContext, UserAuth } from "./user";
-import { MOCK_USERS, MOCK_SCHOOLS, MOCK_USER_SCHOOL_RELATIONS } from "./user";
-import {
-    isAuthDisabled,
-    getDefaultRole,
-    getDefaultUserId,
-    getDefaultSchoolId,
-    getMockUserForRole,
-} from "./auth-flags";
+import { currentUser } from "@clerk/nextjs/server";
 
 /**
- * Get current user - Mock for now, will be replaced with Clerk
- * TODO: Replace with Clerk auth when ready
- *
- * If auth is disabled via NEXT_PUBLIC_DISABLE_AUTH flag:
- * - Returns mock user based on NEXT_PUBLIC_DEFAULT_ROLE
- * - Useful for development/testing without Clerk
+ * Get current user from Clerk
  */
 async function getCurrentUser(): Promise<UserAuth | null> {
-    // If auth is disabled, return mock user based on default role
-    if (isAuthDisabled()) {
-        const role = getDefaultRole();
-        return getMockUserForRole(role);
-    }
+    const user = await currentUser();
+    
+    if (!user) return null;
 
-    // Otherwise, read from a header set by middleware or mock
-    // In production with Clerk: const { userId } = await auth();
-    const headersList = await headers();
-    const userId = headersList.get("x-user-id");
-
-    if (!userId) {
-        return null;
-    }
-
-    return MOCK_USERS[userId] || null;
+    // Map Clerk user to UserAuth type
+    // This assumes metadata has been synced by our sync engine
+    return {
+        id: user.id,
+        email: user.emailAddresses[0]?.emailAddress || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        role: (user.publicMetadata.role as any) || "guest",
+        schoolId: (user.publicMetadata.schoolId as string) || "",
+        entityId: (user.publicMetadata.entityId as string) || "",
+    };
 }
 
 /**
  * Get school context from headers (set by proxy.ts middleware)
- *
- * If auth is disabled, falls back to default school
  */
 async function getSchoolContext() {
     const headersList = await headers();
@@ -64,25 +49,15 @@ async function getSchoolContext() {
         return { id: schoolId, username: schoolUsername, timezone: schoolTimezone || "UTC" };
     }
 
-    // If auth is disabled and no school from headers, use default
-    if (isAuthDisabled()) {
-        const defaultSchoolId = getDefaultSchoolId();
-        const defaultSchool = MOCK_SCHOOLS[defaultSchoolId];
-        if (defaultSchool) {
-            return defaultSchool;
-        }
-    }
-
     return null;
 }
 
 /**
  * Validate user belongs to school
- * Checks the school_students or school_teachers relations
+ * Relies on the schoolId being present in the user's metadata (synced from DB)
  */
-function validateUserSchoolRelation(userId: string, schoolId: string): boolean {
-    const usersInSchool = MOCK_USER_SCHOOL_RELATIONS[schoolId] || [];
-    return usersInSchool.includes(userId);
+function validateUserSchoolRelation(user: UserAuth, schoolId: string): boolean {
+    return user.schoolId === schoolId;
 }
 
 /**
@@ -94,11 +69,6 @@ function validateUserSchoolRelation(userId: string, schoolId: string): boolean {
  * - isAuthorized: Whether user belongs to this school
  * - error: Any validation errors
  *
- * If NEXT_PUBLIC_DISABLE_AUTH is set (development only):
- * - Skips all validation checks
- * - Returns mock user based on NEXT_PUBLIC_DEFAULT_ROLE
- * - Useful for testing without Clerk
- *
  * Usage in server components:
  * ```typescript
  * const context = await getUserSchoolContext();
@@ -109,27 +79,6 @@ function validateUserSchoolRelation(userId: string, schoolId: string): boolean {
  */
 export const getUserSchoolContext = cache(
     async (): Promise<UserSchoolContext> => {
-        // If auth is disabled, return fully authorized context with defaults
-        if (isAuthDisabled()) {
-            const school = await getSchoolContext();
-            const user = await getCurrentUser();
-
-            if (!school || !user) {
-                return {
-                    user: null as any,
-                    school: null as any,
-                    isAuthorized: false,
-                    error: "Auth disabled but school or user data missing",
-                };
-            }
-
-            return {
-                user,
-                school,
-                isAuthorized: true, // Always authorized in dev mode with auth disabled
-            };
-        }
-
         // Normal auth flow - get school from subdomain headers
         const school = await getSchoolContext();
         if (!school) {
@@ -153,7 +102,9 @@ export const getUserSchoolContext = cache(
         }
 
         // Validate user belongs to this school
-        const isAuthorized = validateUserSchoolRelation(user.id, school.id);
+        // In the new Clerk-sync world, if the user has the schoolId in their metadata, they are authorized.
+        const isAuthorized = validateUserSchoolRelation(user, school.id);
+        
         if (!isAuthorized) {
             return {
                 user,
@@ -224,18 +175,3 @@ export function isTeacher(context: UserSchoolContext): boolean {
 export function isStudent(context: UserSchoolContext): boolean {
     return hasRole(context, "student");
 }
-
-/**
- * Check if authentication is disabled (development mode)
- *
- * Useful for determining if you need to skip auth checks in layouts/components
- *
- * Usage in layouts:
- * ```typescript
- * if (isAuthDisabledMode()) {
- *   // Auth is disabled - render without guards
- *   return <div>{children}</div>;
- * }
- * ```
- */
-export { isAuthDisabled as isAuthDisabledMode } from "./auth-flags";
