@@ -58,6 +58,7 @@ export async function proxy(request: NextRequest) {
         pathname,
         hostname,
     });
+    try {
 
     // Redirect www root to /discover page
     if ((hostname === "www.lvh.me:3000" || hostname === "www.adrenalink.tech") && pathname === "/") {
@@ -151,6 +152,21 @@ export async function proxy(request: NextRequest) {
     }
 
     return NextResponse.next();
+    } finally {
+        const date = new Date();
+        const timestamp = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}:${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}:${date.getMilliseconds().toString().padStart(3, '0')}`;
+        console.log({
+            time: timestamp,
+            method: request.method,
+            hostname,
+            user_agent: request.headers.get("user-agent"),
+            url: request.url,
+            ip: (request as any).ip || request.headers.get("x-forwarded-for"),
+            user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined, // To be defined by a relevant cookie supressing part of the value
+            user_header: request.headers.get("user1") // To be defined by a relevant header
+        }
+        );
+    }
 }
 
 // Matcher excludes static files, fonts, and images to reduce middleware invocations
