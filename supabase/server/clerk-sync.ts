@@ -1,3 +1,5 @@
+"use server";
+
 import { getServerConnection } from "@/supabase/connection";
 import { clerkClient } from "@clerk/nextjs/server";
 
