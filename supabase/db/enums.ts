@@ -2,7 +2,6 @@
  * Database Enums - Type-safe validation for TEXT columns
  * Use these for validation and type checking in application code
  * Database stores these as TEXT for flexibility
- * Values copied exactly from drizzle/schema.ts
  */
 
 // School statuses

@@ -1,8 +1,8 @@
 import type { StudentModel } from "@/backend/models";
 
 // ============ STUDENT STATS NAMESPACE ============
-// Reads from pre-calculated stats in databoard models
-// Falls back to relation traversal for non-databoard usage
+// Reads from pre-calculated stats in models
+// Falls back to relation traversal when stats aren't available
 
 export const StudentStats = {
     getRevenue: (student: StudentModel): number => student.stats?.money_in || 0,
@@ -13,7 +13,7 @@ export const StudentStats = {
 };
 
 // ============ LEGACY RELATION-BASED GETTERS ============
-// Used for non-databoard contexts where stats aren't available
+// Used when stats aren't available
 
 export function getStudentName(student: StudentModel | { firstName: string; lastName: string }): string {
     return `${student.firstName} ${student.lastName}`;

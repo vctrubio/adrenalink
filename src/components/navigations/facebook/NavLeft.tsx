@@ -13,7 +13,7 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { NavigationWizardModal } from "@/src/components/modals/admin/NavigationWizardModal";
 
 const NAV_IDS = ["info", "classboard", "data", "users", "help"] as const;
-const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
+const TABLE_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavLeft = () => {
     const pathname = usePathname();
@@ -23,8 +23,8 @@ export const NavLeft = () => {
     const credentials = useSchoolCredentials();
     const schoolUsername = credentials?.username || null;
 
-    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
-    const databoardPaths = databoardEntities.map((item) => item.link).filter(Boolean) as string[];
+    const tableEntities = ENTITY_DATA.filter((entity) => TABLE_ENTITIES.includes(entity.id));
+    const tablePaths = tableEntities.map((item) => item.link).filter(Boolean) as string[];
     const routesToRender = FACEBOOK_NAV_ROUTES.filter((route) => NAV_IDS.includes(route.id as (typeof NAV_IDS)[number]));
 
     useEffect(() => {
@@ -42,7 +42,7 @@ export const NavLeft = () => {
     // Find active route
     const activeRoute = routesToRender.find((route) => {
         if (route.id === "data") {
-            return pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+            return pathname.startsWith("/tables") || tablePaths.some((path) => pathname.startsWith(path));
         }
         return pathname.startsWith(route.href);
     });
@@ -51,7 +51,7 @@ export const NavLeft = () => {
     const mobileDropdownItems: DropdownItemProps[] = routesToRender.map((route) => {
         let isActive = false;
         if (route.id === "data") {
-            isActive = pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+            isActive = pathname.startsWith("/tables") || tablePaths.some((path) => pathname.startsWith(path));
         } else {
             isActive = pathname.startsWith(route.href);
         }
@@ -128,7 +128,7 @@ export const NavLeft = () => {
                     {routesToRender.map((route) => {
                         let isActive = false;
                         if (route.id === "data") {
-                            isActive = pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+                            isActive = pathname.startsWith("/tables") || tablePaths.some((path) => pathname.startsWith(path));
                         } else {
                             isActive = pathname.startsWith(route.href);
                         }

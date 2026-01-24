@@ -3,6 +3,14 @@ TYPES OF TABLE DATA
  */
 import { BOOKING_STATUS, LESSON_STATUS } from "@/supabase/db/enums";
 
+/**
+ * Table Filter Types
+ * Used for filtering and grouping table data
+ */
+export type TableFilterByDate = "All" | "Last 7 days" | "Last 30 days" | "Last 72 days";
+export type TableGroupByDate = "All" | "Daily" | "Weekly" | "Monthly";
+export type TableActivityFilter = "All" | "Active" | "Inactive" | "New" | "Available" | "Free" | "Completed" | "Planned" | "TBC" | "Uncompleted" | "Kite" | "Wing" | "Windsurf" | "Lesson" | "Rental";
+
 export interface Booking {
     id: string;
     dateStart: string;

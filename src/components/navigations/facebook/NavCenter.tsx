@@ -5,19 +5,19 @@ import { FACEBOOK_NAV_ROUTES } from "@/config/facebook-nav-routes";
 import { ENTITY_DATA } from "@/config/entities";
 
 const NAV_IDS = ["info", "classboard", "data", "users", "invitations"] as const;
-const DATABOARD_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
+const TABLE_ENTITIES = ["student", "teacher", "schoolPackage", "booking", "equipment"];
 
 export const NavCenter = () => {
     const pathname = usePathname();
     
-    const databoardEntities = ENTITY_DATA.filter((entity) => DATABOARD_ENTITIES.includes(entity.id));
-    const databoardPaths = databoardEntities.map((item) => item.link).filter(Boolean) as string[];
+    const tableEntities = ENTITY_DATA.filter((entity) => TABLE_ENTITIES.includes(entity.id));
+    const tablePaths = tableEntities.map((item) => item.link).filter(Boolean) as string[];
     const routesToRender = FACEBOOK_NAV_ROUTES.filter((route) => NAV_IDS.includes(route.id as (typeof NAV_IDS)[number]));
     
     // Check if there's an active route
     const hasActiveRoute = routesToRender.some((route) => {
         if (route.id === "data") {
-            return pathname.startsWith("/tables") || databoardPaths.some((path) => pathname.startsWith(path));
+            return pathname.startsWith("/tables") || tablePaths.some((path) => pathname.startsWith(path));
         }
         return pathname.startsWith(route.href);
     });

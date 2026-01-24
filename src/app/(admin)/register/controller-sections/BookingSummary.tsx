@@ -214,14 +214,14 @@ export function BookingSummary({
                             !!selectedTeacher ? "text-foreground font-bold tracking-tight" : "text-muted-foreground font-medium"
                         }
                     >
-                        INSTRUCTOR
+                        TEACHER
                     </span>
                 </div>
             ),
             value: selectedTeacher ? (
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
                     <span className="font-bold text-sm text-foreground">
-                        {selectedTeacher.firstName} {selectedTeacher.lastName}
+                        {selectedTeacher.schema?.username || "No teacher selected"}
                     </span>
                     {selectedCommission && (
                         <TeacherCommissionBadge value={selectedCommission.cph} type={selectedCommission.commissionType} />

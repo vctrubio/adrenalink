@@ -2,8 +2,8 @@ import type { BookingModel } from "@/backend/models";
 import { calculateCommission, calculateLessonRevenue, type CommissionInfo } from "./commission-calculator";
 
 // ============ BOOKING STATS NAMESPACE ============
-// Reads from pre-calculated stats in databoard models
-// Falls back to relation traversal for non-databoard usage
+// Reads from pre-calculated stats in models
+// Falls back to relation traversal when stats aren't available
 
 export const BookingStats = {
     getRevenue: (booking: BookingModel): number => booking.stats?.money_in || 0,
@@ -65,7 +65,7 @@ export const BookingStats = {
 };
 
 // ============ LEGACY RELATION-BASED GETTERS ============
-// Used for non-databoard contexts where stats aren't available
+// Used when stats aren't available
 
 export function getBookingDuration(booking: BookingModel): number {
     const lessons = booking.relations?.lessons || [];

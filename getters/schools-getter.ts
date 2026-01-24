@@ -1,7 +1,7 @@
-import type { SchoolType } from "@/drizzle/schema";
+import type { School } from "@/supabase/db/types";
 import type { SchoolModel } from "@/backend/models/SchoolModel";
 
-export function getSchoolName(school: SchoolType): string {
+export function getSchoolName(school: School): string {
     return `${school.name} @${school.username}`;
 }
 
@@ -18,6 +18,6 @@ export function getSchoolTotalStudentRequests(school: SchoolModel): number {
     return packages.reduce((acc: number, pkg: any) => acc + (pkg.studentPackages?.length || 0), 0);
 }
 
-export function getSchoolEquipmentList(school: SchoolType): string[] {
+export function getSchoolEquipmentList(school: School): string[] {
     return school.equipmentCategories ? school.equipmentCategories.split(",") : [];
 }

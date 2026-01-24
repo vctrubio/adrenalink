@@ -2,7 +2,7 @@
 
 import { ReactNode, createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import type { TableStat } from "./TablesHeaderStats";
-import type { DataboardFilterByDate, DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
+import type { TableFilterByDate, TableGroupByDate, TableActivityFilter } from "@/config/tables";
 import type { SortConfig } from "@/types/sort";
 
 interface TablesController {
@@ -12,12 +12,12 @@ interface TablesController {
     onSearchChange: (value: string) => void;
 
     // New Filter/Group states
-    filter: DataboardFilterByDate;
-    onFilterChange: (value: DataboardFilterByDate) => void;
-    group: DataboardGroupByDate;
-    onGroupChange: (value: DataboardGroupByDate) => void;
-    status: DataboardActivityFilter;
-    onStatusChange: (value: DataboardActivityFilter) => void;
+    filter: TableFilterByDate;
+    onFilterChange: (value: TableFilterByDate) => void;
+    group: TableGroupByDate;
+    onGroupChange: (value: TableGroupByDate) => void;
+    status: TableActivityFilter;
+    onStatusChange: (value: TableActivityFilter) => void;
     sort: SortConfig;
     onSortChange: (value: SortConfig) => void;
     showActions: boolean;
@@ -39,9 +39,9 @@ export function TablesProvider({ children }: { children: ReactNode }) {
     const [search, setSearch] = useState("");
 
     // New States
-    const [filter, setFilter] = useState<DataboardFilterByDate>("All");
-    const [group, setGroup] = useState<DataboardGroupByDate>("All");
-    const [status, setStatus] = useState<DataboardActivityFilter>("All");
+    const [filter, setFilter] = useState<TableFilterByDate>("All");
+    const [group, setGroup] = useState<TableGroupByDate>("All");
+    const [status, setStatus] = useState<TableActivityFilter>("All");
     const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
     const [showActions, setShowActions] = useState(false);
 

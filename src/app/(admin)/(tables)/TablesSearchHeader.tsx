@@ -8,11 +8,11 @@ import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import { StatusFilterButtons } from "@/src/components/ui/StatusFilterButtons";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { ENTITY_SORT_OPTIONS } from "@/types/sort";
-import type { DataboardGroupByDate, DataboardActivityFilter } from "@/types/databoard";
+import type { TableGroupByDate, TableActivityFilter } from "@/config/tables";
 import type { SortConfig } from "@/types/sort";
 import { Settings2 } from "lucide-react";
 
-const GROUP_OPTIONS: DataboardGroupByDate[] = ["All", "Weekly", "Monthly"];
+const GROUP_OPTIONS: TableGroupByDate[] = ["All", "Weekly", "Monthly"];
 
 // Determine status options based on entity
 const getStatusOptions = (entityId: string): string[] => {
@@ -85,7 +85,7 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                         label="Group"
                         value={controller.group}
                         options={GROUP_OPTIONS}
-                        onChange={(v) => controller.onGroupChange(v as DataboardGroupByDate)}
+                        onChange={(v) => controller.onGroupChange(v as TableGroupByDate)}
                         entityColor={entity.color}
                     />
                 )}
@@ -99,7 +99,7 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                     <StatusFilterButtons
                         options={statusOptions}
                         value={controller.status}
-                        onChange={(v) => controller.onStatusChange(v as DataboardActivityFilter)}
+                        onChange={(v) => controller.onStatusChange(v as TableActivityFilter)}
                     />
                 )}
 

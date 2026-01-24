@@ -406,7 +406,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 mb-42">
             <DateSection
                 dateRange={dateRange}
                 onDateChange={(newDateRange) => bookingForm.setForm({ dateRange: newDateRange })}

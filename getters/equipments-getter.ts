@@ -1,7 +1,7 @@
 import type { EquipmentModel } from "@/backend/models";
 
 // ============ EQUIPMENT STATS NAMESPACE ============
-// Reads from pre-calculated stats in databoard models
+// Reads from pre-calculated stats in models
 
 export const EquipmentStats = {
     getRevenue: (equipment: EquipmentModel): number => equipment.stats?.money_in || 0,

@@ -4,7 +4,7 @@
  * Documents all foreign key relationships between tables.
  * Used for understanding joins, building queries, and API documentation.
  *
- * Unlike Drizzle, Supabase uses PostgREST which infers relationships from FKs.
+ * Supabase uses PostgREST which infers relationships from FKs.
  * This file is a reference and can be used to generate complex queries.
  *
  * @see supabase/schema/ - SQL table definitions organized by domain

@@ -1,8 +1,8 @@
 import type { StudentPackageModel } from "@/backend/models";
 
 // ============ STUDENT PACKAGE STATS NAMESPACE ============
-// Reads from pre-calculated stats in databoard models
-// Falls back to relation traversal for non-databoard usage
+// Reads from pre-calculated stats in models
+// Falls back to relation traversal when stats aren't available
 
 export const StudentPackageStats = {
     getRevenue: (studentPackage: StudentPackageModel): number => studentPackage.stats?.money_in || 0,

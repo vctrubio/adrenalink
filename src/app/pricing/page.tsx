@@ -128,7 +128,7 @@ function PricingCard({ tier }: { tier: (typeof pricingTiers)[0] }) {
     );
 }
 
-export default function TeamPricingPage() {
+export default function PricingPage() {
     return (
         <div className="min-h-screen relative">
             <BackgroundImage
@@ -139,7 +139,7 @@ export default function TeamPricingPage() {
 
             <IntoAdrBarShell
                 inverted
-                onBarClick="/team"
+                onBarClick="/"
                 leftSlot={
                     <Image
                         src="/ADR.webp"
