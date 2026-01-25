@@ -28,6 +28,7 @@ export interface HeaderContext {
     id: string;
     name: string;
     zone: string;
+    currency: string;
 }
 
 /**
@@ -69,6 +70,7 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
             id: schoolData.id,
             name: schoolData.username,
             zone: schoolData.timezone,
+            currency: schoolData.currency || "YEN",
         };
     } catch (error) {
         unstable_rethrow(error);

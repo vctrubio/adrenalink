@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useCallback, memo, ReactNode } from "react";
+import { useMemo, useCallback, memo, ReactNode, useState } from "react";
 import { z } from "zod";
+import { Receipt } from "lucide-react";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
@@ -29,17 +30,20 @@ const PackageTypeAndVisibilityFieldMemo = memo(function PackageTypeAndVisibility
     onFormDataChange,
     typeError,
     typeIsValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     typeError?: string;
     typeIsValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const handleTypeChange = useCallback(
         (value: "rental" | "lessons") => {
+            onFieldTouch("packageType");
             onFormDataChange({ ...formData, packageType: value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     const handleVisibilityToggle = useCallback(() => {
@@ -91,17 +95,20 @@ const CategoryEquipmentFieldMemo = memo(function CategoryEquipmentField({
     onFormDataChange,
     error,
     isValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     error?: string;
     isValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const handleChange = useCallback(
         (value: "kite" | "wing" | "windsurf") => {
+            onFieldTouch("categoryEquipment");
             onFormDataChange({ ...formData, categoryEquipment: value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     return (
@@ -137,30 +144,34 @@ const DurationFieldMemo = memo(function DurationField({
     onFormDataChange,
     error,
     isValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     error?: string;
     isValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const hours = useMemo(() => Math.floor(formData.durationMinutes / 60), [formData.durationMinutes]);
     const minutes = useMemo(() => formData.durationMinutes % 60, [formData.durationMinutes]);
 
     const handleHoursChange = useCallback(
         (newHours: number) => {
+            onFieldTouch("durationMinutes");
             const totalMinutes = Math.max(0, newHours) * 60 + minutes;
             onFormDataChange({ ...formData, durationMinutes: totalMinutes });
         },
-        [formData, onFormDataChange, minutes],
+        [formData, onFormDataChange, minutes, onFieldTouch],
     );
 
     const handleMinutesChange = useCallback(
         (newMinutes: number) => {
+            onFieldTouch("durationMinutes");
             const clampedMinutes = Math.max(0, Math.min(59, newMinutes));
             const totalMinutes = hours * 60 + clampedMinutes;
             onFormDataChange({ ...formData, durationMinutes: totalMinutes });
         },
-        [formData, onFormDataChange, hours],
+        [formData, onFormDataChange, hours, onFieldTouch],
     );
 
     return (
@@ -211,6 +222,7 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
     capacityError,
     priceIsValid,
     capacityIsValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
@@ -218,21 +230,24 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
     capacityError?: string;
     priceIsValid?: boolean;
     capacityIsValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const handlePriceChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
+            onFieldTouch("pricePerStudent");
             const value = parseInt(e.target.value) || 0;
             onFormDataChange({ ...formData, pricePerStudent: value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     const handleCapacityChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
+            onFieldTouch("capacityStudents");
             const value = parseInt(e.target.value) || 0;
             onFormDataChange({ ...formData, capacityStudents: value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     const revenue = useMemo(
@@ -288,18 +303,21 @@ const CapacityEquipmentFieldMemo = memo(function CapacityEquipmentField({
     onFormDataChange,
     error,
     isValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     error?: string;
     isValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
+            onFieldTouch("capacityEquipment");
             const value = parseInt(e.target.value) || 0;
             onFormDataChange({ ...formData, capacityEquipment: value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     return (
@@ -321,17 +339,20 @@ const DescriptionFieldMemo = memo(function DescriptionField({
     onFormDataChange,
     error,
     isValid,
+    onFieldTouch,
 }: {
     formData: PackageFormData;
     onFormDataChange: (data: PackageFormData) => void;
     error?: string;
     isValid?: boolean;
+    onFieldTouch: (field: keyof PackageFormData) => void;
 }) {
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            onFieldTouch("description");
             onFormDataChange({ ...formData, description: e.target.value });
         },
-        [formData, onFormDataChange],
+        [formData, onFormDataChange, onFieldTouch],
     );
 
     return (
@@ -357,6 +378,11 @@ export default function Package4SchoolForm({
     onClose,
 }: Package4SchoolFormProps) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
+    
+    // Track which fields have been touched/interacted with
+    const [touchedFields, setTouchedFields] = useState<Set<keyof PackageFormData>>(new Set());
+    // Track if form has been submitted (attempted)
+    const [hasSubmitted, setHasSubmitted] = useState(false);
 
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
@@ -364,11 +390,22 @@ export default function Package4SchoolForm({
     }, [formData.description]);
 
     const handleClear = useCallback(() => {
+        setTouchedFields(new Set());
+        setHasSubmitted(false);
         onFormDataChange(defaultPackageForm);
     }, [onFormDataChange]);
 
+    const handleFieldTouch = useCallback((field: keyof PackageFormData) => {
+        setTouchedFields((prev) => new Set(prev).add(field));
+    }, []);
+
     const getFieldError = useCallback(
         (field: keyof PackageFormData): string | undefined => {
+            // Only show error if field has been touched or form has been submitted
+            if (!touchedFields.has(field) && !hasSubmitted) {
+                return undefined;
+            }
+            
             try {
                 packageFormSchema.shape[field].parse(formData[field]);
                 return undefined;
@@ -379,7 +416,7 @@ export default function Package4SchoolForm({
                 return undefined;
             }
         },
-        [formData],
+        [formData, touchedFields, hasSubmitted],
     );
 
     const isFieldValid = useCallback(
@@ -389,6 +426,25 @@ export default function Package4SchoolForm({
         [getFieldError],
     );
 
+    const handleSubmit = useCallback(async () => {
+        setHasSubmitted(true);
+        // Mark all fields as touched when submitting
+        const allFields: (keyof PackageFormData)[] = [
+            "description",
+            "packageType",
+            "categoryEquipment",
+            "capacityEquipment",
+            "durationMinutes",
+            "pricePerStudent",
+            "capacityStudents",
+        ];
+        setTouchedFields(new Set(allFields));
+        
+        if (onSubmit) {
+            await onSubmit();
+        }
+    }, [onSubmit]);
+
     const formContent = (
         <>
             <DescriptionFieldMemo
@@ -396,6 +452,7 @@ export default function Package4SchoolForm({
                 onFormDataChange={onFormDataChange}
                 error={getFieldError("description")}
                 isValid={isFieldValid("description")}
+                onFieldTouch={handleFieldTouch}
             />
 
             <PackageTypeAndVisibilityFieldMemo
@@ -403,6 +460,7 @@ export default function Package4SchoolForm({
                 onFormDataChange={onFormDataChange}
                 typeError={getFieldError("packageType")}
                 typeIsValid={isFieldValid("packageType")}
+                onFieldTouch={handleFieldTouch}
             />
 
             <CategoryEquipmentFieldMemo
@@ -410,6 +468,7 @@ export default function Package4SchoolForm({
                 onFormDataChange={onFormDataChange}
                 error={getFieldError("categoryEquipment")}
                 isValid={isFieldValid("categoryEquipment")}
+                onFieldTouch={handleFieldTouch}
             />
 
             <CapacityEquipmentFieldMemo
@@ -417,6 +476,7 @@ export default function Package4SchoolForm({
                 onFormDataChange={onFormDataChange}
                 error={getFieldError("capacityEquipment")}
                 isValid={isFieldValid("capacityEquipment")}
+                onFieldTouch={handleFieldTouch}
             />
 
             <DurationFieldMemo
@@ -424,6 +484,7 @@ export default function Package4SchoolForm({
                 onFormDataChange={onFormDataChange}
                 error={getFieldError("durationMinutes")}
                 isValid={isFieldValid("durationMinutes")}
+                onFieldTouch={handleFieldTouch}
             />
 
             <PricingRevenueFieldMemo
@@ -433,6 +494,7 @@ export default function Package4SchoolForm({
                 capacityError={getFieldError("capacityStudents")}
                 priceIsValid={isFieldValid("pricePerStudent")}
                 capacityIsValid={isFieldValid("capacityStudents")}
+                onFieldTouch={handleFieldTouch}
             />
         </>
     );
@@ -443,7 +505,7 @@ export default function Package4SchoolForm({
             color={packageEntity?.color}
             entityTitle={entityTitle}
             isFormReady={isFormReady}
-            onSubmit={onSubmit || (() => Promise.resolve())}
+            onSubmit={handleSubmit}
             onCancel={onClose || (() => {})}
             onClear={handleClear}
             isLoading={isLoading}

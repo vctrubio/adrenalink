@@ -3,19 +3,25 @@
 import { useStudentUser } from "@/src/providers/student-user-provider";
 import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { Package } from "lucide-react";
 
 export function StudentBookingsClient() {
     const { data: studentUser, currency } = useStudentUser();
+    const hasBookings = studentUser.bookings.length > 0;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">My Bookings</h2>
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">My Bookings</h2>
             </div>
 
-            {studentUser.bookings.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
-                    No bookings found.
+            {!hasBookings ? (
+                <div className="text-center py-20 bg-card border border-border rounded-[2.5rem] shadow-sm">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
+                        <Package size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold">No bookings found</h3>
+                    <p className="text-muted-foreground">You don't have any active bookings yet.</p>
                 </div>
             ) : (
                 <div className="space-y-4">

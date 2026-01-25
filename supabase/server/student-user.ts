@@ -24,16 +24,17 @@ export async function getStudentUser(studentId: string): Promise<{
 
         const supabase = getServerConnection();
 
-        // Fetch student with bookings, lessons, and events
+        // Fetch student with bookings, lessons, events, AND school-specific clerk_id
         const { data: studentData, error: studentError } = await supabase
             .from("student")
             .select(
                 `
                 *,
+                school_students!inner(clerk_id, school_id),
                 booking_student(
                     booking(
                         *,
-                        school_package(*),
+                        school_package!inner(*),
                         lesson(
                             *,
                             teacher(
@@ -52,12 +53,16 @@ export async function getStudentUser(studentId: string): Promise<{
             `,
             )
             .eq("id", studentId)
+            .eq("school_students.school_id", schoolId)
             .single();
 
         if (studentError || !studentData) {
             logger.error("Error fetching student user data", studentError);
             return { success: false, error: "Student not found" };
         }
+
+        // Use the clerk_id from school_students for this specific school context
+        const activeClerkId = (studentData as any).school_students?.[0]?.clerk_id || studentData.clerk_id;
 
         // Build bookings with stats and events
         const bookings: BookingWithProgress[] = [];
@@ -152,6 +157,7 @@ export async function getStudentUser(studentId: string): Promise<{
         const studentUserData: StudentUserData = {
             student: {
                 id: studentData.id,
+                clerk_id: activeClerkId,
                 first_name: studentData.first_name,
                 last_name: studentData.last_name,
                 passport: studentData.passport,
@@ -163,7 +169,37 @@ export async function getStudentUser(studentId: string): Promise<{
             },
             bookings,
             events: allEvents,
+            packageRequests: [], 
         };
+
+        // Fetch student package requests using the active clerk_id
+        if (activeClerkId) {
+            const { data: requests, error: requestsError } = await supabase
+                .from("student_package")
+                .select(`
+                    *,
+                    school_package!inner(*)
+                `)
+                .eq("requested_clerk_id", activeClerkId)
+                .eq("school_package.school_id", schoolId)
+                .order("created_at", { ascending: false });
+
+            if (!requestsError && requests) {
+                studentUserData.packageRequests = requests.map((r: any) => ({
+                    id: r.id,
+                    status: r.status,
+                    startDate: r.requested_date_start,
+                    endDate: r.requested_date_end,
+                    createdAt: r.created_at,
+                    packageName: r.school_package.description,
+                    price: r.school_package.price_per_student,
+                    durationMinutes: r.school_package.duration_minutes,
+                    capacityEquipment: r.school_package.capacity_equipment,
+                    categoryEquipment: r.school_package.category_equipment,
+                    capacityStudents: r.school_package.capacity_students,
+                }));
+            }
+        }
 
         return { success: true, data: studentUserData };
     } catch (error) {
@@ -179,6 +215,7 @@ export async function getStudentUser(studentId: string): Promise<{
 export interface StudentUserData {
     student: {
         id: string;
+        clerk_id: string;
         first_name: string;
         last_name: string;
         passport: string;
@@ -190,6 +227,21 @@ export interface StudentUserData {
     };
     bookings: BookingWithProgress[];
     events: StudentEvent[];
+    packageRequests: StudentPackageRequestSummary[];
+}
+
+export interface StudentPackageRequestSummary {
+    id: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    createdAt: string;
+    packageName: string;
+    price: number;
+    durationMinutes: number;
+    capacityEquipment: number;
+    categoryEquipment: string;
+    capacityStudents: number;
 }
 
 export interface BookingWithProgress {

@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Calendar, Package } from "lucide-react";
+import { Calendar, Package, Inbox } from "lucide-react";
 
 interface StudentNavigationProps {
     studentId: string;
 }
 
 const STUDENT_ROUTES = [
-    { id: "bookings", label: "Bookings", icon: Package, path: "bookings" },
     { id: "events", label: "Schedule", icon: Calendar, path: "events" },
+    { id: "bookings", label: "Bookings", icon: Package, path: "bookings" },
+    { id: "requests", label: "Requests", icon: Inbox, path: "requests" },
 ] as const;
 
 export function StudentNavigation({ studentId }: StudentNavigationProps) {
@@ -24,8 +25,8 @@ export function StudentNavigation({ studentId }: StudentNavigationProps) {
                 return route.id;
             }
         }
-        // Default to bookings if on base student page
-        return "bookings";
+        // Default to events if on base student page
+        return "events";
     };
 
     const activeRoute = getActiveRoute();

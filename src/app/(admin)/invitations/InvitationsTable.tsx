@@ -16,12 +16,16 @@ import { formatDate, getRelativeDateLabel } from "@/getters/date-getter";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { getCurrencySymbol } from "@/supabase/db/currency";
+import { StudentPackageConfirmation } from "@/src/components/modals/StudentPackageConfirmation";
 
 interface InvitationsTableProps {
     invitations: StudentPackageRequest[];
 }
 
 export function InvitationsTable({ invitations }: InvitationsTableProps) {
+    const [selectedInvitation, setSelectedInvitation] = useState<StudentPackageRequest | null>(null);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+
     if (invitations.length === 0) {
         return (
             <div className="text-center p-20 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-sm">
@@ -30,25 +34,53 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
         );
     }
 
+    const handleOpenModal = (invitation: StudentPackageRequest) => {
+        setSelectedInvitation(invitation);
+        setIsConfirmationModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsConfirmationModalOpen(false);
+        setSelectedInvitation(null);
+    };
+
+    const handleConfirmationSuccess = () => {
+        setIsConfirmationModalOpen(false);
+        setSelectedInvitation(null);
+    };
+
     return (
-        <div className="w-full">
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left border-separate border-spacing-y-4">
-                    <thead className="text-[10px] uppercase text-zinc-400 dark:text-zinc-500 tracking-widest font-bold">
-                        <tr>
-                            <th className="px-8 py-2 w-[45%]">Package Details</th>
-                            <th className="px-6 py-2">Booking Dates</th>
-                            <th className="px-6 py-2 text-right">Request From</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {invitations.map((invitation) => (
-                            <InvitationRow key={invitation.id} invitation={invitation} />
-                        ))}
-                    </tbody>
-                </table>
+        <>
+            <div className="w-full">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-separate border-spacing-y-4">
+                        <thead className="text-[10px] uppercase text-zinc-400 dark:text-zinc-500 tracking-widest font-bold">
+                            <tr>
+                                <th className="px-8 py-2 w-[45%]">Package Details</th>
+                                <th className="px-6 py-2">Booking Dates</th>
+                                <th className="px-6 py-2 text-right">Request From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {invitations.map((invitation) => (
+                                <InvitationRow key={invitation.id} invitation={invitation} onAccept={() => handleOpenModal(invitation)} />
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+
+            {/* Confirmation Modal - Outside table */}
+            {selectedInvitation && (
+                <StudentPackageConfirmation
+                    isOpen={isConfirmationModalOpen}
+                    onClose={handleCloseModal}
+                    invitation={selectedInvitation}
+                    allInvitations={invitations}
+                    onSuccess={handleConfirmationSuccess}
+                />
+            )}
+        </>
     );
 }
 
@@ -82,7 +114,7 @@ const STATUS_CONFIG: Record<string, { label: string; textColor: string; hoverBg:
     rejected: { label: "declined", textColor: "text-red-500", hoverBg: "hover:bg-red-500" },
 };
 
-function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
+function InvitationRow({ invitation, onAccept }: { invitation: StudentPackageRequest; onAccept: () => void }) {
     const { currency } = useSchoolCredentials();
     const currencySymbol = getCurrencySymbol(currency);
     const [isPending, setIsPending] = useState(false);
@@ -103,6 +135,13 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
     const isRental = package_type?.toLowerCase().includes("rental");
 
     const handleAction = async (newStatus: string) => {
+        // If accepting, show confirmation modal
+        if (newStatus === "accepted") {
+            onAccept();
+            return;
+        }
+
+        // For decline, just update status directly
         setIsPending(true);
         const result = await updateStudentPackageStatus(id, newStatus);
         if (result.success) {
@@ -218,7 +257,9 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                     </div>
 
                     <div className="flex items-center gap-2 h-7 pt-2">
-                        <span className="font-medium text-zinc-600 dark:text-zinc-400">{requested_clerk_id.slice(0, 14)}</span>
+                        <span className="font-medium text-zinc-600 dark:text-zinc-400">
+                            {invitation.student_name?.fullName || requested_clerk_id.slice(0, 14)}
+                        </span>
                         <User size={16} className="text-muted-foreground" />
                     </div>
 

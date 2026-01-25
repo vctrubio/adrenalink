@@ -7,15 +7,15 @@ import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 export function StudentEventsClient() {
     const { data: studentUser, currency } = useStudentUser();
 
-    // Filter only completed events (students should only see confirmed/completed events)
-    const completedEvents = useMemo(() => {
-        return studentUser.events.filter((event) => event.status === "completed");
+    // Filter events (show planned, tbc, and completed)
+    const visibleEvents = useMemo(() => {
+        return studentUser.events.filter((event) => ["planned", "tbc", "completed"].includes(event.status));
     }, [studentUser.events]);
 
-    // Sort events by date (most recent first)
+    // Sort events by date (upcoming/recent first)
     const sortedEvents = useMemo(() => {
-        return [...completedEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [completedEvents]);
+        return [...visibleEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [visibleEvents]);
 
     // Group events by date
     const eventsByDate = useMemo(() => {
@@ -32,10 +32,10 @@ export function StudentEventsClient() {
         return Array.from(groups.entries()).map(([date, events]) => ({ date, events }));
     }, [sortedEvents]);
 
-    if (completedEvents.length === 0) {
+    if (visibleEvents.length === 0) {
         return (
             <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
-                No confirmed events yet.
+                No scheduled events found.
             </div>
         );
     }
@@ -44,7 +44,7 @@ export function StudentEventsClient() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-foreground">My Schedule</h2>
-                <div className="text-sm text-muted-foreground">{completedEvents.length} confirmed events</div>
+                <div className="text-sm text-muted-foreground">{visibleEvents.length} scheduled events</div>
             </div>
 
             {eventsByDate.map(({ date, events }) => {

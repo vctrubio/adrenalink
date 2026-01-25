@@ -10,6 +10,10 @@ import { motion } from "framer-motion";
 
 interface PackageSummaryProps {
     packageFormData: PackageFormData;
+    hideProgressBar?: boolean;
+    hideType?: boolean;
+    hideVisibility?: boolean;
+    title?: string;
 }
 
 const ProgressBar = ({ progress }: { progress: number }) => (
@@ -23,7 +27,13 @@ const ProgressBar = ({ progress }: { progress: number }) => (
     </div>
 );
 
-export function PackageSummary({ packageFormData }: PackageSummaryProps) {
+export function PackageSummary({
+    packageFormData,
+    hideProgressBar = false,
+    hideType = false,
+    hideVisibility = false,
+    title,
+}: PackageSummaryProps) {
     const isDescriptionComplete = !!packageFormData.description;
     const isTypeComplete = !!packageFormData.packageType;
     const isCapacityComplete = packageFormData.capacityStudents > 0;
@@ -72,19 +82,23 @@ export function PackageSummary({ packageFormData }: PackageSummaryProps) {
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },
-        {
-            label: (
-                <div className="flex items-center gap-2.5">
-                    <span className={isTypeComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Type</span>
-                    <StatusIcon isComplete={isTypeComplete} />
-                </div>
-            ),
-            value: packageFormData.packageType ? (
-                <span className="capitalize font-black text-primary">{typeLabels[packageFormData.packageType]}</span>
-            ) : (
-                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
-            ),
-        },
+        ...(!hideType
+            ? [
+                  {
+                      label: (
+                          <div className="flex items-center gap-2.5">
+                              <span className={isTypeComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Type</span>
+                              <StatusIcon isComplete={isTypeComplete} />
+                          </div>
+                      ),
+                      value: packageFormData.packageType ? (
+                          <span className="capitalize font-black text-primary">{typeLabels[packageFormData.packageType]}</span>
+                      ) : (
+                          <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+                      ),
+                  },
+              ]
+            : []),
         {
             label: (
                 <div className="flex items-center gap-2.5">
@@ -129,22 +143,26 @@ export function PackageSummary({ packageFormData }: PackageSummaryProps) {
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },
-        {
-            label: "Visibility",
-            value: packageFormData.isPublic ? (
-                <span className="flex items-center gap-1.5 text-blue-600 font-bold">
-                    <Eye size={14} /> Public
-                </span>
-            ) : (
-                <span className="flex items-center gap-1.5 text-muted-foreground font-bold">
-                    <EyeOff size={14} /> Private
-                </span>
-            ),
-        },
+        ...(!hideVisibility
+            ? [
+                  {
+                      label: "Visibility",
+                      value: packageFormData.isPublic ? (
+                          <span className="flex items-center gap-1.5 text-blue-600 font-bold">
+                              <Eye size={14} /> Public
+                          </span>
+                      ) : (
+                          <span className="flex items-center gap-1.5 text-muted-foreground font-bold">
+                              <EyeOff size={14} /> Private
+                          </span>
+                      ),
+                  },
+              ]
+            : []),
     ];
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                     <div
@@ -153,11 +171,13 @@ export function PackageSummary({ packageFormData }: PackageSummaryProps) {
                     >
                         <PackageIcon size={14} />
                     </div>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Check-in Package</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                        {title || "Check-in Package"}
+                    </h3>
                 </div>
-                <ProgressBar progress={progress} />
+                {!hideProgressBar && <ProgressBar progress={progress} />}
             </div>
-            <div className="bg-card border border-border/50 rounded-[2rem] p-5 shadow-sm">
+            <div className="border border-border/50 rounded-xl p-4">
                 <CardList fields={fields} />
             </div>
         </div>

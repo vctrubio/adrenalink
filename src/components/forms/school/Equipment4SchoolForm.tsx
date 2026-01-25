@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, memo } from "react";
+import { useCallback, useMemo, memo, useState } from "react";
 import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { FormField, FormInput } from "@/src/components/ui/form";
@@ -28,11 +28,13 @@ const CategoryFieldMemo = memo(function CategoryField({
     onCategoryChange,
     error,
     isValid,
+    onFieldTouch,
 }: {
     category: string;
     onCategoryChange: (value: string) => void;
     error?: string;
     isValid?: boolean;
+    onFieldTouch: () => void;
 }) {
     return (
         <FormField label="Category" required error={error} isValid={isValid}>
@@ -43,7 +45,10 @@ const CategoryFieldMemo = memo(function CategoryField({
                         <button
                             key={cat.id}
                             type="button"
-                            onClick={() => onCategoryChange(cat.id)}
+                            onClick={() => {
+                                onFieldTouch();
+                                onCategoryChange(cat.id);
+                            }}
                             className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${
                                 category === cat.id
                                     ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700`
@@ -73,6 +78,7 @@ const ModelSizeFieldsMemo = memo(function ModelSizeFields({
     onSizeChange,
     modelError,
     modelIsValid,
+    onFieldTouch,
 }: {
     model: string;
     size: number | undefined;
@@ -80,6 +86,7 @@ const ModelSizeFieldsMemo = memo(function ModelSizeFields({
     onSizeChange: (value: number | undefined) => void;
     modelError?: string;
     modelIsValid?: boolean;
+    onFieldTouch: () => void;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -87,7 +94,10 @@ const ModelSizeFieldsMemo = memo(function ModelSizeFields({
                 <FormInput
                     type="text"
                     value={model}
-                    onChange={(e) => onModelChange(e.target.value)}
+                    onChange={(e) => {
+                        onFieldTouch();
+                        onModelChange(e.target.value);
+                    }}
                     placeholder="Enter model"
                     error={!!modelError}
                 />
@@ -112,6 +122,7 @@ const ColorSkuFieldsMemo = memo(function ColorSkuFields({
     onSkuChange,
     skuError,
     skuIsValid,
+    onFieldTouch,
 }: {
     color: string | undefined;
     sku: string;
@@ -119,6 +130,7 @@ const ColorSkuFieldsMemo = memo(function ColorSkuFields({
     onSkuChange: (value: string) => void;
     skuError?: string;
     skuIsValid?: boolean;
+    onFieldTouch: () => void;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +146,10 @@ const ColorSkuFieldsMemo = memo(function ColorSkuFields({
                 <FormInput
                     type="text"
                     value={sku}
-                    onChange={(e) => onSkuChange(e.target.value)}
+                    onChange={(e) => {
+                        onFieldTouch();
+                        onSkuChange(e.target.value);
+                    }}
                     placeholder="Enter SKU"
                     error={!!skuError}
                 />
@@ -197,20 +212,37 @@ export default function Equipment4SchoolForm({
         return details ? `${catName} - ${details}` : `New ${catName}`;
     }, [formData.category, formData.model, formData.size]);
 
+    // Track which fields have been touched/interacted with
+    const [touchedFields, setTouchedFields] = useState<Set<keyof EquipmentFormData>>(new Set());
+    // Track if form has been submitted (attempted)
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+
     const handleClear = useCallback(() => {
+        setTouchedFields(new Set());
+        setHasSubmitted(false);
         onFormDataChange(defaultEquipmentForm);
     }, [onFormDataChange]);
 
+    const handleFieldTouch = useCallback((field: keyof EquipmentFormData) => {
+        setTouchedFields((prev) => new Set(prev).add(field));
+    }, []);
+
     const updateField = useCallback(
         (field: keyof EquipmentFormData, value: any) => {
+            handleFieldTouch(field);
             onFormDataChange((prevData: EquipmentFormData) => {
                 return { ...prevData, [field]: value };
             });
         },
-        [onFormDataChange],
+        [onFormDataChange, handleFieldTouch],
     );
 
     const getFieldError = (field: keyof EquipmentFormData): string | undefined => {
+        // Only show error if field has been touched or form has been submitted
+        if (!touchedFields.has(field) && !hasSubmitted) {
+            return undefined;
+        }
+        
         try {
             equipmentFormSchema.shape[field].parse(formData[field]);
             return undefined;
@@ -226,6 +258,21 @@ export default function Equipment4SchoolForm({
         return getFieldError(field) === undefined && !!formData[field];
     };
 
+    const handleSubmit = useCallback(async () => {
+        setHasSubmitted(true);
+        // Mark all fields as touched when submitting
+        const allFields: (keyof EquipmentFormData)[] = [
+            "category",
+            "model",
+            "sku",
+        ];
+        setTouchedFields(new Set(allFields));
+        
+        if (onSubmit) {
+            await onSubmit();
+        }
+    }, [onSubmit]);
+
     const formContent = (
         <>
             {/* Category */}
@@ -234,6 +281,7 @@ export default function Equipment4SchoolForm({
                 onCategoryChange={(value) => updateField("category", value)}
                 error={getFieldError("category")}
                 isValid={isFieldValid("category")}
+                onFieldTouch={() => handleFieldTouch("category")}
             />
 
             {/* Model and Size */}
@@ -244,6 +292,7 @@ export default function Equipment4SchoolForm({
                 onSizeChange={(value) => updateField("size", value)}
                 modelError={getFieldError("model")}
                 modelIsValid={isFieldValid("model")}
+                onFieldTouch={() => handleFieldTouch("model")}
             />
 
             {/* Color and SKU */}
@@ -254,6 +303,7 @@ export default function Equipment4SchoolForm({
                 onSkuChange={(value) => updateField("sku", value)}
                 skuError={getFieldError("sku")}
                 skuIsValid={isFieldValid("sku")}
+                onFieldTouch={() => handleFieldTouch("sku")}
             />
 
             {/* Status */}
@@ -278,7 +328,7 @@ export default function Equipment4SchoolForm({
             color={equipmentEntity?.color}
             entityTitle={entityTitle}
             isFormReady={isFormReady}
-            onSubmit={onSubmit || (() => Promise.resolve())}
+            onSubmit={handleSubmit}
             onCancel={onClose || (() => {})}
             onClear={handleClear}
             isLoading={isLoading}

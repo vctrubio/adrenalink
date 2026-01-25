@@ -9,6 +9,8 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import PackageIcon from "@/public/appSvgs/PackageIcon";
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { Dropdown, createStudentDropdownItems } from "@/src/components/ui/dropdown";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
@@ -226,21 +228,29 @@ const ExpandableDetails = ({
     isExpanded,
     schoolPackage,
     bookingId,
+    dateStart,
+    dateEnd,
 }: {
     isExpanded: boolean;
     schoolPackage: ClassboardData["schoolPackage"];
     bookingId: string;
+    dateStart: string;
+    dateEnd: string;
 }) => {
     if (!isExpanded) return null;
 
     return (
         <div className="bg-muted/30 border-t border-border/50">
-            <div className="p-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                        <PackageIcon size={16} className="text-muted-foreground" />
-                        <span className="text-sm font-semibold text-foreground">Package</span>
-                    </div>
+            <div className="p-4 space-y-3">
+                <Link
+                    href={`/bookings/${bookingId}`}
+                    className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                    <BookingIcon size={16} className="text-muted-foreground" />
+                    <DateRangeBadge startDate={dateStart} endDate={dateEnd} />
+                </Link>
+                <div className="flex items-center gap-2">
+                    <PackageIcon size={16} className="text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">{schoolPackage.description || "N/A"}</span>
                 </div>
             </div>
@@ -405,7 +415,13 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
                     />
                 </div>
 
-                <ExpandableDetails isExpanded={isExpanded} schoolPackage={schoolPackage} bookingId={booking.id} />
+                <ExpandableDetails
+                    isExpanded={isExpanded}
+                    schoolPackage={schoolPackage}
+                    bookingId={booking.id}
+                    dateStart={booking.dateStart}
+                    dateEnd={booking.dateEnd}
+                />
             </motion.div>
 
             {isAssignTeacherModalOpen && (

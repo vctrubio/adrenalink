@@ -145,3 +145,51 @@ export async function linkEntityToClerk(
 
     return { success: true };
 }
+
+/**
+ * Gets student full name from clerk_id
+ */
+export async function getNameFromClerkId(clerkId: string): Promise<{ success: boolean; data?: { firstName: string; lastName: string; fullName: string }; error?: string }> {
+    try {
+        const supabase = getServerConnection();
+        const { getSchoolHeader } = await import("@/types/headers");
+        const schoolHeader = await getSchoolHeader();
+        
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found" };
+        }
+
+        const { data, error } = await supabase
+            .from("school_students")
+            .select(
+                `
+                student!inner(
+                    first_name,
+                    last_name
+                )
+            `,
+            )
+            .eq("school_id", schoolHeader.id)
+            .eq("clerk_id", clerkId)
+            .maybeSingle();
+
+        if (error || !data) {
+            return { success: false, error: "Student not found" };
+        }
+
+        // Supabase returns student as an object when using .single() or .maybeSingle()
+        const student = data.student as { first_name: string; last_name: string } | null;
+        if (!student) {
+            return { success: false, error: "Student data not found" };
+        }
+
+        const firstName = student.first_name || "";
+        const lastName = student.last_name || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        return { success: true, data: { firstName, lastName, fullName } };
+    } catch (error) {
+        console.error("Error getting name from clerk_id", error);
+        return { success: false, error: "Failed to get student name" };
+    }
+}

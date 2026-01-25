@@ -109,19 +109,19 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         if (signinStarted === "true" && user) {
             const savedData = sessionStorage.getItem("welcome_form_draft");
             const savedUiState = sessionStorage.getItem("welcome_form_ui_state");
-            
+
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
                     reset(parsed);
                     setValue("ownerEmail", user.email);
-                    
+
                     if (savedUiState) {
                         const ui = JSON.parse(savedUiState);
                         setIsNameRegistered(ui.isNameRegistered ?? false);
                         setCurrentStep(ui.currentStep ?? 0);
                     }
-                    
+
                     logger.info("Restored form data and UI state after Clerk sign-in");
                 } catch (e) {
                     console.error("Failed to restore form data", e);
@@ -170,7 +170,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
             try {
                 // Simulate minimal delay for UX
                 await new Promise((resolve) => setTimeout(resolve, 300));
-                
+
                 const baseUsername = generateUsername(name);
                 const finalUsername = generateUsernameVariants(baseUsername, existingUsernames);
                 setValue("username", finalUsername);
@@ -207,7 +207,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
 
             // 2. Local Check (Existing list from server)
             const normalizedUsername = username.toLowerCase();
-            const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
+            const normalizedExisting = existingUsernames.map((u) => u?.toLowerCase() || "");
             if (normalizedExisting.includes(normalizedUsername)) {
                 setUsernameStatus("unavailable");
                 return;
@@ -419,7 +419,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         0: "Make your school stand out",
         1: "Connect with your community",
         2: "Who is the owner?",
-        3: "What Adrenaline do you have to offer?",
+        3: "What Adrenaline Activity do you have to offer?",
         4: "Does everything look correct, admin?",
     };
 
@@ -430,7 +430,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
             onCountryChange: handleCountryChange,
             onLocationChange: handleLocationChange,
         },
-        1: { 
+        1: {
             onPhoneChange: handlePhoneChange,
         },
         2: { user },

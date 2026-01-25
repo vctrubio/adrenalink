@@ -9,6 +9,6 @@ interface StudentPageProps {
 export default async function StudentPage({ params }: StudentPageProps) {
     const { id: studentId } = await params;
 
-    // Redirect to bookings page as the default view
-    redirect(`/student/${studentId}/bookings`);
+    // Redirect to events page as the default view
+    redirect(`/student/${studentId}/events`);
 }

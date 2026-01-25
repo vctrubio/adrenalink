@@ -5,6 +5,8 @@
 
 CREATE TABLE student (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    clerk_id VARCHAR(255) UNIQUE,
+    email VARCHAR(255),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     passport VARCHAR(50) NOT NULL,
@@ -22,7 +24,7 @@ CREATE TABLE school_students (
     email VARCHAR(255),
     clerk_id VARCHAR(255),
     active BOOLEAN NOT NULL DEFAULT true,
-    rental BOOLEAN NOT NULL DEFAULT true,
+    rental BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP DEFAULT now() NOT NULL,
     PRIMARY KEY (school_id, student_id)
 );

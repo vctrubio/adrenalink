@@ -23,6 +23,7 @@ export interface UserSchoolContext {
         id: string;
         username: string;
         timezone: string;
+        currency: string;
     };
     isAuthorized: boolean;
     error?: string;

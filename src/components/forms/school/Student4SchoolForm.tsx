@@ -38,6 +38,7 @@ const NameFields = memo(function NameFields({
     firstNameIsValid,
     lastNameIsValid,
     autoFocus,
+    onFieldTouch,
 }: {
     firstName: string;
     lastName: string;
@@ -48,6 +49,7 @@ const NameFields = memo(function NameFields({
     firstNameIsValid?: boolean;
     lastNameIsValid?: boolean;
     autoFocus?: boolean;
+    onFieldTouch: (field: "firstName" | "lastName") => void;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,7 +57,10 @@ const NameFields = memo(function NameFields({
                 <FormInput
                     type="text"
                     value={firstName}
-                    onChange={(e) => onFirstNameChange(e.target.value)}
+                    onChange={(e) => {
+                        onFieldTouch("firstName");
+                        onFirstNameChange(e.target.value);
+                    }}
                     placeholder="Enter first name"
                     error={!!firstNameError}
                     autoFocus={autoFocus}
@@ -65,7 +70,10 @@ const NameFields = memo(function NameFields({
                 <FormInput
                     type="text"
                     value={lastName}
-                    onChange={(e) => onLastNameChange(e.target.value)}
+                    onChange={(e) => {
+                        onFieldTouch("lastName");
+                        onLastNameChange(e.target.value);
+                    }}
                     placeholder="Enter last name"
                     error={!!lastNameError}
                 />
@@ -80,18 +88,23 @@ const PassportField = memo(function PassportField({
     onPassportChange,
     passportError,
     passportIsValid,
+    onFieldTouch,
 }: {
     passport: string;
     onPassportChange: (value: string) => void;
     passportError?: string;
     passportIsValid?: boolean;
+    onFieldTouch: () => void;
 }) {
     return (
         <FormField label="Passport" required error={passportError} isValid={passportIsValid}>
             <FormInput
                 type="text"
                 value={passport}
-                onChange={(e) => onPassportChange(e.target.value)}
+                onChange={(e) => {
+                    onFieldTouch();
+                    onPassportChange(e.target.value);
+                }}
                 placeholder="Enter passport number"
                 error={!!passportError}
             />
@@ -105,11 +118,13 @@ const LanguagesField = memo(function LanguagesField({
     onLanguageToggle,
     onCustomLanguageAdd,
     languagesError,
+    onFieldTouch,
 }: {
     languages: string[];
     onLanguageToggle: (language: string) => void;
     onCustomLanguageAdd: (language: string) => void;
     languagesError?: string;
+    onFieldTouch: () => void;
 }) {
     const [customLanguage, setCustomLanguage] = useState("");
     const [showOtherInput, setShowOtherInput] = useState(false);
@@ -146,7 +161,10 @@ const LanguagesField = memo(function LanguagesField({
                         <button
                             key={language}
                             type="button"
-                            onClick={() => onLanguageToggle(language)}
+                            onClick={() => {
+                                onFieldTouch();
+                                onLanguageToggle(language);
+                            }}
                             className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
                                 standardLanguages.includes(language)
                                     ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
@@ -283,12 +301,24 @@ export default function StudentForm({
         return name || "New Student";
     }, [formData.firstName, formData.lastName]);
 
+    // Track which fields have been touched/interacted with
+    const [touchedFields, setTouchedFields] = useState<Set<keyof StudentFormData>>(new Set());
+    // Track if form has been submitted (attempted)
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+
     const handleClear = useCallback(() => {
+        setTouchedFields(new Set());
+        setHasSubmitted(false);
         onFormDataChange(defaultStudentForm);
     }, [onFormDataChange]);
 
+    const handleFieldTouch = useCallback((field: keyof StudentFormData) => {
+        setTouchedFields((prev) => new Set(prev).add(field));
+    }, []);
+
     const handleLanguageToggle = useCallback(
         (language: string) => {
+            handleFieldTouch("languages");
             onFormDataChange((prevData: StudentFormData) => {
                 const newLanguages = prevData.languages.includes(language)
                     ? prevData.languages.filter((l) => l !== language)
@@ -296,11 +326,12 @@ export default function StudentForm({
                 return { ...prevData, languages: newLanguages };
             });
         },
-        [onFormDataChange],
+        [onFormDataChange, handleFieldTouch],
     );
 
     const handleCustomLanguageAdd = useCallback(
         (language: string) => {
+            handleFieldTouch("languages");
             onFormDataChange((prevData: StudentFormData) => {
                 if (!prevData.languages.includes(language)) {
                     const newLanguages = [...prevData.languages, language];
@@ -309,19 +340,25 @@ export default function StudentForm({
                 return prevData;
             });
         },
-        [onFormDataChange],
+        [onFormDataChange, handleFieldTouch],
     );
 
     const updateField = useCallback(
         (field: keyof StudentFormData, value: string | string[] | boolean) => {
+            handleFieldTouch(field);
             onFormDataChange((prevData: StudentFormData) => {
                 return { ...prevData, [field]: value };
             });
         },
-        [onFormDataChange],
+        [onFormDataChange, handleFieldTouch],
     );
 
     const getFieldError = (field: keyof StudentFormData): string | undefined => {
+        // Only show error if field has been touched or form has been submitted
+        if (!touchedFields.has(field) && !hasSubmitted) {
+            return undefined;
+        }
+        
         try {
             studentFormSchema.shape[field].parse(formData[field]);
             return undefined;
@@ -337,6 +374,24 @@ export default function StudentForm({
         return getFieldError(field) === undefined && !!formData[field];
     };
 
+    const handleSubmit = useCallback(async () => {
+        setHasSubmitted(true);
+        // Mark all fields as touched when submitting
+        const allFields: (keyof StudentFormData)[] = [
+            "firstName",
+            "lastName",
+            "country",
+            "phone",
+            "passport",
+            "languages",
+        ];
+        setTouchedFields(new Set(allFields));
+        
+        if (onSubmit) {
+            await onSubmit();
+        }
+    }, [onSubmit]);
+
     const formContent = (
         <>
             {/* Name Fields */}
@@ -350,6 +405,7 @@ export default function StudentForm({
                 firstNameIsValid={isFieldValid("firstName")}
                 lastNameIsValid={isFieldValid("lastName")}
                 autoFocus={true}
+                onFieldTouch={(field) => handleFieldTouch(field)}
             />
 
             {/* Country & Phone */}
@@ -369,6 +425,7 @@ export default function StudentForm({
                 onPassportChange={(value) => updateField("passport", value)}
                 passportError={getFieldError("passport")}
                 passportIsValid={isFieldValid("passport")}
+                onFieldTouch={() => handleFieldTouch("passport")}
             />
 
             {/* Languages */}
@@ -377,6 +434,7 @@ export default function StudentForm({
                 onLanguageToggle={handleLanguageToggle}
                 onCustomLanguageAdd={handleCustomLanguageAdd}
                 languagesError={getFieldError("languages")}
+                onFieldTouch={() => handleFieldTouch("languages")}
             />
 
             {/* Description */}
@@ -396,7 +454,7 @@ export default function StudentForm({
             color={studentEntity?.color}
             entityTitle={entityTitle}
             isFormReady={isFormReady}
-            onSubmit={onSubmit || (() => Promise.resolve())}
+            onSubmit={handleSubmit}
             onCancel={onClose || (() => {})}
             onClear={handleClear}
             isLoading={isLoading}

@@ -14,7 +14,7 @@ interface UsersLayoutProps {
 export default async function UsersLayout({ children }: UsersLayoutProps) {
     const context = await getUserSchoolContext();
     const serverRole = context.user?.role;
-    
+
     // Transform context school into credentials format for provider
     const credentials = context.school ? {
         id: context.school.id,
@@ -22,7 +22,7 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
         username: context.school.username,
         logoUrl: "/prototypes/north-icon.png", // Fallback logo
         bannerUrl: "/kritaps_ungurs_unplash/forest.jpg",
-        currency: "EUR",
+        currency: context.school.currency,
         status: "active",
         timezone: context.school.timezone
     } : null;
@@ -43,7 +43,7 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
                 }
             />
             <main className="pt-24 pb-20 md:pb-32 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</main>
-            <NavIns />
+            {/* <NavIns /> */}
         </SchoolCredentialsProvider>
     );
 }

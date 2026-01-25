@@ -351,13 +351,33 @@ export async function masterBookingAdd(
             }
 
             createdLesson = lesson;
+            
+            // Revalidate teacher pages
             revalidatePath("/teachers");
+            revalidatePath(`/teacher/${teacherId}`);
         }
 
         logger.info("Created booking with students", { bookingId: createdBooking.id, studentCount: studentIds.length, hasLesson: !!createdLesson });
 
+        // Revalidate list pages
         revalidatePath("/students");
         revalidatePath("/packages");
+        
+        // Revalidate individual student pages (both user and admin routes) for all students in the booking
+        for (const studentId of studentIds) {
+            revalidatePath(`/student/${studentId}`);
+            revalidatePath(`/student/${studentId}/bookings`);
+            revalidatePath(`/students/${studentId}`); // Admin route
+        }
+        
+        // Revalidate teacher page (both user and admin routes) if lesson was created
+        if (teacherId) {
+            revalidatePath(`/teacher/${teacherId}`);
+            revalidatePath(`/teachers/${teacherId}`); // Admin route
+        }
+        
+        // Revalidate package page (if it exists - using packageId)
+        revalidatePath(`/packages/${packageId}`);
 
         return {
             success: true,

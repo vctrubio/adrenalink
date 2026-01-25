@@ -130,7 +130,7 @@ export function useAdminReservationPackageListener({
                     try {
                         // Fetch student package requests directly using Supabase client
                         // This matches the server function logic but works client-side
-                        const { data, error } = await supabase
+                        const { data: requests, error: requestsError } = await supabase
                             .from("student_package")
                             .select(
                                 `
@@ -142,15 +142,69 @@ export function useAdminReservationPackageListener({
                             .eq("school_package.school_id", schoolId)
                             .order("created_at", { ascending: false });
 
-                        if (error) {
-                            console.error("[RESERVATION-LISTENER] ❌ Refetch failed:", error);
+                        if (requestsError) {
+                            console.error("[RESERVATION-LISTENER] ❌ Refetch failed:", requestsError);
                             return;
                         }
 
-                        if (data) {
-                            console.log("[RESERVATION-LISTENER] ✅ Refetch successful, updating UI");
-                            onPackageDetected(data as StudentPackageRequest[]);
+                        if (!requests || requests.length === 0) {
+                            console.log("[RESERVATION-LISTENER] ✅ Refetch successful, no requests found");
+                            onPackageDetected([]);
+                            return;
                         }
+
+                        // Get all unique clerk_ids from requests
+                        const clerkIds = [...new Set(requests.map((r: any) => r.requested_clerk_id).filter(Boolean))];
+
+                        // Fetch FULL student data for all clerk_ids in one query (not just names)
+                        const { data: schoolStudents, error: studentsError } = await supabase
+                            .from("school_students")
+                            .select(
+                                `
+                                *,
+                                student!inner(*)
+                            `,
+                            )
+                            .eq("school_id", schoolId)
+                            .in("clerk_id", clerkIds);
+
+                        if (studentsError) {
+                            console.error("[RESERVATION-LISTENER] ❌ Error fetching student data:", studentsError);
+                            // Continue without data rather than failing
+                        }
+
+                        // Create maps of clerk_id -> student data and student name
+                        const studentDataMap: Record<string, any> = {};
+                        const studentNameMap: Record<string, { firstName: string; lastName: string; fullName: string }> = {};
+                        
+                        if (schoolStudents) {
+                            schoolStudents.forEach((ss: any) => {
+                                if (ss.clerk_id && ss.student) {
+                                    const firstName = ss.student.first_name || "";
+                                    const lastName = ss.student.last_name || "";
+                                    
+                                    // Store full student data
+                                    studentDataMap[ss.clerk_id] = ss;
+                                    
+                                    // Store name for backward compatibility
+                                    studentNameMap[ss.clerk_id] = {
+                                        firstName,
+                                        lastName,
+                                        fullName: `${firstName} ${lastName}`.trim(),
+                                    };
+                                }
+                            });
+                        }
+
+                        // Attach student names and full data to each request
+                        const requestsWithNames = requests.map((request: any) => ({
+                            ...request,
+                            student_name: studentNameMap[request.requested_clerk_id] || null,
+                            student_data: studentDataMap[request.requested_clerk_id] || null,
+                        }));
+
+                        console.log("[RESERVATION-LISTENER] ✅ Refetch successful, updating UI with enriched data");
+                        onPackageDetected(requestsWithNames as StudentPackageRequest[]);
                     } catch (err) {
                         console.error("[RESERVATION-LISTENER] ❌ Exception during refetch:", err);
                     }

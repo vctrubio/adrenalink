@@ -58,7 +58,12 @@ export const getUserSchoolContext = cache(
     async (): Promise<UserSchoolContext> => {
         // Normal auth flow - get school from subdomain headers
         const schoolHeader = await getSchoolHeader();
-        const school = schoolHeader ? { id: schoolHeader.id, username: schoolHeader.name, timezone: schoolHeader.zone } : null;
+        const school = schoolHeader ? { 
+            id: schoolHeader.id, 
+            username: schoolHeader.name, 
+            timezone: schoolHeader.zone,
+            currency: schoolHeader.currency
+        } : null;
         
         // Get current user
         const user = await getUserContext();

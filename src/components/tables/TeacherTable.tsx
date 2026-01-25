@@ -1,9 +1,11 @@
 import { TeacherActiveLesson } from "@/src/components/ui/badge/teacher-active-lesson";
 import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
+import { TeacherUsernameCommissionBadge } from "@/src/components/ui/badge/teacher-username-commission";
 import { AddCommissionForm } from "@/src/components/ui/AddCommissionDropdown";
 import { useState, useMemo, memo, useEffect } from "react";
 import { ENTITY_DATA } from "@/config/entities";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { motion } from "framer-motion";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -332,24 +334,25 @@ function TeacherTable({
             {/* Show selected teacher and commission */}
             {selectedTeacher && selectedCommission && (
                 <div className="p-3 rounded-lg bg-muted">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="font-semibold text-foreground">{selectedTeacher.schema.username}</div>
-                            <div className="text-sm text-muted-foreground">
-                                {currency}
-                                {selectedCommission.cph}/h ({selectedCommission.commissionType})
-                                {selectedCommission.description && ` - ${selectedCommission.description}`}
-                            </div>
-                        </div>
+                    <div className="flex items-center justify-between gap-3">
+                        <TeacherUsernameCommissionBadge
+                            teacherIcon={teacherEntity?.icon || (() => null)}
+                            teacherUsername={selectedTeacher.schema.username || ""}
+                            teacherColor={teacherEntity?.color || "#22c55e"}
+                            commissionValue={selectedCommission.cph || "0"}
+                            commissionType={(selectedCommission.commissionType as "fixed" | "percentage") || "fixed"}
+                            currency={currency}
+                            showCurrency={selectedCommission.commissionType === "fixed"}
+                        />
                         <button
                             type="button"
                             onClick={() => {
                                 onSelectTeacher(null);
                                 onSelectCommission(null);
                             }}
-                            className="text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+                            className="p-1 rounded-full hover:bg-destructive/10 text-destructive transition-colors flex-shrink-0"
                         >
-                            ✕
+                            <X size={14} />
                         </button>
                     </div>
                 </div>
