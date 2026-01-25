@@ -4,6 +4,7 @@
  */
 
 import type { CommissionInfo } from "@/getters/commission-calculator";
+import type { LessonStatus, EventStatus } from "@/supabase/db/enums";
 
 export interface StudentData {
     id: string;
@@ -43,8 +44,9 @@ export interface EventNode {
         date: string;
         duration: number;
         location: string;
-        status: "planned" | "tbc" | "completed" | "uncompleted";
+        status: EventStatus;
     };
+    lessonStatus: LessonStatus;
     prev: EventNode | null;
     next: EventNode | null;
 }
