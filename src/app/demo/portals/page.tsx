@@ -5,11 +5,14 @@ import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
 import { User } from "lucide-react";
 import { DemoUserCard } from "./DemoUserCard";
 import { DemoSystemUserCard } from "./DemoSystemUserCard";
+import { clerkClient } from "@clerk/nextjs/server";
+import { getSchoolHeader } from "@/types/headers";
 
 export default async function DemoPortalsPage() {
     const result = await getDemoSchoolLists();
+    const schoolHeader = await getSchoolHeader();
 
-    if (!result.success || !result.data) {
+    if (!result.success || !result.data || !schoolHeader) {
         return (
             <div className="max-w-7xl mx-auto p-12 text-center text-muted-foreground">
                 <p>Could not load school data. Ensure you are accessing this page via a school subdomain.</p>
@@ -18,6 +21,30 @@ export default async function DemoPortalsPage() {
     }
 
     const { teachers, students, owner, schoolName } = result.data;
+    const schoolId = schoolHeader.id;
+
+    // Aggregate Clerk IDs
+    const clerkIds = [
+        ...(owner?.clerk_id ? [owner.clerk_id] : []),
+        ...teachers.map((t: any) => t.clerk_id).filter(Boolean),
+        ...students.map((s: any) => s.clerk_id).filter(Boolean),
+    ];
+
+    // Fetch Clerk metadata for these IDs
+    const client = await clerkClient();
+    const clerkUsers = clerkIds.length > 0 
+        ? await Promise.all(clerkIds.map(id => client.users.getUser(id).catch(() => null)))
+        : [];
+    
+    const clerkMetadataMap = clerkUsers.reduce((acc: any, user: any) => {
+        if (user) {
+            acc[user.id] = {
+                email: user.emailAddresses[0]?.emailAddress,
+                schoolCount: Object.keys((user.publicMetadata.schools as any) || {}).length || 0
+            };
+        }
+        return acc;
+    }, {});
 
     // Aggregate Active System Users (Clerk Linked)
     const systemUsers = [
@@ -26,7 +53,7 @@ export default async function DemoPortalsPage() {
                   {
                       clerkId: owner.clerk_id,
                       role: "owner",
-                      entityId: "", // Owners have no separate entity record
+                      entityId: "",
                       name: "School Owner",
                   },
               ]
@@ -69,7 +96,7 @@ export default async function DemoPortalsPage() {
                     </div>
 
                     <div className="grid gap-3">
-                        {owner && <DemoUserCard user={owner} type="admin" />}
+                        {owner && <DemoUserCard user={owner} type="admin" schoolId={schoolId} />}
                         <div className="p-4 bg-muted/20 border border-border/50 border-dashed rounded-xl text-center text-sm text-muted-foreground">
                             + Add School Admin
                         </div>
@@ -87,7 +114,7 @@ export default async function DemoPortalsPage() {
 
                     <div className="grid gap-3">
                         {teachers.map((teacher: any) => (
-                            <DemoUserCard key={teacher.id} user={teacher} type="teacher" />
+                            <DemoUserCard key={teacher.id} user={teacher} type="teacher" schoolId={schoolId} />
                         ))}
                     </div>
                 </section>
@@ -103,7 +130,7 @@ export default async function DemoPortalsPage() {
 
                     <div className="grid gap-3">
                         {students.map((student: any) => (
-                            <DemoUserCard key={student.id} user={student} type="student" />
+                            <DemoUserCard key={student.id} user={student} type="student" schoolId={schoolId} />
                         ))}
                     </div>
                 </section>
@@ -121,15 +148,20 @@ export default async function DemoPortalsPage() {
                         {systemUsers.length === 0 ? (
                             <div className="p-4 text-center text-sm text-muted-foreground italic">No active users linked</div>
                         ) : (
-                            systemUsers.map((user, idx) => (
-                                <DemoSystemUserCard
-                                    key={user.clerkId + idx}
-                                    clerkId={user.clerkId}
-                                    role={user.role}
-                                    entityId={user.entityId}
-                                    name={user.name}
-                                />
-                            ))
+                            systemUsers.map((user, idx) => {
+                                const metadata = clerkMetadataMap[user.clerkId] || {};
+                                return (
+                                    <DemoSystemUserCard
+                                        key={user.clerkId + idx}
+                                        clerkId={user.clerkId}
+                                        role={user.role}
+                                        entityId={user.entityId}
+                                        name={user.name}
+                                        email={metadata.email}
+                                        schoolCount={metadata.schoolCount}
+                                    />
+                                );
+                            })
                         )}
                     </div>
                 </section>

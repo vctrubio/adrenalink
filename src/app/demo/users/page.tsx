@@ -12,13 +12,14 @@ export default async function DemoUsersPage() {
         <div className="max-w-6xl mx-auto px-8 py-12">
             <div className="mb-12">
                 <h1 className="text-2xl font-bold text-foreground mb-2">User Registry</h1>
-                <p className="text-muted-foreground">View all registered users and their synchronized metadata.</p>
+                <p className="text-muted-foreground">View all registered users and their synchronized multi-tenant metadata.</p>
             </div>
 
             <div className="grid gap-6">
                 {users.map((user) => {
                     const metadata = user.publicMetadata as any;
-                    const role = metadata.role || "Unassigned";
+                    const schools = (metadata.schools as Record<string, any>) || {};
+                    const schoolCount = Object.keys(schools).length;
                     
                     return (
                         <div key={user.id} className="p-6 bg-card border border-border rounded-xl shadow-sm flex flex-col md:flex-row gap-6">
@@ -45,21 +46,24 @@ export default async function DemoUsersPage() {
 
                             {/* Role & Metadata */}
                             <div className="flex-1 space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <span className={`
-                                        px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wider
-                                        ${role === "owner" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" :
-                                          role === "school_admin" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
-                                          role === "teacher" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
-                                          role === "student" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300" :
-                                          "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"}
-                                    `}>
-                                        {role}
-                                    </span>
-                                    {metadata.schoolId && (
-                                        <span className="text-xs text-muted-foreground border border-border px-2 py-1 rounded-md">
-                                            School: {metadata.schoolId}
-                                        </span>
+                                <div className="flex flex-wrap gap-2">
+                                    {schoolCount === 0 ? (
+                                        <span className="text-xs text-muted-foreground italic">No school contexts assigned</span>
+                                    ) : (
+                                        Object.entries(schools).map(([id, context]: [string, any]) => (
+                                            <div key={id} className="flex items-center gap-2 bg-muted/30 border border-border/50 px-2 py-1 rounded-md">
+                                                <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                                                    context.role === "owner" ? "text-purple-600" :
+                                                    context.role === "teacher" ? "text-green-600" :
+                                                    "text-yellow-600"
+                                                }`}>
+                                                    {context.role}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground font-mono">
+                                                    @{context.schoolId.slice(0, 6)}
+                                                </span>
+                                            </div>
+                                        ))
                                     )}
                                 </div>
 
@@ -68,7 +72,7 @@ export default async function DemoUsersPage() {
                                         {JSON.stringify(user.publicMetadata, null, 2)}
                                     </pre>
                                     <span className="absolute top-2 right-2 text-[9px] uppercase tracking-widest text-muted-foreground/50 pointer-events-none">
-                                        Metadata
+                                        Public Metadata
                                     </span>
                                 </div>
                             </div>

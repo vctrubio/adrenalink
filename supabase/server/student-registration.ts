@@ -158,6 +158,10 @@ export async function registerStudentForSchool(params: {
             return { success: false, error: "Failed to link student to school" };
         }
 
+        // 3. Immediately sync Clerk metadata to ensure multi-school context is updated
+        const { syncUserRole } = await import("@/supabase/server/clerk-sync");
+        await syncUserRole(params.clerkId);
+
         // Revalidate relevant paths
         revalidatePath("/students");
         revalidatePath(`/student/${studentId}`);

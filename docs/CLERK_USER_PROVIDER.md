@@ -12,39 +12,26 @@ Adrenalink uses a **Hybrid Multi-Tenant Architecture**. While Clerk handles glob
 
 ---
 
-## Identity Partitions
-
-To maintain system integrity and a clean UX, every Clerk user is locked into one of two partitions. This is enforced by the **Sync Engine**.
-
-### 1. Staff Partition
-- **Roles**: `owner`, `school_admin`, `teacher`.
-- **Logic**: A user can be an Owner of School A and a Teacher at School B.
-- **Precedence (per school)**: `owner` > `school_admin` > `teacher`.
-
-### 2. Student Partition
-- **Roles**: `student`.
-- **Logic**: A user can be a Student at multiple schools (e.g., for different sports or locations).
-- **Constraint**: **NEVER** overlapping with the Staff Partition. A Teacher cannot be a Student.
-
----
-
 ## Metadata Structure
 
-The `publicMetadata` follows this schema:
+The `publicMetadata` follows this strict schema. All school-specific context is nested within the `schools` object.
 
 ```json
 {
-  "partition": "staff", // "staff" or "student"
   "schools": {
     "uuid-school-1": {
-      "role": "owner",
-      "entityId": "uuid-school-1",
-      "isActive": true
+      "role": "student",
+      "entityId": "uuid-student-123",
+      "isActive": true,
+      "isRental": false,
+      "schoolId": "uuid-school-1"
     },
     "uuid-school-2": {
       "role": "teacher",
       "entityId": "uuid-teacher-456",
-      "isActive": true
+      "isActive": true,
+      "isRental": false,
+      "schoolId": "uuid-school-2"
     }
   }
 }
@@ -57,33 +44,24 @@ The `publicMetadata` follows this schema:
 ### 1. The Sync Engine (`supabase/server/clerk-sync.ts`)
 Triggered whenever an identity is linked or a student profile is created.
 - **Action**: Sweeps all relevant tables for the `clerk_id`.
-- **Partition Check**: If it finds any Staff records, it ignores/prevents Student records.
-- **Result**: Completely overwrites the `schools` map in Clerk.
+- **Precedence**: within a single school context, Staff roles (`owner` > `teacher`) take precedence over `student` roles if a user happens to have both.
+- **Result**: Completely rebuilds the `schools` map in Clerk and nulls out any legacy top-level keys.
 
 ### 2. The Proxy Layer (`src/proxy.ts`)
 **Edge Resolution**
 1. Detects `subdomain` -> `schoolId`.
-2. Extracts `schools` map from Clerk session.
-3. **Selector**: `const context = schools[schoolId] || { role: 'guest' }`.
-4. **Injection**: Sets `x-user-role`, `x-user-entity-id`, and `x-user-authorized`.
+2. Extracts `schools` map from Clerk session claims.
+3. **Selector**: `const context = schools[schoolId]`.
+4. **Injection**: Sets `x-user-role`, `x-user-entity-id`, and `x-user-authorized` headers.
 
 ### 3. The Application Layer (`src/providers/user-school-provider.ts`)
 **Hydration**
-Consumes headers to provide a typed `UserSchoolContext`. It ensures that even if a user has 10 roles, the app only "sees" the one relevant to the current school.
-
----
-
-## Key Files & Responsibilities
-
-- **`supabase/server/clerk-sync.ts`**: Rebuilds the global school map.
-- **`src/proxy.ts`**: Filters the map for the current request.
-- **`src/providers/user-school-provider.ts`**: Provides the context to Server Components.
-- **`src/components/modals/LinkEntityToClerk.tsx`**: UI to trigger the Sync Engine.
+Consumes the headers or re-reads the metadata map to provide a typed `UserSchoolContext`. It ensures that the app context reflects only the identity held for the active school domain.
 
 ---
 
 ## Best Practices
 
-- **Atomic Sync**: Always sync the *entire* user portfolio, never partial updates to the `schools` map.
-- **Header Reliance**: Server Components should prefer headers (via `getUserSchoolContext`) for role checks to stay in sync with the Proxy's authorization.
-- **Partition Integrity**: Frontend registration flows must check the user's existing partition before allowing them to link a conflicting role.
+- **Atomic Sync**: Always sync the *entire* user portfolio to ensure the cache is consistent.
+- **No Global Role**: Never rely on a top-level `role` or `entityId`. Always resolve via the current school ID.
+- **Clean Metadata**: Keep the top-level metadata object empty (except for the `schools` key) to prevent authorization leaks or stale data usage.

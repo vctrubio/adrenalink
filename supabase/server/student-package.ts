@@ -309,6 +309,10 @@ export async function createStudentPackageRequest(params: {
             return { success: false, error: "Failed to submit request" };
         }
 
+        // Trigger sync to ensure metadata reflects this school association
+        const { syncUserRole } = await import("@/supabase/server/clerk-sync");
+        await syncUserRole(params.clerkId);
+
         // No revalidation needed - listener will pick up the change automatically
         return { success: true, data };
     } catch (error) {

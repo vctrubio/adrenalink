@@ -21,6 +21,9 @@ import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
 import { DoubleDatePicker, DateRange } from "@/src/components/pickers/DoubleDatePicker";
+import { LANGUAGES } from "@/supabase/db/enums";
+
+const LANGUAGE_OPTIONS = Object.values(LANGUAGES);
 
 // Schema for registration step
 const registrationSchema = z.object({
@@ -462,6 +465,34 @@ function IdentityStep({ relationData, pkg, currencySymbol, pph, formMethods, onS
                                 <option value="">Select Country</option>
                                 {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                             </select>
+                        </div>
+                    </FormField>
+
+                    <FormField label="Languages" error={formMethods.formState.errors.languages?.message}>
+                        <div className="flex flex-wrap gap-2">
+                            {LANGUAGE_OPTIONS.map((lang) => {
+                                const isSelected = formMethods.watch("languages").includes(lang);
+                                return (
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => {
+                                            const current = formMethods.getValues("languages");
+                                            const next = isSelected 
+                                                ? current.filter(l => l !== lang)
+                                                : [...current, lang];
+                                            formMethods.setValue("languages", next, { shouldValidate: true });
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${
+                                            isSelected 
+                                                ? "bg-secondary text-secondary-foreground border-secondary shadow-lg shadow-secondary/20" 
+                                                : "bg-muted/20 text-muted-foreground border-border hover:border-muted-foreground/30"
+                                        }`}
+                                    >
+                                        {lang}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </FormField>
                 </form>

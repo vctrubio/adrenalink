@@ -8,9 +8,11 @@ interface DemoSystemUserCardProps {
     role: string;
     entityId: string;
     name: string;
+    email?: string;
+    schoolCount?: number;
 }
 
-export function DemoSystemUserCard({ clerkId, role, entityId, name }: DemoSystemUserCardProps) {
+export function DemoSystemUserCard({ clerkId, role, entityId, name, email, schoolCount }: DemoSystemUserCardProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -44,11 +46,22 @@ export function DemoSystemUserCard({ clerkId, role, entityId, name }: DemoSystem
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-sm truncate">{name}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm truncate">{name}</span>
+                            {schoolCount && schoolCount > 1 && (
+                                <span className="text-[9px] bg-secondary/10 text-secondary border border-secondary/20 px-1 rounded-sm font-black">
+                                    +{schoolCount - 1} SCHOOLS
+                                </span>
+                            )}
+                        </div>
                         <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${roleClass}`}>
                             {role}
                         </span>
                     </div>
+
+                    {email && (
+                        <p className="text-[10px] text-muted-foreground truncate mb-2">{email}</p>
+                    )}
 
                     <div className="space-y-1.5">
                         <div className="flex flex-col">

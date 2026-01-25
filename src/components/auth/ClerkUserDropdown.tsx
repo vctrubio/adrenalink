@@ -11,24 +11,26 @@ interface ClerkUserDropdownProps {
 
 function RoleBasedIcon({ serverRole }: { serverRole?: string }) {
     const { user } = useUser();
-    // Prioritize server-derived role if available, otherwise client metadata
-    const role = serverRole || (user?.publicMetadata?.role as string);
+    // In our multi-tenant architecture, the role MUST be resolved by the server 
+    // context or middleware and passed down. Flat metadata is no longer used.
+    const role = serverRole;
 
     if (role === "school_admin" || role === "admin" || role === "owner") {
         return <AdminIcon className="text-foreground" size={22} />;
     }
     
     if (role === "teacher") {
-        const isActive = user?.publicMetadata?.isActive !== false;
-        return <HeadsetIcon className={isActive ? "text-foreground" : "text-muted-foreground"} size={22} />;
+        // Since we can't easily get isActive from the flat role string, 
+        // we assume active if we got this far, or we could pass isActive as a prop.
+        return <HeadsetIcon className="text-foreground" size={22} />;
     }
     
     if (role === "student") {
-        const isRental = user?.publicMetadata?.isRental === true;
-        return <HelmetIcon className={isRental ? "text-destructive" : "text-yellow-500"} size={22} rental={isRental} />;
+        // We could also pass isRental as a prop if needed for the icon state
+        return <HelmetIcon className="text-yellow-500" size={22} />;
     }
 
-    // Signed in but no role assigned - Helmet Secondary
+    // Default icon for authenticated users without a specific school context
     return <HelmetIcon className="text-secondary" size={22} />;
 }
 
