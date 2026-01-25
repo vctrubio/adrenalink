@@ -165,7 +165,7 @@ async function customProxy(authObject: any, request: NextRequest) {
             hostname,
             user_agent: request.headers.get("user-agent"),
             url: request.url,
-            ip: (request as any).ip || request.headers.get("x-forwarded-for"),
+            ip: request.headers.get("x-forwarded-for"),
             user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined,
             user_header: request.headers.get("user1"),
         });
