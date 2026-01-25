@@ -348,51 +348,7 @@ interface IdentificationStepProps extends BaseStepProps<SchoolFormData> {
 }
 
 export function IdentificationStep({ formMethods, user }: IdentificationStepProps) {
-    const { register, formState: { errors }, getValues } = formMethods;
-
-    const handleSignInClick = () => {
-        // Flag that we are starting Clerk sign-in
-        sessionStorage.setItem("clerk_signin_started", "true");
-        
-        // Save form data but exclude binary files which can't be stringified
-        const values = getValues();
-        const draft = {
-            ...values,
-            iconFile: undefined,
-            bannerFile: undefined,
-        };
-        sessionStorage.setItem("welcome_form_draft", JSON.stringify(draft));
-    };
-
-    if (!user) {
-        return (
-            <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-                    <User className="w-8 h-8 text-primary" />
-                </div>
-                <div className="space-y-2 max-w-md">
-                    <h3 className="text-xl font-bold text-foreground">Who is the Owner?</h3>
-                    <p className="text-muted-foreground text-sm">
-                        To ensure security and ownership, please sign in. Your account will be linked as the School Owner.
-                    </p>
-                </div>
-                
-                <div className="p-1 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-xl">
-                    <div className="bg-card rounded-lg p-6 w-full max-w-sm border border-border shadow-sm">
-                        <SignInButton mode="modal">
-                            <button 
-                                onClick={handleSignInClick}
-                                className="w-full py-3 bg-foreground text-background hover:opacity-90 rounded-lg font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                <span>Sign In to Adrenalink</span>
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
-                        </SignInButton>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    const { register, formState: { errors } } = formMethods;
 
     return (
         <div className="space-y-6 max-w-2xl mx-auto">
@@ -404,8 +360,8 @@ export function IdentificationStep({ formMethods, user }: IdentificationStepProp
                     <h3 className="font-bold text-lg text-foreground">School Owner</h3>
                     <p className="text-sm text-muted-foreground">You are currently signed in as:</p>
                     <div className="pt-2 flex flex-col gap-1">
-                        <span className="font-medium text-foreground">{user.firstName} {user.lastName}</span>
-                        <span className="text-sm text-muted-foreground font-mono">{user.email}</span>
+                        <span className="font-medium text-foreground">{user?.firstName} {user?.lastName}</span>
+                        <span className="text-sm text-muted-foreground font-mono">{user?.email}</span>
                     </div>
                 </div>
                 <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider border border-green-200 dark:border-green-800">

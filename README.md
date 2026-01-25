@@ -80,9 +80,28 @@ These schemas are used both in frontend forms and server actions to provide a si
 
 The application handles multi-tenancy via **Subdomains** managed by `@src/proxy.ts`.
 
-1.  **Resolution**: `school-name.adrenalink.tech` -> Resolves to School ID.
-2.  **Context Injection**: Middleware injects `x-school-id` and `x-school-timezone` headers into every request.
-3.  **Consumption**: `@backend/school-context.ts` is the standardized utility to retrieve this context server-side.
+1.  **Resolution**: `school-name.adrenalink.tech` -> Resolves to School ID via database lookup.
+2.  **Context Injection**: Middleware injects `x-school-id`, `x-school-username`, and `x-school-timezone` headers into every request.
+3.  **Consumption**: `@types/headers.ts` is the **single source of truth** for retrieving school context server-side.
+
+### School Context Retrieval
+
+**Header-based approach (no redundant DB lookups):**
+
+- **`@types/headers.ts`** → `getSchoolHeader()` - Primary function for school context
+  - Returns `{ id, name, zone }` format
+  - Uses React's `cache()` for request-level memoization
+  - Performs DB lookup based on `x-school-username` header (cached per request)
+
+**Usage patterns:**
+
+- **Admin routes** (`@supabase/server/admin.ts`): Use `getSchoolHeader()` directly from `@types/headers.ts`
+- **User routes** (`@src/providers/user-school-provider.ts`): Use `getSchoolHeader()` for combined user-school context
+
+**Removed:**
+- `@/backend/school-context` - No longer exists
+- Wrapper functions like `getSchoolContext()`, `getSchoolId()` - Use `getSchoolHeader()` directly
+- All code now uses `getSchoolHeader()` from `@types/headers.ts` as the single source of truth
 
 ## 🛠 Backend & DevOps Standards
 

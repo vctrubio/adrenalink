@@ -108,25 +108,29 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         const signinStarted = sessionStorage.getItem("clerk_signin_started");
         if (signinStarted === "true" && user) {
             const savedData = sessionStorage.getItem("welcome_form_draft");
+            const savedUiState = sessionStorage.getItem("welcome_form_ui_state");
+            
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
-                    // Restore form data
                     reset(parsed);
-                    // Inject current user email
                     setValue("ownerEmail", user.email);
-                    // Return to the Identification step
-                    setIsNameRegistered(true);
-                    setCurrentStep(2); // Step 2 is Identification (0-indexed)
                     
-                    logger.info("Restored form data after Clerk sign-in redirect");
+                    if (savedUiState) {
+                        const ui = JSON.parse(savedUiState);
+                        setIsNameRegistered(ui.isNameRegistered ?? false);
+                        setCurrentStep(ui.currentStep ?? 0);
+                    }
+                    
+                    logger.info("Restored form data and UI state after Clerk sign-in");
                 } catch (e) {
                     console.error("Failed to restore form data", e);
                 }
             }
-            // Clear flags immediately after restoration attempt
+            // Clear flags
             sessionStorage.removeItem("clerk_signin_started");
             sessionStorage.removeItem("welcome_form_draft");
+            sessionStorage.removeItem("welcome_form_ui_state");
         }
     }, [user, reset, setValue]);
 
@@ -462,6 +466,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
                             setIsNameRegistered(true);
                         }}
                         onCurrencyChange={(currency) => setValue("currency", currency)}
+                        user={user}
                     />
                     <motion.div
                         initial={{ y: 100, opacity: 0 }}

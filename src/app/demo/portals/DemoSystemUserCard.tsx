@@ -67,12 +67,14 @@ export function DemoSystemUserCard({ clerkId, role, entityId, name }: DemoSystem
                             </button>
                         </div>
 
-                        <div className="flex flex-col">
-                            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Entity ID</span>
-                            <span className="text-xs font-mono text-muted-foreground truncate" title={entityId}>
-                                {entityId}
-                            </span>
-                        </div>
+                        {role !== "owner" && (
+                            <div className="flex flex-col">
+                                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Entity ID</span>
+                                <span className="text-xs font-mono text-muted-foreground truncate" title={entityId}>
+                                    {entityId}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

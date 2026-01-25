@@ -26,7 +26,7 @@ export default async function DemoPortalsPage() {
                   {
                       clerkId: owner.clerk_id,
                       role: "owner",
-                      entityId: owner.id,
+                      entityId: "", // Owners have no separate entity record
                       name: "School Owner",
                   },
               ]
