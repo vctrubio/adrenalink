@@ -81,30 +81,13 @@ export const getUserSchoolContext = cache(
                 user: null,
                 clerkUserMetadata: null,
                 schoolHeader: null,
-                isAuthorized: false,
-                error: "School context missing. Please access via a valid subdomain.",
             };
         }
 
-        if (!user || !clerkUserMetadata || clerkUserMetadata.role === "guest") {
-            return {
-                user,
-                clerkUserMetadata,
-                schoolHeader,
-                isAuthorized: false,
-                error: user ? "User is not registered for this school." : "User not authenticated.",
-            };
-        }
-
-        // 4. Validation
-        const isAuthorized = clerkUserMetadata.role !== "guest";
-        
         return {
             user,
             clerkUserMetadata,
             schoolHeader,
-            isAuthorized,
-            error: isAuthorized ? undefined : `You do not have access to ${schoolHeader.name}.`,
         };
     }
 );
@@ -113,7 +96,7 @@ export const getUserSchoolContext = cache(
  * Check if user has specific role
  */
 export function hasRole(context: UserSchoolContext, role: string | string[]): boolean {
-    if (!context.isAuthorized || !context.clerkUserMetadata) return false;
+    if (!context.clerkUserMetadata || context.clerkUserMetadata.role === "guest") return false;
 
     const roles = Array.isArray(role) ? role : [role];
     return roles.includes(context.clerkUserMetadata.role);

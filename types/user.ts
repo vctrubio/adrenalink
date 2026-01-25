@@ -33,6 +33,4 @@ export interface UserSchoolContext {
     user: ClerkData | null;
     clerkUserMetadata: ClerkUserMetadata | null;
     schoolHeader: HeaderContext | null;
-    isAuthorized: boolean;
-    error?: string;
 }
