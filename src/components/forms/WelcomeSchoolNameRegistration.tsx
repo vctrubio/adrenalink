@@ -8,7 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { AnimatedCanvas } from "@/src/landing/animated-canvas";
 import { SignInButton } from "@clerk/nextjs";
 import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
-import { UserAuth } from "@/types/user";
+import { ClerkData } from "@/types/user";
 
 interface WelcomeSchoolNameRegistrationProps {
     formMethods: UseFormReturn<SchoolFormData>;
@@ -18,7 +18,7 @@ interface WelcomeSchoolNameRegistrationProps {
     onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onUsernameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
     onNext: () => void;
-    user: UserAuth | null;
+    user: ClerkData | null;
 }
 
 export function WelcomeSchoolNameRegistration({

@@ -6,7 +6,7 @@ import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 export default async function DemoLayout({ children }: { children: ReactNode }) {
     // Verify server-side context resolution
     const context = await getUserSchoolContext();
-    const serverRole = context.user?.role;
+    const serverRole = context.clerkUserMetadata?.role;
 
     return (
         <div className="min-h-screen bg-background">

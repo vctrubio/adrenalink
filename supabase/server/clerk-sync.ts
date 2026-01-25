@@ -2,14 +2,14 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { clerkClient } from "@clerk/nextjs/server";
-import { SchoolClerkContext } from "@/types/user";
+import { ClerkUserMetadata } from "@/types/user";
 
 /**
  * Syncs the Clerk User's roles across ALL schools based on database records.
  * 
  * Strategy:
  * 1. Sweep all role tables (school, teacher, school_students) for this clerk_id.
- * 2. Build a mapping of schoolId -> SchoolClerkContext.
+ * 2. Build a mapping of schoolId -> ClerkUserMetadata.
  * 3. Store this map in Clerk's publicMetadata.schools.
  */
 export async function syncUserRole(clerkId: string) {
@@ -24,7 +24,7 @@ export async function syncUserRole(clerkId: string) {
             supabase.from("school_students").select("school_id, rental, student_id, active").eq("clerk_id", clerkId)
         ]);
 
-        const schoolMap: Record<string, SchoolClerkContext> = {};
+        const schoolMap: Record<string, ClerkUserMetadata> = {};
 
         // 2. Populate Owners (Schools they own)
         ownerResult.data?.forEach(s => {
@@ -115,14 +115,17 @@ export async function linkEntityToClerk(
     const supabase = getServerConnection();
     const client = await clerkClient();
 
+    let clerkUser;
     try {
-        await client.users.getUser(clerkId);
+        clerkUser = await client.users.getUser(clerkId);
     } catch (error: any) {
         if (error.status === 404) {
             throw new Error(`Clerk User ID '${clerkId}' not found.`);
         }
         throw error;
     }
+    
+    const clerkEmail = clerkUser.emailAddresses[0]?.emailAddress || null;
     
     if (entityType === "teacher") {
         const { error } = await supabase
@@ -137,9 +140,10 @@ export async function linkEntityToClerk(
             .eq("id", entityId);
         if (error) throw error;
     } else {
+        // Students: Set both clerk_id and email from Clerk user
         const { error } = await supabase
             .from("school_students")
-            .update({ clerk_id: clerkId })
+            .update({ clerk_id: clerkId, email: clerkEmail })
             .eq("student_id", entityId);
         if (error) throw error;
     }
@@ -176,10 +180,10 @@ export async function unlinkEntityFromClerk(
             .eq("id", entityId);
         if (error) throw error;
     } else {
-        // Students: Clear clerk_id for this specific school relationship
+        // Students: Clear clerk_id and email for this specific school relationship
         const { error } = await supabase
             .from("school_students")
-            .update({ clerk_id: null })
+            .update({ clerk_id: null, email: null })
             .eq("student_id", entityId)
             .eq("school_id", schoolId);
         if (error) throw error;

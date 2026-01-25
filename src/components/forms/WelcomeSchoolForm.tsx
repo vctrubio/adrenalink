@@ -9,7 +9,7 @@ import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 import { logger } from "@/backend/logger";
 import { SignInButton } from "@clerk/nextjs";
-import { UserAuth } from "@/types/user";
+import { ClerkData } from "@/types/user";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
 import {
@@ -59,7 +59,7 @@ const schoolSchema = z.object({
 
 interface WelcomeSchoolFormProps {
     existingUsernames: string[];
-    user: UserAuth | null;
+    user: ClerkData | null;
 }
 
 export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolFormProps) {

@@ -9,45 +9,47 @@
  */
 
 import { cache } from "react";
-import type { UserSchoolContext, UserAuth, SchoolClerkContext } from "@/types/user";
+import type { UserSchoolContext, ClerkData, ClerkUserMetadata } from "@/types/user";
 import { currentUser } from "@clerk/nextjs/server";
 import { getSchoolHeader } from "@/types/headers";
 
 /**
- * Get current user from Clerk
- * Resolves context based on the provided schoolId
+ * Get Clerk user data
  */
-export async function getUserContext(targetSchoolId?: string): Promise<UserAuth | null> {
+export async function getClerkData(): Promise<ClerkData | null> {
     const user = await currentUser();
     
     if (!user) return null;
-
-    // Multi-School Logic: Strictly extract context from the 'schools' mapping
-    const schools = (user.publicMetadata.schools as Record<string, any>) || {};
-    const context = targetSchoolId ? (schools[targetSchoolId] as SchoolClerkContext) : null;
-
-    // If no specific school context is found, we provide a guest context
-    const resolvedContext: SchoolClerkContext = {
-        role: context?.role || "guest",
-        schoolId: targetSchoolId || "",
-        entityId: context?.entityId || "",
-        isActive: context?.isActive ?? false,
-        isRental: context?.isRental ?? false,
-    };
 
     return {
         id: user.id,
         email: user.emailAddresses[0]?.emailAddress || "",
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        
-        // New Typed Context
-        schoolContext: resolvedContext,
+        imageUrl: user.imageUrl || "",
+    };
+}
 
-        // Legacy flattening for compatibility
-        role: resolvedContext.role,
-        schoolId: resolvedContext.schoolId,
-        entityId: resolvedContext.entityId,
+/**
+ * Get Clerk user metadata for a specific school
+ */
+export async function getClerkUserMetadata(targetSchoolId?: string): Promise<ClerkUserMetadata | null> {
+    const user = await currentUser();
+    
+    if (!user || !targetSchoolId) return null;
+
+    // Multi-School Logic: Extract context from the 'schools' mapping
+    const schools = (user.publicMetadata.schools as Record<string, any>) || {};
+    const context = schools[targetSchoolId] as ClerkUserMetadata | undefined;
+
+    if (!context) return null;
+
+    return {
+        role: context.role || "guest",
+        schoolId: targetSchoolId,
+        entityId: context.entityId || "",
+        isActive: context.isActive ?? false,
+        isRental: context.isRental ?? false,
     };
 }
 
@@ -58,51 +60,51 @@ export const getUserSchoolContext = cache(
     async (): Promise<UserSchoolContext> => {
         // 1. Get school from subdomain headers
         const schoolHeader = await getSchoolHeader();
-        const school = schoolHeader ? { 
-            id: schoolHeader.id, 
-            username: schoolHeader.name, 
-            timezone: schoolHeader.zone,
-            currency: schoolHeader.currency
-        } : null;
         
-        // 2. Get current user, targeting this specific school context
-        const user = await getUserContext(school?.id);
+        // 2. Get Clerk user data
+        const user = await getClerkData();
+        
+        // 3. Get Clerk user metadata for this school
+        const clerkUserMetadata = await getClerkUserMetadata(schoolHeader?.id);
 
         if (process.env.NODE_ENV === "development") {
             console.log("🔍 [UserSchoolContext] Resolution:", {
                 userId: user?.id || "not_authenticated",
-                targetSchool: school?.id || "none",
-                resolvedRole: user?.schoolContext?.role || "guest",
-                entityId: user?.schoolContext?.entityId || "none"
+                targetSchool: schoolHeader?.id || "none",
+                resolvedRole: clerkUserMetadata?.role || "guest",
+                entityId: clerkUserMetadata?.entityId || "none"
             });
         }
 
-        if (!school) {
+        if (!schoolHeader) {
             return {
-                user: null as any,
-                school: null as any,
+                user: null,
+                clerkUserMetadata: null,
+                schoolHeader: null,
                 isAuthorized: false,
                 error: "School context missing. Please access via a valid subdomain.",
             };
         }
 
-        if (!user || user.schoolContext?.role === "guest") {
+        if (!user || !clerkUserMetadata || clerkUserMetadata.role === "guest") {
             return {
-                user: user as any,
-                school,
+                user,
+                clerkUserMetadata,
+                schoolHeader,
                 isAuthorized: false,
                 error: user ? "User is not registered for this school." : "User not authenticated.",
             };
         }
 
-        // 3. Validation
-        const isAuthorized = !!user.schoolContext && user.schoolContext.role !== "guest";
+        // 4. Validation
+        const isAuthorized = clerkUserMetadata.role !== "guest";
         
         return {
             user,
-            school,
+            clerkUserMetadata,
+            schoolHeader,
             isAuthorized,
-            error: isAuthorized ? undefined : `You do not have access to ${school.username}.`,
+            error: isAuthorized ? undefined : `You do not have access to ${schoolHeader.name}.`,
         };
     }
 );
@@ -111,8 +113,8 @@ export const getUserSchoolContext = cache(
  * Check if user has specific role
  */
 export function hasRole(context: UserSchoolContext, role: string | string[]): boolean {
-    if (!context.isAuthorized || !context.user || !context.user.schoolContext) return false;
+    if (!context.isAuthorized || !context.clerkUserMetadata) return false;
 
     const roles = Array.isArray(role) ? role : [role];
-    return roles.includes(context.user.schoolContext.role);
+    return roles.includes(context.clerkUserMetadata.role);
 }

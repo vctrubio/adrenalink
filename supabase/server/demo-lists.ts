@@ -4,12 +4,12 @@ import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 export async function getDemoSchoolLists() {
     const context = await getUserSchoolContext();
 
-    if (!context.school?.id) {
+    if (!context.schoolHeader?.id) {
         return { success: false, error: "No school context found" };
     }
 
     const supabase = getServerConnection();
-    const schoolId = context.school.id;
+    const schoolId = context.schoolHeader.id;
 
     try {
         const [teachersResult, studentsResult, schoolResult] = await Promise.all([
@@ -53,7 +53,7 @@ export async function getDemoSchoolLists() {
                 teachers: teachersResult.data,
                 students: students,
                 owner: schoolResult.data,
-                schoolName: context.school.username,
+                schoolName: context.schoolHeader.name,
             },
         };
     } catch (error) {
