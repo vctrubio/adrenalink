@@ -4,6 +4,7 @@ import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
+import type { LessonStatus, EventStatus } from "@/supabase/db/enums";
 
 /**
  * Comprehensive teacher user data with ALL relations
@@ -127,8 +128,9 @@ export async function getTeacherUser(teacherId: string): Promise<{
                         date: evt.date,
                         duration: evt.duration,
                         location: evt.location,
-                        status: evt.status as "planned" | "tbc" | "completed" | "uncompleted",
+                        status: evt.status as EventStatus,
                     },
+                    lessonStatus: lesson.status as LessonStatus,
                     prev: null,
                     next: null,
                 };

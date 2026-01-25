@@ -711,11 +711,37 @@ export async function assignEquipmentToEvent(
 
         const supabase = getServerConnection();
 
+        // Check if equipment is already assigned
+        const { data: existing, error: checkError } = await supabase
+            .from("equipment_event")
+            .select("equipment_id, event_id")
+            .eq("event_id", eventId)
+            .eq("equipment_id", equipmentId)
+            .maybeSingle();
+
+        if (checkError && checkError.code !== "PGRST116") {
+            // PGRST116 is "not found" which is fine, other errors are not
+            logger.error("Error checking existing assignment", checkError);
+            return { success: false, error: "Failed to check equipment assignment" };
+        }
+
+        // If already assigned, return success (idempotent)
+        if (existing) {
+            logger.debug("Equipment already assigned to event", { eventId, equipmentId });
+            return { success: true, data: { success: true } };
+        }
+
+        // Insert new assignment
         const { error } = await supabase.from("equipment_event").insert({ event_id: eventId, equipment_id: equipmentId });
 
         if (error) {
+            // Check for duplicate key error (23505 is PostgreSQL unique violation)
+            if (error.code === "23505" || error.message?.includes("duplicate") || error.message?.includes("unique")) {
+                logger.debug("Equipment already assigned (duplicate key)", { eventId, equipmentId });
+                return { success: true, data: { success: true } }; // Idempotent - already assigned
+            }
             logger.error("Error assigning equipment", error);
-            return { success: false, error: "Failed to assign equipment" };
+            return { success: false, error: error.message || "Failed to assign equipment" };
         }
 
         // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
