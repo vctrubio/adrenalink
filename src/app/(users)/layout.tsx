@@ -13,18 +13,18 @@ interface UsersLayoutProps {
 
 export default async function UsersLayout({ children }: UsersLayoutProps) {
     const context = await getUserSchoolContext();
-    const serverRole = context.user?.role;
+    const serverRole = context.clerkUserMetadata?.role;
 
-    // Transform context school into credentials format for provider
-    const credentials = context.school ? {
-        id: context.school.id,
-        name: context.school.username, // Using username as name placeholder if needed
-        username: context.school.username,
+    // Transform context schoolHeader into credentials format for provider
+    const credentials = context.schoolHeader ? {
+        id: context.schoolHeader.id,
+        name: context.schoolHeader.name,
+        username: context.schoolHeader.name,
         logoUrl: "/prototypes/north-icon.png", // Fallback logo
         bannerUrl: "/kritaps_ungurs_unplash/forest.jpg",
-        currency: context.school.currency,
+        currency: context.schoolHeader.currency,
         status: "active",
-        timezone: context.school.timezone
+        timezone: context.schoolHeader.zone
     } : null;
 
     return (

@@ -2,6 +2,7 @@
 
 import { User, Copy, Check } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 interface DemoSystemUserCardProps {
     clerkId: string;
@@ -9,10 +10,10 @@ interface DemoSystemUserCardProps {
     entityId: string;
     name: string;
     email?: string;
-    schoolCount?: number;
+    imageUrl?: string;
 }
 
-export function DemoSystemUserCard({ clerkId, role, entityId, name, email, schoolCount }: DemoSystemUserCardProps) {
+export function DemoSystemUserCard({ clerkId, role, entityId, name, email, imageUrl }: DemoSystemUserCardProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -40,20 +41,24 @@ export function DemoSystemUserCard({ clerkId, role, entityId, name, email, schoo
     return (
         <div className="group flex flex-col bg-card border border-border rounded-xl hover:border-primary/30 transition-all overflow-hidden">
             <div className="p-4 flex items-start gap-3">
-                <div className="p-2 rounded-full bg-muted text-muted-foreground">
-                    <User size={20} />
-                </div>
+                {imageUrl ? (
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                        <Image
+                            src={imageUrl}
+                            alt={name}
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                ) : (
+                    <div className="p-2 rounded-full bg-muted text-muted-foreground">
+                        <User size={20} />
+                    </div>
+                )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm truncate">{name}</span>
-                            {schoolCount && schoolCount > 1 && (
-                                <span className="text-[9px] bg-secondary/10 text-secondary border border-secondary/20 px-1 rounded-sm font-black">
-                                    +{schoolCount - 1} SCHOOLS
-                                </span>
-                            )}
-                        </div>
+                        <span className="font-bold text-sm truncate">{name}</span>
                         <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${roleClass}`}>
                             {role}
                         </span>

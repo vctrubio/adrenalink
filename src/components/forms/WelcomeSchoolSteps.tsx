@@ -8,7 +8,7 @@ import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ImageCropper } from "@/src/components/ui/ImageCropper";
 import { getPhoneCodeByCountryCode, COUNTRIES, getCountryNameByCode } from "@/config/countries";
-import { UserAuth } from "@/types/user";
+import { ClerkData } from "@/types/user";
 import { SignInButton } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 
@@ -379,7 +379,7 @@ export function SocialStep({ formMethods }: SocialStepProps) {
 // --- STEP 3: IDENTIFICATION (Sign In & User Info) ---
 
 interface IdentificationStepProps extends BaseStepProps<SchoolFormData> {
-    user?: UserAuth | null;
+    user?: ClerkData | null;
 }
 
 export function IdentificationStep({ formMethods, user }: IdentificationStepProps) {

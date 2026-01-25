@@ -40,7 +40,7 @@ export default async function DemoPortalsPage() {
         if (user) {
             acc[user.id] = {
                 email: user.emailAddresses[0]?.emailAddress,
-                schoolCount: Object.keys((user.publicMetadata.schools as any) || {}).length || 0
+                imageUrl: user.imageUrl,
             };
         }
         return acc;
@@ -158,7 +158,7 @@ export default async function DemoPortalsPage() {
                                         entityId={user.entityId}
                                         name={user.name}
                                         email={metadata.email}
-                                        schoolCount={metadata.schoolCount}
+                                        imageUrl={metadata.imageUrl}
                                     />
                                 );
                             })

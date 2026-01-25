@@ -463,7 +463,7 @@ function IdentityStep({ relationData, pkg, currencySymbol, pph, formMethods, onS
                             <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <select {...formMethods.register("country")} className="w-full h-12 pl-10 bg-muted/20 border border-border rounded-xl text-sm font-bold appearance-none outline-none focus:ring-2 focus:ring-secondary/20">
                                 <option value="">Select Country</option>
-                                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                                {COUNTRIES.map(c => <option key={c.code} value={c.name}>{c.name}</option>)}
                             </select>
                         </div>
                     </FormField>
