@@ -123,11 +123,13 @@ async function customProxy(authObject: any, request: NextRequest) {
             if (userId) {
                 setHeader(response, HEADER_KEYS.USER_ID, userId);
 
-                // Extract role/school from claims (session metadata)
+                // Extract role for THIS specific school from mapped metadata
                 const metadata = (sessionClaims?.publicMetadata as any) || {};
-                const role = metadata.role;
-                const userSchoolId = metadata.schoolId;
-                const isAuthorized = userSchoolId === schoolId;
+                const schools = metadata.schools || {};
+                const context = schools[schoolId];
+                
+                const role = context?.role;
+                const isAuthorized = !!role;
 
                 if (role) setHeader(response, HEADER_KEYS.USER_ROLE, role);
                 setHeader(response, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
@@ -146,8 +148,11 @@ async function customProxy(authObject: any, request: NextRequest) {
 
                 if (userId) {
                     const metadata = (sessionClaims?.publicMetadata as any) || {};
+                    const schools = metadata.schools || {};
+                    const isAuthorized = !!schools[schoolId];
+                    
                     setHeader(rewriteResponse, HEADER_KEYS.USER_ID, userId);
-                    setHeader(rewriteResponse, HEADER_KEYS.USER_AUTHORIZED, metadata.schoolId === schoolId ? "true" : "false");
+                    setHeader(rewriteResponse, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
                 }
                 return rewriteResponse;
             }

@@ -5,16 +5,19 @@ import Link from "next/link";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon.jsx";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 import AdminIcon from "@/public/appSvgs/AdminIcon.jsx";
-import { LinkIcon } from "lucide-react";
+import { LinkIcon, Unlink } from "lucide-react";
 import { LinkEntityToClerk } from "@/src/components/modals/LinkEntityToClerk";
+import { UnlinkEntityFromClerk } from "@/src/components/modals/UnlinkEntityFromClerk";
 
 interface DemoUserCardProps {
     user: any;
     type: "teacher" | "student" | "admin";
+    schoolId: string;
 }
 
-export function DemoUserCard({ user, type }: DemoUserCardProps) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+export function DemoUserCard({ user, type, schoolId }: DemoUserCardProps) {
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
     const isUnlinked = !user.clerk_id;
     const isInactive = type === "teacher" && !user.active;
     const isRental = type === "student" && user.rental;
@@ -103,24 +106,44 @@ export function DemoUserCard({ user, type }: DemoUserCardProps) {
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            setIsModalOpen(true);
+                            if (isUnlinked) {
+                                setIsLinkModalOpen(true);
+                            } else {
+                                setIsUnlinkModalOpen(true);
+                            }
                         }}
-                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
-                        title="Link Identity"
+                        className={`p-1.5 rounded-md transition-colors ${
+                            isUnlinked 
+                                ? "text-muted-foreground hover:text-primary hover:bg-primary/10" 
+                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        }`}
+                        title={isUnlinked ? "Link Identity" : "Unlink Identity"}
                     >
-                        <LinkIcon size={14} />
+                        {isUnlinked ? <LinkIcon size={14} /> : <Unlink size={14} />}
                     </button>
                 </div>
             </div>
 
             <LinkEntityToClerk
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isLinkModalOpen}
+                onClose={() => setIsLinkModalOpen(false)}
                 entityId={user.id}
                 entityType={entityType}
                 entityName={displayName}
                 currentClerkId={user.clerk_id}
             />
+
+            {user.clerk_id && (
+                <UnlinkEntityFromClerk
+                    isOpen={isUnlinkModalOpen}
+                    onClose={() => setIsUnlinkModalOpen(false)}
+                    entityId={user.id}
+                    entityType={entityType}
+                    entityName={displayName}
+                    clerkId={user.clerk_id}
+                    schoolId={schoolId}
+                />
+            )}
         </>
     );
 }

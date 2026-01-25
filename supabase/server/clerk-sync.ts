@@ -2,92 +2,101 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { clerkClient } from "@clerk/nextjs/server";
+import { SchoolClerkContext } from "@/types/user";
 
 /**
- * Syncs the Clerk User's role based on the database records.
+ * Syncs the Clerk User's roles across ALL schools based on database records.
  * 
  * Strategy:
- * 1. Database is Source of Truth (via clerk_id columns)
- * 2. Clerk Metadata is Cache (for fast frontend checks)
- * 3. Uses generic 'entityId' that resolves based on the role
+ * 1. Sweep all role tables (school, teacher, school_students) for this clerk_id.
+ * 2. Build a mapping of schoolId -> SchoolClerkContext.
+ * 3. Store this map in Clerk's publicMetadata.schools.
  */
 export async function syncUserRole(clerkId: string) {
     const supabase = getServerConnection();
     const client = await clerkClient();
 
     try {
-        // 1. Check Owner (School table)
-        const { data: owner } = await supabase
-            .from("school")
-            .select("id, username")
-            .eq("clerk_id", clerkId)
-            .maybeSingle();
+        // 1. Fetch all potential identities in parallel
+        const [ownerResult, teacherResult, studentResult] = await Promise.all([
+            supabase.from("school").select("id, username").eq("clerk_id", clerkId),
+            supabase.from("teacher").select("id, school_id, active").eq("clerk_id", clerkId),
+            supabase.from("school_students").select("school_id, rental, student_id, active").eq("clerk_id", clerkId)
+        ]);
 
-        if (owner) {
-            await client.users.updateUserMetadata(clerkId, {
-                publicMetadata: {
-                    role: "owner",
-                    schoolId: owner.id,
-                    schoolUsername: owner.username,
-                    entityId: owner.id,
-                    isActive: true
-                }
-            });
-            return { success: true, role: "owner", schoolId: owner.id };
-        }
+        const schoolMap: Record<string, SchoolClerkContext> = {};
 
-        // 2. Check Teacher
-        const { data: teacher } = await supabase
-            .from("teacher")
-            .select("id, school_id, active")
-            .eq("clerk_id", clerkId)
-            .maybeSingle();
+        // 2. Populate Owners (Schools they own)
+        ownerResult.data?.forEach(s => {
+            schoolMap[s.id] = {
+                role: "owner",
+                entityId: s.id,
+                isActive: true,
+                isRental: false,
+                schoolId: s.id
+            };
+        });
 
-        if (teacher) {
-            await client.users.updateUserMetadata(clerkId, {
-                publicMetadata: {
+        // 3. Populate Teachers
+        teacherResult.data?.forEach(t => {
+            // Owner role takes precedence if they are both
+            if (!schoolMap[t.school_id]) {
+                schoolMap[t.school_id] = {
                     role: "teacher",
-                    schoolId: teacher.school_id,
-                    entityId: teacher.id,
-                    isActive: teacher.active
-                }
-            });
-            return { success: true, role: "teacher", schoolId: teacher.school_id };
-        }
+                    entityId: t.id,
+                    isActive: t.active,
+                    isRental: false,
+                    schoolId: t.school_id
+                };
+            }
+        });
 
-        // 3. Check Student (School Students)
-        const { data: student } = await supabase
-            .from("school_students")
-            .select("school_id, rental, student_id, active")
-            .eq("clerk_id", clerkId)
-            .limit(1)
-            .maybeSingle();
-
-        if (student) {
-            await client.users.updateUserMetadata(clerkId, {
-                publicMetadata: {
+        // 4. Populate Students
+        studentResult.data?.forEach(s => {
+            // Staff roles take precedence over student roles per school context
+            if (!schoolMap[s.school_id]) {
+                schoolMap[s.school_id] = {
                     role: "student",
-                    schoolId: student.school_id,
-                    entityId: student.student_id,
-                    isRental: student.rental,
-                    isActive: student.active
-                }
-            });
-            return { success: true, role: "student", schoolId: student.school_id };
-        }
+                    entityId: s.student_id,
+                    isActive: s.active,
+                    isRental: s.rental,
+                    schoolId: s.school_id
+                };
+            }
+        });
 
-        // 4. Default: Authenticated but Unassigned
+        // 5. Update Clerk Metadata
+        // We must fetch existing metadata first because Clerk's updateUserMetadata performs a merge.
+        // To remove a school that no longer exists in the DB, we must explicitly set its key to null.
+        const user = await client.users.getUser(clerkId);
+        const existingMetadata = (user.publicMetadata as any) || {};
+        const existingSchools = existingMetadata.schools || {};
+
+        const finalSchools: Record<string, any> = { ...schoolMap };
+        
+        // Null out any schools that exist in Clerk but are no longer in our DB map
+        Object.keys(existingSchools).forEach(sId => {
+            if (!finalSchools[sId]) {
+                finalSchools[sId] = null;
+            }
+        });
+
         await client.users.updateUserMetadata(clerkId, {
             publicMetadata: {
+                schools: finalSchools,
+                // Explicitly null out top-level fields to keep metadata clean
                 role: null,
                 schoolId: null,
                 entityId: null,
                 isActive: null,
-                isRental: null
+                isRental: null,
+                partition: null 
             }
         });
-        
-        return { success: true, role: null };
+
+        const schoolIds = Object.keys(schoolMap);
+        console.log(`✅ Synced ${schoolIds.length} school contexts for User ${clerkId}`);
+        return { success: true, schoolCount: schoolIds.length };
 
     } catch (error) {
         console.error("❌ Sync User Role Failed:", error);
@@ -97,7 +106,6 @@ export async function syncUserRole(clerkId: string) {
 
 /**
  * Links a database entity (Teacher or Student) to a Clerk User ID.
- * This is used for manual identity mapping in the Demo/Portal view.
  */
 export async function linkEntityToClerk(
     entityId: string, 
@@ -107,7 +115,6 @@ export async function linkEntityToClerk(
     const supabase = getServerConnection();
     const client = await clerkClient();
 
-    // 1. Validate Clerk User exists before updating DB
     try {
         await client.users.getUser(clerkId);
     } catch (error: any) {
@@ -124,14 +131,12 @@ export async function linkEntityToClerk(
             .eq("id", entityId);
         if (error) throw error;
     } else if (entityType === "school") {
-        // Linking owner/admin to the school table
         const { error } = await supabase
             .from("school")
             .update({ clerk_id: clerkId })
             .eq("id", entityId);
         if (error) throw error;
     } else {
-        // Students are linked via school_students table
         const { error } = await supabase
             .from("school_students")
             .update({ clerk_id: clerkId })
@@ -139,7 +144,48 @@ export async function linkEntityToClerk(
         if (error) throw error;
     }
 
-    // Immediately sync the role to Clerk metadata so the UI reflects changes
+    const syncResult = await syncUserRole(clerkId);
+    if (!syncResult.success) throw new Error(syncResult.error);
+
+    return { success: true };
+}
+
+/**
+ * Removes the link between a database entity and a Clerk User ID for a SPECIFIC school.
+ * Triggered from the Demo/Portal view.
+ */
+export async function unlinkEntityFromClerk(
+    entityId: string,
+    entityType: "teacher" | "student" | "school",
+    clerkId: string,
+    schoolId: string
+) {
+    const supabase = getServerConnection();
+
+    if (entityType === "teacher") {
+        const { error } = await supabase
+            .from("teacher")
+            .update({ clerk_id: null })
+            .eq("id", entityId)
+            .eq("school_id", schoolId);
+        if (error) throw error;
+    } else if (entityType === "school") {
+        const { error } = await supabase
+            .from("school")
+            .update({ clerk_id: null })
+            .eq("id", entityId);
+        if (error) throw error;
+    } else {
+        // Students: Clear clerk_id for this specific school relationship
+        const { error } = await supabase
+            .from("school_students")
+            .update({ clerk_id: null })
+            .eq("student_id", entityId)
+            .eq("school_id", schoolId);
+        if (error) throw error;
+    }
+
+    // Re-sync to rebuild the schools map without this school
     const syncResult = await syncUserRole(clerkId);
     if (!syncResult.success) throw new Error(syncResult.error);
 
@@ -161,14 +207,12 @@ export async function getNameFromClerkId(clerkId: string): Promise<{ success: bo
 
         const { data, error } = await supabase
             .from("school_students")
-            .select(
-                `
+            .select(`
                 student!inner(
                     first_name,
                     last_name
                 )
-            `,
-            )
+            `)
             .eq("school_id", schoolHeader.id)
             .eq("clerk_id", clerkId)
             .maybeSingle();
@@ -177,7 +221,6 @@ export async function getNameFromClerkId(clerkId: string): Promise<{ success: bo
             return { success: false, error: "Student not found" };
         }
 
-        // Supabase returns student as an object when using .single() or .maybeSingle()
         const student = data.student as { first_name: string; last_name: string } | null;
         if (!student) {
             return { success: false, error: "Student data not found" };

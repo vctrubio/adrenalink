@@ -3,16 +3,36 @@
 import { useUser } from "@clerk/nextjs";
 import { ROLE_CONFIG, type RoleType } from "@/src/components/auth/role-config";
 
+import { detectSubdomain } from "@/types/domain";
+
 // --- Helper ---
 
 function getCurrentRole(user: any, isLoaded: boolean): RoleType {
     if (!isLoaded || !user) return "guest";
 
-    const roleMeta = user.publicMetadata?.role as string | undefined;
-    const isActive = user.publicMetadata?.isActive !== false; // Default true
-    const isRental = user.publicMetadata?.isRental === true; // Default false
+    // Detect school from hostname (standard in our multi-tenant architecture)
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const subdomainInfo = detectSubdomain(hostname);
+    
+    // We need the schoolId to find the context in metadata.
+    // For the demo page, if no subdomain is detected, we can't show a specific role context.
+    // In a real environment, the schoolId comes from the DB or is passed down.
+    
+    // Let's try to find a context that matches the subdomain username if we don't have the UUID readily available
+    const schools = (user.publicMetadata?.schools as Record<string, any>) || {};
+    
+    // Attempt 1: Find by matching subdomain username (if we added it to metadata)
+    // Attempt 2: Just find the "first" school if we are in demo mode without subdomain
+    const schoolIds = Object.keys(schools);
+    const context = subdomainInfo 
+        ? Object.values(schools).find(s => s.schoolUsername === subdomainInfo.subdomain) || (schoolIds.length > 0 ? schools[schoolIds[0]] : null)
+        : (schoolIds.length > 0 ? schools[schoolIds[0]] : null);
 
-    if (!roleMeta) return "authenticated_no_role";
+    if (!context) return "authenticated_no_role";
+
+    const roleMeta = context.role;
+    const isActive = context.isActive !== false;
+    const isRental = context.isRental === true;
 
     if (roleMeta === "admin" || roleMeta === "school_admin") return "school_admin";
     if (roleMeta === "owner") return "owner";
