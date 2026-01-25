@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import type { StudentPackageRequest } from "@/supabase/server/student-package";
 import { InvitationsTable } from "./InvitationsTable";
 import { SearchInput } from "@/src/components/SearchInput";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import type { SortConfig, SortOption } from "@/types/sort";
+import { useAdminReservationPackageListener } from "@/supabase/subscribe";
 
 interface InvitationsControllerProps {
     invitations: StudentPackageRequest[];
@@ -18,20 +19,56 @@ const SORT_OPTIONS: SortOption[] = [
     { field: "created_at", direction: "asc", label: "Oldest" },
 ];
 
-export function InvitationsController({ invitations }: InvitationsControllerProps) {
+export function InvitationsController({ invitations: initialInvitations }: InvitationsControllerProps) {
+    const [invitations, setInvitations] = useState<StudentPackageRequest[]>(initialInvitations);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("All");
     const [sortConfig, setSortConfig] = useState<SortConfig>({ field: "created_at", direction: "desc" });
 
+    // Memoized handler for when packages are detected (refetched from listener)
+    const handlePackageDetected = useCallback(
+        (data: StudentPackageRequest[]) => {
+            console.log(`🔔 [InvitationsController] Packages detected -> Updating invitations (${data.length} items)`);
+            setInvitations(data);
+        },
+        [],
+    );
+
+    // Memoized handler for direct package updates (zero-fetch path)
+    const handlePackageUpdate = useCallback(
+        (payload: {
+            eventType: "INSERT" | "UPDATE" | "DELETE";
+            packageId: string;
+            status?: string;
+            requestedClerkId?: string;
+        }) => {
+            console.log(`🔔 [InvitationsController] Package ${payload.eventType} - Zero-fetch update`, payload);
+            // The listener will refetch and call onPackageDetected, so we don't need to update here
+            // But we log it for debugging
+        },
+        [],
+    );
+
+    // Set up real-time listener for student package changes
+    useAdminReservationPackageListener({
+        onPackageDetected: handlePackageDetected,
+        onPackageUpdate: handlePackageUpdate,
+    });
+
+    // Update local state when initial invitations change (e.g., from server revalidation)
+    useEffect(() => {
+        setInvitations(initialInvitations);
+    }, [initialInvitations]);
+
     const filteredAndSortedInvitations = useMemo(() => {
-        const currentInvitations = invitations.filter((invitation) => {
-            const matchesSearch = invitation.wallet_id.toLowerCase().includes(searchQuery.toLowerCase());
+        const filtered = invitations.filter((invitation) => {
+            const matchesSearch = invitation.requested_clerk_id.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesStatus = statusFilter === "All" || invitation.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
 
         // Apply sorting
-        currentInvitations.sort((a, b) => {
+        return [...filtered].sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
             const dateB = new Date(b.created_at).getTime();
 
@@ -41,8 +78,6 @@ export function InvitationsController({ invitations }: InvitationsControllerProp
                 return dateB - dateA;
             }
         });
-
-        return currentInvitations;
     }, [invitations, searchQuery, statusFilter, sortConfig]);
 
     return (

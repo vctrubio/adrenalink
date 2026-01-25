@@ -72,9 +72,9 @@ export function PackageRightColumn({ packageData }: PackageRightColumnProps) {
             if (filter !== "all") result = result.filter((r) => r.status === filter);
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
-                result = result.filter(
-                    (r) => r.wallet_id.toLowerCase().includes(query) || r.referral?.code.toLowerCase().includes(query),
-                );
+    const filteredRequests = requests.filter(
+        (r) => r.requested_clerk_id.toLowerCase().includes(query) || r.referral?.code.toLowerCase().includes(query),
+    );
             }
             result.sort((a, b) => {
                 const valA = new Date((a[sort.field as keyof typeof a] as string) || 0).getTime();

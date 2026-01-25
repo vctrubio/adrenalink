@@ -35,7 +35,7 @@ CREATE TABLE student_package (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     school_package_id UUID NOT NULL REFERENCES school_package(id) ON DELETE CASCADE,
     referral_id UUID REFERENCES referral(id) ON DELETE SET NULL,
-    wallet_id UUID NOT NULL,
+    requested_clerk_id VARCHAR(255) NOT NULL,
     requested_date_start DATE NOT NULL,
     requested_date_end DATE NOT NULL,
     status TEXT NOT NULL,

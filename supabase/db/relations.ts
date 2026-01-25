@@ -35,7 +35,7 @@
  * - school -> teacher
  * - school -> school_subscription
  * - school_package -> student_package
- * - student_package -> rental (via wallet_id - implicit)
+ * - student_package -> rental (via requested_clerk_id - implicit)
  * - booking -> booking_student
  * - booking -> lesson
  * - lesson -> event

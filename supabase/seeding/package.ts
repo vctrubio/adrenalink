@@ -233,7 +233,7 @@ export const createStudentPackages = async (schoolPackageIds: string[]): Promise
     const packages = schoolPackageIds.map((pkgId) => ({
         school_package_id: pkgId,
         referral_id: null as any,
-        wallet_id: crypto.randomUUID(),
+        requested_clerk_id: `seed-${crypto.randomUUID().slice(0, 8)}`,
         requested_date_start: startDate.toISOString().split("T")[0],
         requested_date_end: endDate.toISOString().split("T")[0],
         status: "accepted",

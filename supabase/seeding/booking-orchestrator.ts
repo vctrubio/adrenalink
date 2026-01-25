@@ -73,7 +73,7 @@ export const orchestrateBookingFlow = async (input: BookingFlowInput): Promise<B
             .from("student_package")
             .insert({
                 school_package_id: packageId,
-                wallet_id: faker.string.uuid(),
+                requested_clerk_id: `seed-${faker.string.uuid().slice(0, 8)}`,
                 requested_date_start: new Date().toISOString().split("T")[0],
                 requested_date_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
                 status: "purchased",

@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { SchoolPackage } from "@/supabase/db/types";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { SPORTS_CONFIG } from "@/src/components/school/SportSelection";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { getHMDuration } from "@/getters/duration-getter";
+import { StudentRequestModal } from "@/src/components/forms/StudentRequestModal";
+import { useUser } from "@clerk/nextjs";
 
 interface PackageCardProps {
     pkg: SchoolPackage;
     currencySymbol: string;
+    onClick: () => void;
 }
 
 interface SchoolPackageContainerProps {
@@ -23,9 +26,8 @@ interface SchoolPackageContainerProps {
  * Game-style Package Card for subdomain view
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
-export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
+export function PackageCard({ pkg, currencySymbol, onClick }: PackageCardProps) {
     const {
-        id,
         description,
         price_per_student,
         duration_minutes,
@@ -35,7 +37,6 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
         category_equipment,
     } = pkg;
     const [isHovered, setIsHovered] = useState(false);
-    const router = useRouter();
 
     // Get sport config for image
     const sportConfig = SPORTS_CONFIG.find((s) => s.id === category_equipment);
@@ -47,15 +48,11 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
     const durationHours = duration_minutes / 60;
     const pph = duration_minutes !== 60 ? Math.round(price_per_student / durationHours) : null;
 
-    const handleCardClick = () => {
-        router.push(`/register?add=package:${id}`);
-    };
-
     return (
         <div
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            onClick={handleCardClick}
+            onClick={onClick}
             className={
                 "group relative w-full overflow-hidden rounded-[2.5rem] bg-white shadow-lg cursor-pointer flex flex-col select-none"
             }
@@ -148,10 +145,48 @@ export function PackageCard({ pkg, currencySymbol }: PackageCardProps) {
 }
 
 export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: SchoolPackageContainerProps) {
+    const { isLoaded } = useUser();
     const [isSelectedArray, setIsSelectedArray] = useState<string[]>([]);
     const [packageTypeFilter, setPackageTypeFilter] = useState<"lessons" | "rental" | null>(null);
     const [isSeeding, setIsSeeding] = useState(false);
+    
+    // Modal state
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState<SchoolPackage | null>(null);
+
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // --- URL SYNC LOGIC ---
+    useEffect(() => {
+        if (!isLoaded) return;
+        
+        const packageIdFromUrl = searchParams.get("package");
+        if (packageIdFromUrl) {
+            const pkg = packages.find(p => p.id === packageIdFromUrl);
+            if (pkg) {
+                setSelectedPackage(pkg);
+                setIsRequestModalOpen(true);
+            }
+        } else {
+            setIsRequestModalOpen(false);
+            setSelectedPackage(null);
+        }
+    }, [searchParams, packages, isLoaded]);
+
+    const handlePackageClick = (pkg: SchoolPackage) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("package", pkg.id);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const handleModalClose = () => {
+        setIsRequestModalOpen(false);
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("package");
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
 
     const toggleCategory = (cat: string) => {
         setIsSelectedArray((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
@@ -334,11 +369,23 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
                         if (isSelectedArray.length > 0 && !isSelected) return null;
 
                         return groupedPackages[cat].map((pkg) => (
-                            <PackageCard key={pkg.id} pkg={pkg} currencySymbol={currencySymbol} />
+                            <PackageCard 
+                                key={pkg.id} 
+                                pkg={pkg} 
+                                currencySymbol={currencySymbol} 
+                                onClick={() => handlePackageClick(pkg)}
+                            />
                         ));
                     })}
                 </div>
             </div>
+
+            <StudentRequestModal 
+                isOpen={isRequestModalOpen}
+                onClose={handleModalClose}
+                pkg={selectedPackage}
+                currencySymbol={currencySymbol}
+            />
         </div>
     );
 }

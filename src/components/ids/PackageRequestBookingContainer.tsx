@@ -23,7 +23,7 @@ import { Wallet, Tag, Handshake, TrendingUp, Users, Receipt } from "lucide-react
 export interface StudentPackageData {
     id: string;
     status: string;
-    wallet_id: string;
+    requested_clerk_id: string;
     requested_date_start: string;
     requested_date_end: string;
     created_at: string;
@@ -205,7 +205,7 @@ export function StudentPackageCard({
     const bookings = studentPackage.bookings || [];
     const hasBookings = bookings.length > 0;
 
-    const walletId = studentPackage.wallet_id;
+    const clerkId = studentPackage.requested_clerk_id;
     const requestedDateStart = studentPackage.requested_date_start;
     const requestedDateEnd = studentPackage.requested_date_end;
 
@@ -268,7 +268,7 @@ export function StudentPackageCard({
                         <StatusBadge status={studentPackage.status} />
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Wallet size={12} />
-                            <span className="font-mono">{walletId ? `${walletId.slice(0, 8)}...` : "No Wallet"}</span>
+                            <span className="font-mono">{clerkId ? `${clerkId.slice(0, 8)}...` : "No Clerk ID"}</span>
                         </div>
                         {studentPackage.referral && (
                             <HoverToEntity entity={referralEntity} id={studentPackage.referral.id}>

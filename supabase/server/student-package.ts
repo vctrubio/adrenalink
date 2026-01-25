@@ -2,7 +2,6 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
 import { StudentPackage, SchoolPackage, Referral } from "@/supabase/db/types";
-import { revalidatePath } from "next/cache";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
 
@@ -13,6 +12,7 @@ export interface StudentPackageRequest extends StudentPackage {
 
 /**
  * Fetches student package requests for the current school.
+ * Default sorting: newest requests first (by created_at descending).
  */
 export async function getStudentPackageRequests(): Promise<{ success: boolean; data?: StudentPackageRequest[]; error?: string }> {
     try {
@@ -33,7 +33,7 @@ export async function getStudentPackageRequests(): Promise<{ success: boolean; d
             `,
             )
             .eq("school_package.school_id", schoolHeader.id)
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false }); // Default: newest first
 
         if (error) {
             logger.error("Error fetching student package requests", error);
@@ -67,10 +67,7 @@ export async function updateStudentPackageStatus(id: string, status: string): Pr
             return { success: false, error: "Failed to update status" };
         }
 
-        revalidatePath("/invitations");
-        revalidatePath("/packages");
-        revalidatePath("/students");
-
+        // No revalidation needed - listener will pick up the change automatically
         return { success: true };
     } catch (error) {
         logger.error("Unexpected error in updateStudentPackageStatus", error);
@@ -162,5 +159,46 @@ export async function getStudentPackagesWithStats(): Promise<{ success: boolean;
     } catch (error) {
         logger.error("Unexpected error in getStudentPackagesWithStats", error);
         return { success: false, error: "Failed to fetch packages" };
+    }
+}
+
+/**
+ * Creates a new student package request.
+ */
+export async function createStudentPackageRequest(params: {
+    schoolPackageId: string;
+    startDate: string;
+    endDate: string;
+    clerkId: string;
+}): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+        const supabase = getServerConnection();
+
+        // Check if student already has a pending or active request for this specific school package
+        // (Wait, user didn't ask for this check, but it's good practice. I'll skip for now to keep it simple as requested)
+
+        const { data, error } = await supabase
+            .from("student_package")
+            .insert({
+                school_package_id: params.schoolPackageId,
+                requested_date_start: params.startDate,
+                requested_date_end: params.endDate,
+                requested_clerk_id: params.clerkId,
+                status: "requested",
+                updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+        if (error) {
+            logger.error("Error creating student package request", error);
+            return { success: false, error: "Failed to submit request" };
+        }
+
+        // No revalidation needed - listener will pick up the change automatically
+        return { success: true, data };
+    } catch (error) {
+        logger.error("Unexpected error in createStudentPackageRequest", error);
+        return { success: false, error: "An unexpected error occurred" };
     }
 }

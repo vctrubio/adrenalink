@@ -162,7 +162,7 @@ export interface StudentPackage {
     id: string;
     school_package_id: string;
     referral_id: string | null;
-    wallet_id: string;
+    requested_clerk_id: string;
     requested_date_start: string;
     requested_date_end: string;
     status: string;

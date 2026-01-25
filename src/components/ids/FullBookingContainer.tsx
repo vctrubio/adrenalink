@@ -64,7 +64,7 @@ export interface EventData {
 export interface StudentPackageData {
     id: string;
     status: string;
-    wallet_id: string;
+    requested_clerk_id: string;
     school_package?: SchoolPackageData;
     referral?: { code: string };
 }

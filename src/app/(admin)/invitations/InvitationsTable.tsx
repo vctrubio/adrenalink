@@ -86,7 +86,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
     const { currency } = useSchoolCredentials();
     const currencySymbol = getCurrencySymbol(currency);
     const [isPending, setIsPending] = useState(false);
-    const { id, requested_date_start, requested_date_end, status, wallet_id, created_at, school_package } = invitation;
+    const { id, requested_date_start, requested_date_end, status, requested_clerk_id, created_at, school_package } = invitation;
 
     const {
         description: packageDesc = "N/A",
@@ -169,7 +169,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                 }
             />
 
-            {/* Wallet Column - Final Column with Status Badge */}
+            {/* Clerk Column - Final Column with Status Badge */}
             <td className="px-6 py-8 align-bottom border-y border-zinc-100 dark:border-zinc-800 shadow-sm rounded-r-3xl border-r relative">
                 <div className="flex flex-col gap-6 items-end text-right">
                     {/* Status Badge moved here to anchor to the right side of the row */}
@@ -208,7 +208,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                                     <button
                                         onClick={() => handleAction("rejected")}
                                         disabled={isPending}
-                                        className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-sm"
+                                        className="p-1.5 rounded-full bg-red-50 text-white hover:bg-red-600 transition-colors disabled:opacity-50 shadow-sm"
                                     >
                                         <X size={14} strokeWidth={3} />
                                     </button>
@@ -218,7 +218,7 @@ function InvitationRow({ invitation }: { invitation: StudentPackageRequest }) {
                     </div>
 
                     <div className="flex items-center gap-2 h-7 pt-2">
-                        <span className="font-medium text-zinc-600 dark:text-zinc-400">{wallet_id.slice(0, 14)}</span>
+                        <span className="font-medium text-zinc-600 dark:text-zinc-400">{requested_clerk_id.slice(0, 14)}</span>
                         <User size={16} className="text-muted-foreground" />
                     </div>
 
