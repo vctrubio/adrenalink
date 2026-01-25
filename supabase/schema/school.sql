@@ -8,7 +8,7 @@ CREATE TABLE school (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(255),
-    clerk_id VARCHAR(255) UNIQUE,
+    clerk_id VARCHAR(255),
     country VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     status TEXT NOT NULL DEFAULT 'beta',

@@ -417,7 +417,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
 
     const stepSubtitles = {
         0: "Make your school stand out",
-        1: "How can we find you?",
+        1: "Connect with your community",
         2: "Who is the owner?",
         3: "What Adrenaline do you have to offer?",
         4: "Does everything look correct, admin?",
@@ -427,11 +427,11 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         0: {
             pendingToBucket,
             uploadStatus,
+            onCountryChange: handleCountryChange,
+            onLocationChange: handleLocationChange,
         },
         1: { 
-            onCountryChange: handleCountryChange,
             onPhoneChange: handlePhoneChange,
-            onLocationChange: handleLocationChange,
         },
         2: { user },
         3: {},
@@ -502,7 +502,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
                     stepComponents={stepComponents}
                     stepProps={stepProps}
                     stepSubtitles={stepSubtitles}
-                    submitButtonText="Begin Adventure"
+                    submitButtonText="Start Your Adventure"
                     successTitle="Congratulations"
                     successMessage="Your School Application was receieved."
                     successButtonText="Navigate Away"

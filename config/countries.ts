@@ -271,6 +271,11 @@ export const getPhoneCodeByCountryCode = (code: string): string => {
     return country ? country.phoneCode : "+34"; // Default to Spain
 };
 
+export const getCountryNameByCode = (code: string): string => {
+    const country = getCountryByCode(code);
+    return country ? country.name : code;
+};
+
 export const DEFAULT_COUNTRY_CONFIG = {
     code: "ES",
     name: "Spain",

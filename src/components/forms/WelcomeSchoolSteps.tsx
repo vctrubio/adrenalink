@@ -2,14 +2,15 @@
 
 import { useState, useRef, useCallback } from "react";
 import { FormField, FormInput } from "@/src/components/ui/form";
-import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Search, Clock, Check, Pencil, User, ArrowRight } from "lucide-react";
+import { MapPin, Tag, Image as ImageIcon, Mail, CheckCircle2, Globe, Search, Clock, Check, Pencil, User, ArrowRight, Instagram, MessageCircle } from "lucide-react";
 import type { FormStep, BaseStepProps, SummaryField } from "./multi/types";
 import { MultiStepSummary } from "./multi/MultiStepSummary";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ImageCropper } from "@/src/components/ui/ImageCropper";
-import { getPhoneCodeByCountryCode, COUNTRIES } from "@/config/countries";
+import { getPhoneCodeByCountryCode, COUNTRIES, getCountryNameByCode } from "@/config/countries";
 import { UserAuth } from "@/types/user";
 import { SignInButton } from "@clerk/nextjs";
+import { motion } from "framer-motion";
 
 // Define the type directly for the multi-step form
 export interface SchoolFormData {
@@ -39,13 +40,13 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
         id: 1,
         title: "Assets",
         icon: <ImageIcon className="w-4 h-4" />,
-        fields: ["iconFile", "bannerFile"],
+        fields: ["iconFile", "bannerFile", "currency", "latitude", "longitude", "googlePlaceId", "country", "timezone"],
     },
     {
         id: 2,
         title: "Social",
-        icon: <MapPin className="w-4 h-4" />,
-        fields: ["country", "phone", "websiteUrl", "instagramUrl", "latitude", "longitude", "googlePlaceId"],
+        icon: <Globe className="w-4 h-4" />,
+        fields: ["phone", "websiteUrl", "instagramUrl"],
     },
     {
         id: 3,
@@ -57,16 +58,24 @@ export const WELCOME_SCHOOL_STEPS: FormStep<SchoolFormData>[] = [
     { id: 5, title: "Summary", icon: <CheckCircle2 className="w-4 h-4" />, fields: [] },
 ];
 
-// --- STEP 1: ASSETS (Icon & Banner) ---
+// --- STEP 1: ASSETS (Icon, Banner, Location, Currency) ---
 
 interface AssetsStepProps extends BaseStepProps<SchoolFormData> {
     pendingToBucket?: boolean;
     uploadStatus?: string;
+    onCountryChange: (country: string) => void;
+    onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string; timezone?: string }) => void;
 }
 
-export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: AssetsStepProps) {
+export function AssetsStep({ formMethods, pendingToBucket, uploadStatus, onCountryChange, onLocationChange }: AssetsStepProps) {
     const { setValue, watch } = formMethods;
     const values = watch();
+
+    // Google Places Search State
+    const [searchValue, setSearchValue] = useState("");
+    const [googlePlaces, setGooglePlaces] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Cropper State
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -97,95 +106,6 @@ export function AssetsStep({ formMethods, pendingToBucket, uploadStatus }: Asset
             setActiveField(null);
         }
     };
-
-    return (
-        <div className="space-y-12">
-            <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start">
-                {/* Left Column: Icon */}
-                <div className="flex-shrink-0 flex flex-col items-center space-y-4 w-full md:w-[340px]">
-                    <div className="text-center space-y-1">
-                        <label className="text-sm font-bold text-foreground">School Icon</label>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Square (1:1)</p>
-                    </div>
-                    
-                    <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
-                            {values.iconFile ? (
-                            <img src={URL.createObjectURL(values.iconFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
-                            ) : (
-                            <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                <ImageIcon className="w-8 h-8 mb-2" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
-                            </div>
-                            )}
-                            <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
-                            <Pencil className="w-6 h-6 text-white" />
-                            </div>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "iconFile")} className="hidden" />
-                    </label>
-                </div>
-
-                {/* Right Column: Banner */}
-                <div className="flex-1 flex flex-col space-y-4 w-full">
-                    <div className="text-left space-y-1">
-                        <label className="text-sm font-bold text-foreground">School Banner</label>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Widescreen (16:9)</p>
-                    </div>
-                    
-                    <label className="relative w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
-                        {values.bannerFile ? (
-                                <img src={URL.createObjectURL(values.bannerFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
-                            ) : (
-                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                <ImageIcon className="w-12 h-12 mb-3" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Click to upload banner</span>
-                                <span className="text-[10px] opacity-60">High resolution recommended</span>
-                            </div>
-                        )}
-                        <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
-                            <Pencil className="w-8 h-8 text-white" />
-                        </div>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "bannerFile")} className="hidden" />
-                    </label>
-                </div>
-            </div>
-
-            {pendingToBucket && (
-                <div className="flex items-center justify-center space-x-3 text-primary animate-pulse">
-                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-xs font-bold uppercase tracking-widest">{uploadStatus || "Uploading Assets..."}</span>
-                </div>
-            )}
-            
-            <ImageCropper 
-                isOpen={cropModalOpen}
-                imageSrc={selectedImageSrc}
-                aspect={activeField === "iconFile" ? 1 : 16 / 9}
-                cropShape={activeField === "iconFile" ? "round" : "rect"}
-                onCancel={() => setCropModalOpen(false)}
-                onCropComplete={handleCropComplete}
-                title={activeField === "iconFile" ? "Edit Icon" : "Edit Banner"}
-            />
-        </div>
-    );
-}
-
-// --- STEP 2: SOCIAL (Location, Phone, Socials) ---
-
-interface SocialStepProps extends BaseStepProps<SchoolFormData> {
-    onCountryChange: (country: string) => void;
-    onPhoneChange: (phone: string) => void;
-    onLocationChange: (location: { latitude?: number; longitude?: number; googlePlaceId?: string; timezone?: string }) => void;
-}
-
-export function SocialStep({ formMethods, onCountryChange, onPhoneChange, onLocationChange }: SocialStepProps) {
-    const { register, formState: { errors }, watch, setValue } = formMethods;
-    const values = watch();
-
-    // Google Places Search State
-    const [searchValue, setSearchValue] = useState("");
-    const [googlePlaces, setGooglePlaces] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const searchPlaces = useCallback(async (query: string) => {
         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
@@ -250,93 +170,208 @@ export function SocialStep({ formMethods, onCountryChange, onPhoneChange, onLoca
     };
 
     const selectedCountry = COUNTRIES.find(c => c.code === values.country);
+
+    return (
+        <div className="space-y-12">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start">
+                {/* Left Column: Icon + Location + Currency */}
+                <div className="flex-shrink-0 flex flex-col items-center space-y-10 w-full md:w-[340px]">
+                    <div className="flex flex-col items-center space-y-4 w-full">
+                        <label className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
+                                {values.iconFile ? (
+                                <img src={URL.createObjectURL(values.iconFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
+                                ) : (
+                                <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                    <ImageIcon className="w-8 h-8 mb-2" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Icon</span>
+                                </div>
+                                )}
+                                <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                                <Pencil className="w-6 h-6 text-white" />
+                                </div>
+                            <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "iconFile")} className="hidden" />
+                        </label>
+                    </div>
+
+                    {/* Location & Currency Section */}
+                    <div className="w-full space-y-8 px-2">
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-end">
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Google Maps Location</label>
+                                {values.googlePlaceId && <Check className="w-3 h-3 text-green-500" />}
+                            </div>
+                            <div className="relative">
+                                <FormInput 
+                                    className="h-11 bg-muted/20 border-border/40 text-sm truncate" 
+                                    placeholder="Search address..." 
+                                    value={searchValue} 
+                                    onChange={(e) => {
+                                        setSearchValue(e.target.value);
+                                        searchPlaces(e.target.value);
+                                    }}
+                                />
+                                {googlePlaces.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
+                                        {googlePlaces.map((p) => (
+                                            <button key={p.place_id} onClick={() => selectPlace(p)} className="w-full text-left px-4 py-3 hover:bg-accent text-sm border-b border-border/50 last:border-0">
+                                                {p.description}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Currency Toggle */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest block">Pick Your Currency</label>
+                            <div className="flex items-center justify-between p-1 bg-muted/50 rounded-xl border border-border/50 shadow-inner">
+                                {["EUR", "USD", "CHF"].map((c) => (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => setValue("currency", c as any)}
+                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                                            values.currency === c 
+                                                ? "bg-background text-primary shadow-md ring-1 ring-border/20 scale-[1.05]" 
+                                                : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Banner */}
+                <div className="flex-1 flex flex-col w-full">
+                    <label className="relative w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group shadow-sm">
+                        {values.bannerFile ? (
+                                <img src={URL.createObjectURL(values.bannerFile)} className="absolute inset-0 w-full h-full object-cover" alt="Preview" />
+                            ) : (
+                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                <ImageIcon className="w-12 h-12 mb-3" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Banner</span>
+                            </div>
+                        )}
+                        <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
+                            <Pencil className="w-8 h-8 text-white" />
+                        </div>
+                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect(e, "bannerFile")} className="hidden" />
+                    </label>
+                </div>
+            </div>
+
+            {pendingToBucket && (
+                <div className="flex items-center justify-center space-x-3 text-primary animate-pulse">
+                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs font-bold uppercase tracking-widest">{uploadStatus || "Uploading Assets..."}</span>
+                </div>
+            )}
+            
+            <ImageCropper 
+                isOpen={cropModalOpen}
+                imageSrc={selectedImageSrc}
+                aspect={activeField === "iconFile" ? 1 : 16 / 9}
+                cropShape={activeField === "iconFile" ? "round" : "rect"}
+                onCancel={() => setCropModalOpen(false)}
+                onCropComplete={handleCropComplete}
+                title={activeField === "iconFile" ? "Edit Icon" : "Edit Banner"}
+            />
+        </div>
+    );
+}
+
+// --- STEP 2: SOCIAL (Stacked Minimal Style) ---
+
+interface SocialStepProps extends BaseStepProps<SchoolFormData> {
+    onPhoneChange: (phone: string) => void;
+}
+
+export function SocialStep({ formMethods }: SocialStepProps) {
+    const { register, formState: { errors }, watch } = formMethods;
+    const values = watch();
+
+    const selectedCountry = COUNTRIES.find(c => c.code === values.country);
     const phonePrefix = selectedCountry?.phoneCode || "+";
 
     return (
-        <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left: Location & Phone */}
-                <div className="space-y-6">
-                    {/* Search Location */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-end">
-                            <label className="text-sm font-bold text-foreground">Location</label>
-                            {values.googlePlaceId && <Check className="w-4 h-4 text-green-500" />}
+        <div className="w-full max-w-2xl mx-auto space-y-12 py-8">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-12"
+            >
+                {/* WhatsApp */}
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    <div className="flex flex-col items-center gap-2 text-center w-24 shrink-0">
+                        <div className="w-14 h-14 bg-muted/30 rounded-2xl flex items-center justify-center text-foreground/70">
+                            <MessageCircle size={32} />
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <FormInput 
-                                className="pl-10" 
-                                placeholder="Search school address..." 
-                                value={searchValue} 
-                                onChange={(e) => {
-                                    setSearchValue(e.target.value);
-                                    searchPlaces(e.target.value);
-                                }}
-                            />
-                            {googlePlaces.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
-                                    {googlePlaces.map((p) => (
-                                        <button key={p.place_id} onClick={() => selectPlace(p)} className="w-full text-left px-4 py-3 hover:bg-accent text-sm border-b border-border/50 last:border-0">
-                                            {p.description}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        
-                        {/* Country & Timezone Display */}
-                        {values.country && (
-                            <div className="flex gap-4 pt-1 animate-in fade-in slide-in-from-top-2 duration-500">
-                                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                                    <Globe className="w-3 h-3" />
-                                    {selectedCountry?.name || values.country}
-                                </div>
-                                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md truncate max-w-[200px]">
-                                    <Clock className="w-3 h-3" />
-                                    {values.timezone?.split('/').pop()?.replace('_', ' ') || "UTC"}
-                                </div>
-                            </div>
-                        )}
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WhatsApp</span>
                     </div>
-
-                    {/* Phone Input */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-foreground">Phone (WhatsApp)</label>
-                        <div className="flex gap-0">
-                            <div className="h-10 px-3 bg-muted border border-r-0 border-input flex items-center rounded-l-md text-sm font-bold text-muted-foreground min-w-[60px]">
+                    <div className="flex-1 w-full space-y-2">
+                        <div className="flex gap-0 shadow-sm rounded-xl overflow-hidden border border-input focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                            <div className="h-14 px-4 bg-muted flex items-center border-r border-input text-base font-bold text-muted-foreground min-w-[70px]">
                                 {phonePrefix}
                             </div>
                             <FormInput 
-                                className="rounded-l-none" 
-                                placeholder="Number" 
+                                className="h-14 border-0 rounded-none bg-background text-lg font-bold" 
+                                placeholder="Phone number" 
                                 {...register("phone")}
                             />
                         </div>
+                        {errors.phone && <p className="text-xs text-destructive pl-2">{errors.phone.message}</p>}
                     </div>
                 </div>
 
-                {/* Right: Socials */}
-                <div className="space-y-6">
-                    <FormField label="Website" error={errors.websiteUrl?.message}>
-                        <div className="relative">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                                <Globe className="w-4 h-4" />
-                            </div>
-                            <FormInput type="url" placeholder="https://..." {...register("websiteUrl")} className="pl-10" />
+                {/* Instagram */}
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    <div className="flex flex-col items-center gap-2 text-center w-24 shrink-0">
+                        <div className="w-14 h-14 bg-muted/30 rounded-2xl flex items-center justify-center text-foreground/70">
+                            <Instagram size={32} />
                         </div>
-                    </FormField>
-
-                    <FormField label="Instagram" error={errors.instagramUrl?.message}>
-                        <div className="flex">
-                            <div className="h-10 px-3 bg-muted border border-r-0 border-input flex items-center rounded-l-md text-sm text-muted-foreground whitespace-nowrap">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Instagram</span>
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                        <div className="flex shadow-sm rounded-xl overflow-hidden border border-input focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                            <div className="h-14 px-4 bg-muted flex items-center border-r border-input text-lg text-muted-foreground font-bold">
                                 @
                             </div>
-                            <FormInput type="text" placeholder="username" {...register("instagramUrl")} className="rounded-l-none" />
+                            <FormInput 
+                                type="text" 
+                                placeholder="username" 
+                                {...register("instagramUrl")} 
+                                className="h-14 border-0 rounded-none bg-background text-lg font-bold" 
+                            />
                         </div>
-                    </FormField>
+                        {errors.instagramUrl && <p className="text-xs text-destructive pl-2">{errors.instagramUrl.message}</p>}
+                    </div>
                 </div>
-            </div>
+
+                {/* Website */}
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    <div className="flex flex-col items-center gap-2 text-center w-24 shrink-0">
+                        <div className="w-14 h-14 bg-muted/30 rounded-2xl flex items-center justify-center text-foreground/70">
+                            <Globe size={32} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Website</span>
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                        <div className="shadow-sm rounded-xl overflow-hidden border border-input focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                            <FormInput 
+                                type="url" 
+                                placeholder="https://your-school.com" 
+                                {...register("websiteUrl")} 
+                                className="h-14 border-0 bg-background text-lg font-bold px-6" 
+                            />
+                        </div>
+                        {errors.websiteUrl && <p className="text-xs text-destructive pl-2">{errors.websiteUrl.message}</p>}
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 }
@@ -475,7 +510,7 @@ export function SummaryStep({ formMethods, onEditField, onGoToStep }: SummarySte
         { key: "name", label: "School Name", colSpan: 1 },
         { key: "currency", label: "Currency", colSpan: 1 },
         { key: "username", label: "Username", colSpan: 1 },
-        { key: "country", label: "Country", colSpan: 1 },
+        { key: "country", label: "Country", colSpan: 1, displayValue: getCountryNameByCode(values.country) },
         { key: "phone", label: "Phone (WhatsApp)", colSpan: 1 },
         { key: "websiteUrl", label: "Website", colSpan: 1, displayValue: values.websiteUrl || "—" },
         { key: "instagramUrl", label: "Instagram", colSpan: 1, displayValue: values.instagramUrl || "—" },

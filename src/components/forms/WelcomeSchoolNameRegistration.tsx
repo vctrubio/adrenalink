@@ -6,7 +6,7 @@ import type { SchoolFormData } from "./WelcomeSchoolSteps";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { AnimatedCanvas } from "@/src/landing/animated-canvas";
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignInButton } from "@clerk/nextjs";
 import SchoolIcon from "@/public/appSvgs/SchoolIcon.jsx";
 import { UserAuth } from "@/types/user";
 
@@ -18,7 +18,6 @@ interface WelcomeSchoolNameRegistrationProps {
     onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onUsernameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
     onNext: () => void;
-    onCurrencyChange: (currency: "USD" | "EUR" | "CHF") => void;
     user: UserAuth | null;
 }
 
@@ -30,7 +29,6 @@ export function WelcomeSchoolNameRegistration({
     onUsernameChange,
     onUsernameBlur,
     onNext,
-    onCurrencyChange,
     user,
 }: WelcomeSchoolNameRegistrationProps) {
     const {
@@ -44,7 +42,7 @@ export function WelcomeSchoolNameRegistration({
     const values = watch();
 
     const handleNext = async () => {
-        const isValidStep = await trigger(["name", "username", "currency"]);
+        const isValidStep = await trigger(["name", "username"]);
         if (isValidStep && usernameStatus === "available") {
             onNext();
         }
@@ -211,26 +209,6 @@ export function WelcomeSchoolNameRegistration({
                                 </div>
                             </div>
                         </FormField>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground">Currency</label>
-                            <div className="flex items-center justify-between p-1 bg-muted/50 rounded-lg border border-border/50">
-                                {["EUR", "USD", "CHF"].map((c) => (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        onClick={() => onCurrencyChange(c as any)}
-                                        className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${
-                                            values.currency === c
-                                                ? "bg-background text-primary shadow-sm ring-1 ring-border/50"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        }`}
-                                    >
-                                        {c}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
 
                         <button
                             type="button"

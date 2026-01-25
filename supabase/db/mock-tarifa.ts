@@ -58,7 +58,7 @@ const seedTarifaSchool = async () => {
             website_url: "https://tarifakiteschool.com",
             instagram_url: "https://instagram.com/tarifakiteschool",
             email: "admin@tarifakiteschool.com",
-            clerk_id: "user_tarifa_admin"
+            clerk_id: process.env.VCTRUBIO_CLERK_ID_TESTER || "user_38iCzHCmEjbDcCKyfea25PhakbM"
         });
         const schoolId = school.id;
 

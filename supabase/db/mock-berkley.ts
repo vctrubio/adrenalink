@@ -138,6 +138,7 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
             timezone: "America/Los_Angeles",
             website_url: "https://berkleywindacademy.com",
             instagram_url: "https://instagram.com/berkleywindacademy",
+            clerk_id: process.env.VCTRUBIO_CLERK_ID_TESTER || "user_38iCzHCmEjbDcCKyfea25PhakbM",
         });
         const schoolId = school.id;
 

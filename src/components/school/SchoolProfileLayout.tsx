@@ -5,6 +5,7 @@ import { MapPin, Globe, Instagram, MessageCircle } from "lucide-react";
 import { UsernameBadge } from "@/src/components/school/UsernameBadge";
 import { motion } from "framer-motion";
 import { ReactNode, useState } from "react";
+import { getCountryNameByCode } from "@/config/countries";
 
 // Style Constants
 const SOCIAL_BUTTON_STYLE =
@@ -108,7 +109,7 @@ export function SchoolProfileLayout({
                                     className="px-4 py-2 rounded-lg text-sm md:text-base font-bold uppercase tracking-wider flex items-center gap-2 bg-white text-zinc-600"
                                 >
                                     <MapPin className="w-5 h-5 text-secondary" />
-                                    {country}
+                                    {getCountryNameByCode(country)}
                                 </motion.span>
                             )}
                             
