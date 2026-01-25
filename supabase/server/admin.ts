@@ -5,19 +5,20 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getCDNImages } from "@/supabase/server/cdn";
-import { headers } from "next/headers";
 import type { SchoolCredentials } from "@/types/credentials";
 import { logger } from "@/backend/logger";
+import { getSchoolHeader } from "@/types/headers";
 
 export async function getSchoolCredentials(): Promise<SchoolCredentials | null> {
     try {
-        const headersList = await headers();
-        const schoolUsername = headersList.get("x-school-username");
+        const schoolHeader = await getSchoolHeader();
 
-        if (!schoolUsername) {
-            logger.warn("No school username found in headers");
+        if (!schoolHeader) {
+            logger.warn("No school header found");
             return null;
         }
+
+        const schoolUsername = schoolHeader.name;
 
         const supabase = getServerConnection();
 

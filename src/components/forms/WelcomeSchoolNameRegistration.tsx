@@ -6,7 +6,6 @@ import type { SchoolFormData } from "./WelcomeSchoolSteps";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { AnimatedCanvas } from "@/src/landing/animated-canvas";
-import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 
 interface WelcomeSchoolNameRegistrationProps {
     formMethods: UseFormReturn<SchoolFormData>;
@@ -14,7 +13,9 @@ interface WelcomeSchoolNameRegistrationProps {
     usernameStatus: "available" | "unavailable" | "checking" | null;
     onNameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
     onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onUsernameBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
     onNext: () => void;
+    onCurrencyChange: (currency: "USD" | "EUR" | "CHF") => void;
 }
 
 export function WelcomeSchoolNameRegistration({
@@ -23,11 +24,13 @@ export function WelcomeSchoolNameRegistration({
     usernameStatus,
     onNameBlur,
     onUsernameChange,
+    onUsernameBlur,
     onNext,
+    onCurrencyChange,
 }: WelcomeSchoolNameRegistrationProps) {
     const {
         register,
-        formState: { errors, isValid },
+        formState: { errors },
         watch,
         trigger,
         setValue,
@@ -35,7 +38,7 @@ export function WelcomeSchoolNameRegistration({
     const values = watch();
 
     const handleNext = async () => {
-        const isValidStep = await trigger(["name", "username"]);
+        const isValidStep = await trigger(["name", "username", "currency"]);
         if (isValidStep && usernameStatus === "available") {
             onNext();
         }
@@ -93,6 +96,7 @@ export function WelcomeSchoolNameRegistration({
                                         onUsernameChange(e);
                                     },
                                 })}
+                                onBlur={onUsernameBlur}
                                 placeholder={isGeneratingUsername ? "Checking Availability..." : "school.adrenalink.com"}
                                 disabled={isGeneratingUsername}
                                 className={`
@@ -138,6 +142,26 @@ export function WelcomeSchoolNameRegistration({
                             </div>
                         </div>
                     </FormField>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Currency</label>
+                        <div className="flex items-center justify-between p-1 bg-muted/50 rounded-lg border border-border/50">
+                            {["EUR", "USD", "CHF"].map((c) => (
+                                <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => onCurrencyChange(c as any)}
+                                    className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${
+                                        values.currency === c 
+                                            ? "bg-background text-primary shadow-sm ring-1 ring-border/50" 
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                >
+                                    {c}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <button

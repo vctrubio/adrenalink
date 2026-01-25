@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolContext } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { logger } from "@/backend/logger";
@@ -15,11 +15,11 @@ export async function getTeacherUser(teacherId: string): Promise<{
     error?: string;
 }> {
     try {
-        const context = await getSchoolContext();
-        if (!context) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
-        const { schoolId, timezone } = context;
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 

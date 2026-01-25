@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolContext, getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { ApiActionResponseModel } from "@/types/actions";
@@ -86,14 +86,14 @@ function buildBookingQuery() {
  */
 export async function getSQLClassboardData(): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const context = await getSchoolContext();
-        if (!context) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return {
                 success: false,
                 error: "School context could not be determined from header.",
             };
         }
-        const { schoolId, timezone } = context;
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -126,14 +126,13 @@ export async function getSQLClassboardData(): Promise<ApiActionResponseModel<Cla
  */
 export async function getSQLClassboardDataForBooking(bookingId: string): Promise<ApiActionResponseModel<ClassboardModel>> {
     try {
-        const context = await getSchoolContext();
-        if (!context) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return {
                 success: false,
                 error: "School context could not be determined.",
             };
         }
-        const { timezone } = context;
 
         const supabase = getServerConnection();
 
@@ -179,12 +178,12 @@ export async function createClassboardEvent(
     }>
 > {
     try {
-        // Get school context
-        const context = await getSchoolContext();
-        if (!context) {
+        // Get school header
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
-        const { schoolId } = context;
+        const schoolId = schoolHeader.id;
 
         // Parse input: "2025-11-14T14:00:00"
         const dateMatch = eventDate.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
@@ -489,7 +488,11 @@ export async function bulkDeleteClassboardEvents(eventIds: string[]): Promise<Ap
  */
 export async function deleteAllClassboardEvents(selectedDate: string): Promise<ApiActionResponseModel<{ deletedCount: number }>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found" };
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School not found" };
@@ -660,7 +663,11 @@ export async function cascadeDeleteWithShift(
  */
 export async function getAvailableEquipment(category: string): Promise<ApiActionResponseModel<any[]>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found" };
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School context not found" };

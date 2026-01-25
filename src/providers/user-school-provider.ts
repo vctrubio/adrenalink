@@ -10,10 +10,10 @@
  * Enterprise-grade validation with graceful error handling.
  */
 
-import { headers } from "next/headers";
 import { cache } from "react";
-import type { UserSchoolContext, UserAuth } from "./user";
+import type { UserSchoolContext, UserAuth } from "@/types/user";
 import { currentUser } from "@clerk/nextjs/server";
+import { getSchoolHeader } from "@/types/headers";
 
 /**
  * Get current user from Clerk
@@ -38,30 +38,6 @@ export async function getUserContext(): Promise<UserAuth | null> {
 }
 
 /**
- * Get school context from headers (set by proxy.ts middleware)
- */
-async function getSchoolContext() {
-    const headersList = await headers();
-    const schoolId = headersList.get("x-school-id");
-    const schoolUsername = headersList.get("x-school-username");
-    const schoolTimezone = headersList.get("x-school-timezone");
-
-    if (schoolId && schoolUsername) {
-        return { id: schoolId, username: schoolUsername, timezone: schoolTimezone || "UTC" };
-    }
-
-    return null;
-}
-
-/**
- * Validate user belongs to school
- * Relies on the schoolId being present in the user's metadata (synced from DB)
- */
-function validateUserSchoolRelation(user: UserAuth, schoolId: string): boolean {
-    return user.schoolId === schoolId;
-}
-
-/**
  * Main provider - Get combined user-school context with validation
  *
  * Returns:
@@ -81,7 +57,8 @@ function validateUserSchoolRelation(user: UserAuth, schoolId: string): boolean {
 export const getUserSchoolContext = cache(
     async (): Promise<UserSchoolContext> => {
         // Normal auth flow - get school from subdomain headers
-        const school = await getSchoolContext();
+        const schoolHeader = await getSchoolHeader();
+        const school = schoolHeader ? { id: schoolHeader.id, username: schoolHeader.name, timezone: schoolHeader.zone } : null;
         
         // Get current user
         const user = await getUserContext();
@@ -116,7 +93,7 @@ export const getUserSchoolContext = cache(
 
         // Validate user belongs to this school
         // In the new Clerk-sync world, if the user has the schoolId in their metadata, they are authorized.
-        const isAuthorized = validateUserSchoolRelation(user, school.id);
+        const isAuthorized = user.schoolId === school.id;
         
         if (!isAuthorized) {
             return {
@@ -137,21 +114,6 @@ export const getUserSchoolContext = cache(
 );
 
 /**
- * Shorthand for getting just the school context
- * (Already exists in headers.ts but reusable here)
- */
-export async function getSchoolHeader() {
-    const school = await getSchoolContext();
-    if (!school) return null;
-
-    return {
-        id: school.id,
-        name: school.username,
-        zone: school.timezone,
-    };
-}
-
-/**
  * Check if user has specific role
  */
 export function hasRole(context: UserSchoolContext, role: string | string[]): boolean {
@@ -159,25 +121,4 @@ export function hasRole(context: UserSchoolContext, role: string | string[]): bo
 
     const roles = Array.isArray(role) ? role : [role];
     return roles.includes(context.user.role);
-}
-
-/**
- * Check if user is admin for their school
- */
-export function isSchoolAdmin(context: UserSchoolContext): boolean {
-    return hasRole(context, "school_admin");
-}
-
-/**
- * Check if user is teacher
- */
-export function isTeacher(context: UserSchoolContext): boolean {
-    return hasRole(context, "teacher");
-}
-
-/**
- * Check if user is student
- */
-export function isStudent(context: UserSchoolContext): boolean {
-    return hasRole(context, "student");
 }

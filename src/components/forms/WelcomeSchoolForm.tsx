@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState, useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createSchool } from "@/supabase/server/welcome";
+import { createSchool, checkUsernameAvailability } from "@/supabase/server/welcome";
 import { usePhoneClear } from "@/src/hooks/usePhoneClear";
 import { isUsernameReserved } from "@/config/predefinedNames";
 import { logger } from "@/backend/logger";
@@ -12,13 +12,22 @@ import { SignInButton } from "@clerk/nextjs";
 import { UserAuth } from "@/types/user";
 // Removed R2 upload utility - now using API route
 import { MultiFormContainer } from "./multi";
-import { DetailsStep, CategoriesStep, AssetsStep, SummaryStep, WELCOME_SCHOOL_STEPS, type SchoolFormData } from "./WelcomeSchoolSteps";
+import {
+    AssetsStep,
+    SocialStep,
+    IdentificationStep,
+    CategoriesStep,
+    SummaryStep,
+    WELCOME_SCHOOL_STEPS,
+    type SchoolFormData,
+} from "./WelcomeSchoolSteps";
 import { WelcomeHeader } from "./WelcomeHeader";
 import { WelcomeSchoolNameRegistration } from "./WelcomeSchoolNameRegistration";
 import type { BucketMetadata } from "@/types/cloudflare-form-metadata";
 import { HandleFormTimeOut } from "./HandleFormTimeOut";
 import { motion } from "framer-motion";
 import { WindToggle } from "@/src/components/themes/WindToggle";
+import { generateUsername, generateUsernameVariants } from "@/src/utils/username-generator";
 
 // Main school schema with validation
 const schoolSchema = z.object({
@@ -47,35 +56,6 @@ const schoolSchema = z.object({
     instagramUrl: z.string().optional(),
     currency: z.enum(["USD", "EUR", "CHF"]).default("EUR"),
 });
-
-// Username generation utilities
-function generateUsername(name: string): string {
-    return name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .replace(/\s+/g, "_")
-        .slice(0, 30);
-}
-
-function generateUsernameVariants(baseUsername: string, existingUsernames: string[]): string {
-    // Normalize base username to lowercase for comparison
-    const normalizedBase = baseUsername.toLowerCase();
-    // Normalize existing usernames array for case-insensitive comparison
-    const normalizedExisting = existingUsernames.map((u) => u?.toLowerCase() || "");
-
-    if (!normalizedExisting.includes(normalizedBase) && !isUsernameReserved(normalizedBase)) {
-        return normalizedBase;
-    }
-
-    for (let i = 1; i <= 999; i++) {
-        const variant = `${normalizedBase}${i}`;
-        if (!normalizedExisting.includes(variant) && !isUsernameReserved(variant)) {
-            return variant;
-        }
-    }
-
-    return `${normalizedBase}${Date.now().toString().slice(-6)}`;
-}
 
 interface WelcomeSchoolFormProps {
     existingUsernames: string[];
@@ -119,13 +99,43 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         mode: "onTouched",
     });
 
-    const { setValue, setFocus, watch } = methods;
+    const { setValue, setFocus, watch, reset } = methods;
+
+    // --- RECOVERY LOGIC (Only for Clerk Flow) ---
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const signinStarted = sessionStorage.getItem("clerk_signin_started");
+        if (signinStarted === "true" && user) {
+            const savedData = sessionStorage.getItem("welcome_form_draft");
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    // Restore form data
+                    reset(parsed);
+                    // Inject current user email
+                    setValue("ownerEmail", user.email);
+                    // Return to the Identification step
+                    setIsNameRegistered(true);
+                    setCurrentStep(2); // Step 2 is Identification (0-indexed)
+                    
+                    logger.info("Restored form data after Clerk sign-in redirect");
+                } catch (e) {
+                    console.error("Failed to restore form data", e);
+                }
+            }
+            // Clear flags immediately after restoration attempt
+            sessionStorage.removeItem("clerk_signin_started");
+            sessionStorage.removeItem("welcome_form_draft");
+        }
+    }, [user, reset, setValue]);
+
     const { triggerPhoneClear } = usePhoneClear();
 
     // Watch all fields for live preview
     const formValues = watch();
 
-    // Sync email if user changes
+    // Sync email if user changes (for initial load or if user logs in via header)
     useEffect(() => {
         if (user?.email) {
             setValue("ownerEmail", user.email);
@@ -156,7 +166,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
             try {
                 // Simulate minimal delay for UX
                 await new Promise((resolve) => setTimeout(resolve, 300));
-
+                
                 const baseUsername = generateUsername(name);
                 const finalUsername = generateUsernameVariants(baseUsername, existingUsernames);
                 setValue("username", finalUsername);
@@ -169,26 +179,45 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
         }
     };
 
-    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const username = e.target.value;
-        if (username && username.length > 0) {
-            setUsernameStatus("checking");
+    const handleUsernameChange = () => {
+        // Clear status while typing to avoid confusion
+        if (usernameStatus !== null) {
+            setUsernameStatus(null);
+        }
+    };
 
-            // Debounce or just check immediately since it's local
-            // Using a tiny timeout to let the UI show "checking" for feedback
-            setTimeout(() => {
-                if (isUsernameReserved(username)) {
-                    setUsernameStatus("unavailable");
-                    return;
-                }
+    const handleUsernameBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+        const username = e.target.value.trim();
+        if (!username) {
+            setUsernameStatus(null);
+            return;
+        }
 
-                // Normalize for case-insensitive comparison
-                const normalizedUsername = username.toLowerCase();
-                const normalizedExisting = existingUsernames.map((u) => u?.toLowerCase() || "");
-                const isTaken = normalizedExisting.includes(normalizedUsername);
-                setUsernameStatus(isTaken ? "unavailable" : "available");
-            }, 200);
-        } else {
+        setUsernameStatus("checking");
+        try {
+            // 1. Local Check (Reserved Names)
+            if (isUsernameReserved(username)) {
+                setUsernameStatus("unavailable");
+                return;
+            }
+
+            // 2. Local Check (Existing list from server)
+            const normalizedUsername = username.toLowerCase();
+            const normalizedExisting = existingUsernames.map(u => u?.toLowerCase() || "");
+            if (normalizedExisting.includes(normalizedUsername)) {
+                setUsernameStatus("unavailable");
+                return;
+            }
+
+            // 3. Server Check (Query whole school table for extra safety)
+            const result = await checkUsernameAvailability(username);
+            if (result.success && result.data === true) {
+                setUsernameStatus("available");
+            } else {
+                setUsernameStatus("unavailable");
+            }
+        } catch (error) {
+            logger.error("Error checking username availability", error);
             setUsernameStatus(null);
         }
     };
@@ -283,7 +312,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
     const handleStepChange = (newStep: number) => {
         setCurrentStep(newStep);
 
-        // Assets step is now index 0. If we move to step 1 (Details) or higher, trigger upload.
+        // Assets step is now index 0. If we move to step 1 (Social), trigger upload.
         if (newStep > 0) {
             const data = methods.getValues();
             triggerUpload(data);
@@ -376,33 +405,40 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
     // Step configuration (0-based indexing for array steps)
     const stepComponents = {
         0: AssetsStep,
-        1: DetailsStep,
-        2: CategoriesStep,
-        3: SummaryStep,
+        1: SocialStep,
+        2: IdentificationStep,
+        3: CategoriesStep,
+        4: SummaryStep,
     };
 
     const stepSubtitles = {
         0: "Make your school stand out",
         1: "How can we find you?",
-        2: "What Adrenaline do you have to offer?",
-        3: "Does everything look correct, admin?",
+        2: "Who is the owner?",
+        3: "What Adrenaline do you have to offer?",
+        4: "Does everything look correct, admin?",
     };
 
     const stepProps = {
         0: {
             pendingToBucket,
             uploadStatus,
+        },
+        1: { 
             onCountryChange: handleCountryChange,
             onPhoneChange: handlePhoneChange,
             onLocationChange: handleLocationChange,
-            triggerPhoneClear,
         },
-        1: { user },
-        2: {},
-        3: {
+        2: { user },
+        3: {},
+        4: {
             onEditField: editField,
+            user,
         },
     };
+
+    const isLastStep = currentStep === WELCOME_SCHOOL_STEPS.length - 1;
+    const isSubmitDisabled = isLastStep && !user;
 
     return (
         <div className="w-full max-w-7xl mx-auto space-y-16 md:space-y-24">
@@ -421,9 +457,11 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
                         usernameStatus={usernameStatus}
                         onNameBlur={handleNameBlur}
                         onUsernameChange={handleUsernameChange}
+                        onUsernameBlur={handleUsernameBlur}
                         onNext={() => {
                             setIsNameRegistered(true);
                         }}
+                        onCurrencyChange={(currency) => setValue("currency", currency)}
                     />
                     <motion.div
                         initial={{ y: 100, opacity: 0 }}
@@ -450,18 +488,6 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
                         </div>
                     </motion.div>
                 </>
-            ) : !user ? (
-                <div className="w-full max-w-xl mx-auto bg-card rounded-xl border border-border/50 shadow-lg p-12 text-center space-y-6">
-                    <h2 className="text-2xl font-bold">Authenticated Identity Required</h2>
-                    <p className="text-muted-foreground">
-                        To register your school, please sign in. This ensures your account is securely linked to your identity.
-                    </p>
-                    <SignInButton mode="modal">
-                        <button className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all active:scale-95">
-                            Sign In to Adrenalink
-                        </button>
-                    </SignInButton>
-                </div>
             ) : (
                 <MultiFormContainer<SchoolFormData>
                     steps={WELCOME_SCHOOL_STEPS}
@@ -480,6 +506,7 @@ export function WelcomeSchoolForm({ existingUsernames, user }: WelcomeSchoolForm
                         window.location.href = `https://${targetUsername}.adrenalink.tech/`;
                     }}
                     onStateChange={(state) => setIsResultView(state.isSubmitted || state.isError)}
+                    isNextDisabled={isSubmitDisabled}
                 />
             )}
 

@@ -1,6 +1,6 @@
 import { WelcomeSchoolForm } from "@/src/components/forms/WelcomeSchoolForm";
 import { getSchoolsUsernames } from "@/supabase/server/welcome";
-import { getUserContext } from "@/types/user-school-provider";
+import { getUserContext } from "@/src/providers/user-school-provider";
 
 export default async function SchoolFormsPage() {
     const usernameResult = await getSchoolsUsernames();

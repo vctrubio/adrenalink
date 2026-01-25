@@ -2,7 +2,6 @@
 
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
-import { getSchoolContext } from "@/backend/school-context";
 import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data/BookingData";
 import { Booking } from "@/supabase/db/types";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
@@ -13,11 +12,12 @@ import { logger } from "@/backend/logger";
  */
 export async function getBookingId(id: string): Promise<{ success: boolean; data?: BookingData; error?: string }> {
     try {
-        const context = await getSchoolContext();
-        if (!context) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
-        const { schoolId, timezone } = context;
+        const schoolId = schoolHeader.id;
+        const timezone = schoolHeader.zone;
 
         const supabase = getServerConnection();
 

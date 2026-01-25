@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import type { BookingWithLessonAndPayments, LessonWithPayments, BookingStudentPayments, BookingTableStats } from "@/config/tables";
 import { calculateBookingStats } from "@/backend/data/BookingData";
 import { safeArray, handleSupabaseError } from "@/backend/error-handlers";
@@ -12,7 +12,11 @@ export type BookingTableData = BookingWithLessonAndPayments & { stats: BookingTa
 
 export async function getBookingsTable(): Promise<BookingTableData[]> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return [];
@@ -156,7 +160,11 @@ export async function updateBooking(
     },
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
@@ -193,7 +201,11 @@ export async function updateBooking(
 
 export async function deleteBooking(bookingId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };

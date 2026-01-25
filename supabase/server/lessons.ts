@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
@@ -30,7 +30,11 @@ export interface LessonForm {
  */
 export async function createLesson(lessonData: LessonForm): Promise<ApiActionResponseModel<LessonData>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -73,7 +77,11 @@ export async function createLessonWithCommission(
     commissionId: string,
 ): Promise<ApiActionResponseModel<LessonData>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -113,7 +121,11 @@ export async function createLessonWithCommission(
  */
 export async function getLessons(): Promise<ApiActionResponseModel<LessonData[]>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };
@@ -268,7 +280,11 @@ export async function assignTeacherCommissionToLesson(
     commissionId: string,
 ): Promise<ApiActionResponseModel<any>> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found in headers" };

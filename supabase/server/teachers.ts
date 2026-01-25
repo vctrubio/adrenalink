@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import type { TeacherTableData, TeacherWithLessonsAndPayments, LessonWithPayments } from "@/config/tables";
 import { calculateTeacherStats } from "@/backend/data/TeacherData";
 import { getTeacherEventsRPC } from "@/supabase/rpc/teacher_events";
@@ -35,7 +35,11 @@ export interface TeacherProvider {
 
 export async function getSchoolTeacherProvider(): Promise<{ success: boolean; data?: TeacherProvider[]; error?: string }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
@@ -115,7 +119,11 @@ export async function getSchoolTeacherProvider(): Promise<{ success: boolean; da
 
 export async function getTeachersTable(): Promise<TeacherTableData[]> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return [];
@@ -288,7 +296,11 @@ export async function updateTeacher(
     },
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
@@ -341,7 +353,11 @@ export async function updateTeacher(
 
 export async function deleteTeacher(teacherId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };

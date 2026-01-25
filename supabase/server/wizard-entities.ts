@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
 
@@ -14,7 +14,11 @@ export interface WizardEntity {
 
 export async function getWizardEntities(entityType: string): Promise<WizardEntity[]> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) return [];
 

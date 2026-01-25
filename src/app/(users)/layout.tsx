@@ -4,7 +4,7 @@ import NavAdrBarShell from "@/src/components/NavAdrBarShell";
 import { RightIconsServer } from "@/src/components/NavAdrBarIconsServer";
 import { NavIconsSkeleton, NavIconsRightSkeleton } from "@/src/components/NavAdrBarIcons";
 import NavIns from "@/src/components/NavIns";
-import { getUserSchoolContext } from "@/types/user-school-provider";
+import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
 
 interface UsersLayoutProps {

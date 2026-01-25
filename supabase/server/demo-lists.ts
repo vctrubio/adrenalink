@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getUserSchoolContext } from "@/types/user-school-provider";
+import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 
 export async function getDemoSchoolLists() {
     const context = await getUserSchoolContext();

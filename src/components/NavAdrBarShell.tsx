@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface NavAdrBarShellProps {
     leftSlot?: ReactNode;
@@ -10,6 +11,9 @@ interface NavAdrBarShellProps {
 }
 
 export default function NavAdrBarShell({ leftSlot, rightSlot }: NavAdrBarShellProps) {
+    const pathname = usePathname();
+    const isWelcome = pathname === "/welcome";
+
     return (
         <header className="fixed top-0 left-0 right-0 z-40 px-4 py-2 pointer-events-none">
             <motion.div
@@ -23,8 +27,8 @@ export default function NavAdrBarShell({ leftSlot, rightSlot }: NavAdrBarShellPr
 
                 {/* Center: Adrenalink Branding - ALWAYS visible, never suspended */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <Link href="/" className="font-bold text-2xl tracking-tight text-foreground hover:opacity-80 transition-opacity">
-                        Adrenalink
+                    <Link href={isWelcome ? "/welcome" : "/"} className="font-bold text-2xl tracking-tight text-foreground hover:opacity-80 transition-opacity">
+                        {isWelcome ? "Welcome" : "Adrenalink"}
                     </Link>
                 </div>
 

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { ApiActionResponseModel } from "@/types/actions";
 import { getServerConnection } from "@/supabase/connection";
 import { getStudentBookingStatus } from "@/supabase/rpc/student_booking_status";
-import { getSchoolContextOrFail } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { handleSupabaseError, isUniqueConstraintError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
 
@@ -59,9 +59,11 @@ export async function createAndLinkStudent(
     }>
 > {
     try {
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -124,9 +126,11 @@ export async function createAndLinkTeacher(
     }>
 > {
     try {
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -192,9 +196,11 @@ export async function createAndLinkTeacher(
  */
 export async function createSchoolPackage(packageData: PackagePayload): Promise<ApiActionResponseModel<any>> {
     try {
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -231,9 +237,11 @@ export async function createSchoolEquipment(equipmentData: {
     status?: string;
 }): Promise<ApiActionResponseModel<any>> {
     try {
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -285,9 +293,11 @@ export async function masterBookingAdd(
             return { success: false, error: "Commission ID is required when teacher is provided" };
         }
 
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 
@@ -419,9 +429,11 @@ export interface RegisterTables {
  */
 export async function getRegisterTables(): Promise<ApiActionResponseModel<RegisterTables>> {
     try {
-        const contextResult = await getSchoolContextOrFail();
-        if (!contextResult.success) return contextResult;
-        const { schoolId } = contextResult.data;
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            return { success: false, error: "School context not found. Invalid subdomain or missing headers." };
+        }
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 

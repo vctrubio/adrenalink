@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { ClerkUserDropdown } from "@/src/components/auth/ClerkUserDropdown";
-import { getUserSchoolContext } from "@/types/user-school-provider";
+import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 
 export default async function DemoLayout({ children }: { children: ReactNode }) {
     // Verify server-side context resolution

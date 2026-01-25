@@ -4,7 +4,7 @@
  */
 
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolContext } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { createClassboardModel } from "@/getters/classboard-getter";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { safeArray } from "@/backend/error-handlers";
@@ -81,11 +81,11 @@ function buildBookingQuery() {
 }
 
 export async function getHomeBookings(): Promise<ClassboardModel> {
-    const context = await getSchoolContext();
-    if (!context) {
+    const schoolHeader = await getSchoolHeader();
+    if (!schoolHeader) {
         throw new Error("School context not found");
     }
-    const { schoolId, timezone } = context;
+    const schoolId = schoolHeader.id;
 
     const supabase = await getServerConnection();
 

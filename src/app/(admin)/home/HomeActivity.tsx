@@ -91,10 +91,57 @@ function Heatmap({
 
     const intensityColors = ["bg-muted/20 hover:bg-muted/40", "bg-primary/20", "bg-primary/40", "bg-primary/70", "bg-primary"];
 
+    // Calculate date range stats - from first date to last date in data
+    const dateRangeStats = useMemo(() => {
+        const formatDateKey = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        };
+
+        const parseDateKey = (dateKey: string): Date => {
+            const [year, month, day] = dateKey.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        // Get all dates from data and find first and last
+        const dates = Object.keys(data).sort();
+        if (dates.length === 0) {
+            return {
+                totalDays: 0,
+                daysWithActivity: 0,
+                daysWithoutActivity: 0,
+            };
+        }
+
+        const firstDate = parseDateKey(dates[0]);
+        const lastDate = parseDateKey(dates[dates.length - 1]);
+
+        // Calculate total days between first and last date (inclusive)
+        const timeDiff = lastDate.getTime() - firstDate.getTime();
+        const totalDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+
+        // Count days with activity
+        let daysWithActivity = 0;
+        for (const dateKey of dates) {
+            if (data[dateKey] && data[dateKey].count > 0) {
+                daysWithActivity++;
+            }
+        }
+
+        return {
+            totalDays,
+            daysWithActivity,
+            daysWithoutActivity: totalDays - daysWithActivity,
+        };
+    }, [data]);
+
     return (
         <div className="bg-card border border-border rounded-3xl px-6 pb-6 pt-24 shadow-sm max-w-7xl mx-auto">
-            <div className="flex flex-col gap-2 min-w-fit -mt-16">
-                <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-8 -mt-16 lg:flex-row lg:items-start">
+                <div className="flex flex-col gap-2 min-w-fit flex-1">
+                    <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Less</span>
                         <div className="flex gap-1">
@@ -183,6 +230,24 @@ function Heatmap({
                                 })}
                             </div>
                         ))}
+                    </div>
+                </div>
+                </div>
+
+                <div className="lg:flex-shrink-0 lg:mt-0 mt-4">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-4 py-2">
+                            <span className="text-xs uppercase tracking-wider text-muted-foreground w-32">Total Days</span>
+                            <span className="text-sm font-medium text-foreground w-12 text-right">{dateRangeStats.totalDays}</span>
+                        </div>
+                        <div className="flex items-center gap-4 py-2">
+                            <span className="text-xs uppercase tracking-wider text-muted-foreground w-32">Windy Days</span>
+                            <span className="text-sm font-medium text-foreground w-12 text-right">{dateRangeStats.daysWithActivity}</span>
+                        </div>
+                        <div className="flex items-center gap-4 py-2">
+                            <span className="text-xs uppercase tracking-wider text-muted-foreground w-32">No Wind Days</span>
+                            <span className="text-sm font-medium text-foreground w-12 text-right">{dateRangeStats.daysWithoutActivity}</span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -59,7 +59,7 @@ export function ClerkUserDropdown({ serverRole }: ClerkUserDropdownProps) {
                                     userButtonTrigger: "w-full h-full focus:shadow-none"
                                 }
                             }}
-                            afterSignOutUrl="/demo" 
+                            afterSignOutUrl={typeof window !== 'undefined' ? window.location.href : "/"} 
                         />
                     </div>
                 </div>

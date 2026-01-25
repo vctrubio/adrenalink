@@ -67,12 +67,12 @@ function SchoolPreview({ formData, bannerUrl, iconUrl }: { formData: SchoolFormD
 
 export function WelcomeHeader({ formData, showPreview }: WelcomeHeaderProps) {
     const bannerUrl = useMemo(() => {
-        if (formData.bannerFile) return URL.createObjectURL(formData.bannerFile);
+        if (formData.bannerFile instanceof Blob) return URL.createObjectURL(formData.bannerFile);
         return "/kritaps_ungurs_unplash/forest.jpg";
     }, [formData.bannerFile]);
 
     const iconUrl = useMemo(() => {
-        if (formData.iconFile) return URL.createObjectURL(formData.iconFile);
+        if (formData.iconFile instanceof Blob) return URL.createObjectURL(formData.iconFile);
         return null;
     }, [formData.iconFile]);
 

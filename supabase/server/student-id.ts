@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolContext } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data/StudentData";
 import { Student } from "@/supabase/db/types";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
@@ -11,11 +11,11 @@ import { logger } from "@/backend/logger";
  */
 export async function getStudentId(id: string): Promise<{ success: boolean; data?: StudentData; error?: string }> {
     try {
-        const context = await getSchoolContext();
-        if (!context) {
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
             return { success: false, error: "School context not found" };
         }
-        const { schoolId, timezone } = context;
+        const schoolId = schoolHeader.id;
 
         const supabase = getServerConnection();
 

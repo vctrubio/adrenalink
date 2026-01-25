@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getServerConnection } from "@/supabase/connection";
-import { getSchoolId } from "@/backend/school-context";
+import { getSchoolHeader } from "@/types/headers";
 import type { PackageWithUsageStats, PackageTableData } from "@/config/tables";
 import { calculatePackageStats } from "@/backend/data/PackageData";
 import { safeArray, handleSupabaseError } from "@/backend/error-handlers";
@@ -10,7 +10,11 @@ import { logger } from "@/backend/logger";
 
 export async function getPackagesTable(): Promise<PackageTableData[]> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return [];
@@ -84,7 +88,11 @@ export async function updateSchoolPackage(
     },
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
@@ -120,7 +128,11 @@ export async function updateSchoolPackage(
 
 export async function deleteSchoolPackage(packageId: string): Promise<{ success: boolean; error?: string; canDelete?: boolean }> {
     try {
-        const schoolId = await getSchoolId();
+        const schoolHeader = await getSchoolHeader();
+        if (!schoolHeader) {
+            throw new Error("School context not found");
+        }
+        const schoolId = schoolHeader.id;
 
         if (!schoolId) {
             return { success: false, error: "School ID not found" };
