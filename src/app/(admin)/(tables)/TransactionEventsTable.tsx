@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Check, TrendingUp, TrendingDown, Plus, Activity } from "lucide-react";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
@@ -25,120 +25,7 @@ import { updateEventStatus } from "@/supabase/server/classboard";
 import { Dropdown, type DropdownItemProps } from "@/src/components/ui/dropdown";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
-
-// --- Sub-component: Equipment Fulfillment Dropdown ---
-
-function EquipmentFulfillmentCell({
-    data,
-    onUpdate,
-}: {
-    data: TransactionEventData;
-    onUpdate: (eventId: string, equipment: any) => void;
-}) {
-    const categoryId = data.packageData.categoryEquipment;
-    const { availableEquipment, fetchAvailable, assign } = useEquipment(categoryId);
-    const [isOpen, setIsOpen] = useState(false);
-    const triggerRef = useRef<HTMLButtonElement>(null);
-    const equipmentConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === categoryId);
-    const CategoryIcon = equipmentConfig?.icon || Activity;
-
-    const handleAssign = async (equipment: any) => {
-        const success = await assign(data.event.id, equipment.id);
-        if (success) {
-            // Only update event status if it's not already completed
-            if (data.event.status !== "completed") {
-                await updateEventStatus(data.event.id, "completed");
-            }
-            onUpdate(data.event.id, equipment);
-            setIsOpen(false);
-        }
-    };
-
-    useEffect(() => {
-        if (isOpen && availableEquipment.length > 0) {
-            console.log(`[TransactionTable] 🔍 Checking preferred gear for ${data.teacher.username}`);
-        }
-    }, [isOpen, availableEquipment, data.teacher]);
-
-    if (data.equipments && data.equipments.length > 0) {
-        return <BrandSizeCategoryList equipments={data.equipments as any} />;
-    }
-
-    const dropdownItems: DropdownItemProps[] = [
-        {
-            id: "header",
-            label: (
-                <div className="flex items-center gap-3 leading-none">
-                    <span className="font-bold">{data.teacher.username}</span>
-                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] Birding-none py-0.5">
-                        <FlagIcon size={12} className="opacity-70" />
-                        <span className="translate-y-[0.5px]">{data.event.date.split("T")[1].substring(0, 5)}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] Birding-none py-0.5">
-                        <DurationIcon size={12} className="opacity-70" />
-                        <span className="translate-y-[0.5px]">{getHMDuration(data.event.duration)}</span>
-                    </div>
-                </div>
-            ) as any,
-            icon: HeadsetIcon,
-            color: "#16a34a",
-            disabled: true,
-        },
-        ...availableEquipment
-            .sort((a, b) => {
-                const aPreferred = a.teacher_equipment?.some((te: any) => te.teacher_id === data.teacher.id);
-                const bPreferred = b.teacher_equipment?.some((te: any) => te.teacher_id === data.teacher.id);
-                if (aPreferred && !bPreferred) return -1;
-                if (!aPreferred && bPreferred) return 1;
-                return 0;
-            })
-            .map((eq) => {
-                const isPreferred = eq.teacher_equipment?.some((te: any) => te.teacher_id === data.teacher.id);
-                return {
-                    id: eq.id,
-                    label: (
-                        <div className={`inline-block ${isPreferred ? "border-b-[1.5px] border-primary/50" : ""}`}>
-                            <span className="font-bold text-foreground/90">
-                                {eq.brand} {eq.model}
-                                {eq.size ? ` (${eq.size})` : ""}
-                            </span>
-                        </div>
-                    ) as any,
-                    description: `SKU: ${eq.sku}${eq.color ? ` • ${eq.color}` : ""}`,
-                    icon: CategoryIcon,
-                    color: "rgb(var(--muted-foreground))",
-                    onClick: () => handleAssign(eq),
-                };
-            }),
-    ];
-
-    return (
-        <div className="relative">
-            <button
-                ref={triggerRef}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isOpen) fetchAvailable();
-                    setIsOpen(!isOpen);
-                }}
-                className="flex items-center gap-1 px-2 py-1 rounded bg-muted/30 border border-border/50 hover:bg-muted/50 text-muted-foreground transition-all group"
-            >
-                <Plus size={12} className="group-hover:text-primary transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest">N/A</span>
-            </button>
-
-            {isOpen && (
-                <Dropdown
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    items={dropdownItems}
-                    align="left"
-                    triggerRef={triggerRef}
-                />
-            )}
-        </div>
-    );
-}
+import { EquipmentFulfillmentCell } from "@/src/components/tables/EquipmentFulfillmentCell"; // Import the extracted component
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -156,10 +43,12 @@ export function TransactionEventsTable({
     events: initialEvents = [],
     groupBy,
     showYear = false,
+    enableTableLogic = true, // New prop to control useTableLogic
 }: {
     events: TransactionEventData[];
     groupBy?: GroupingType;
     showYear?: boolean;
+    enableTableLogic?: boolean;
 }) {
     const [events, setEvents] = useState(initialEvents);
     const { sort } = useTablesController();
@@ -169,25 +58,55 @@ export function TransactionEventsTable({
         setEvents(initialEvents);
     }, [initialEvents]);
 
-    const {
-        filteredRows: filteredEventsRaw,
-        masterTableGroupBy,
-        getGroupKey,
-    } = useTableLogic({
-        data: events,
-        filterSearch: filterTransactionEvents,
-        filterStatus: (item, status) => {
-            if (status === "All") return true;
-            return item.event.status.toLowerCase() === status.toLowerCase();
-        },
-        dateField: (row) => row.event.date,
-    });
+    const handleEquipmentUpdate = (eventId: string, equipment: any) => {
+        setEvents((prev) =>
+            prev.map((row) => {
+                if (row.event.id === eventId) {
+                    return {
+                        ...row,
+                        event: { ...row.event, status: "completed" },
+                        equipments: [...(row.equipments || []), equipment],
+                    };
+                }
+                return row;
+            }),
+        );
+    };
 
-    // Apply sorting
-    const filteredEvents = useMemo(() => {
-        if (!sort.field) return filteredEventsRaw;
+    let displayedEvents: TransactionEventData[] = events;
+    let masterTableGroupBy: GroupingType | undefined = groupBy;
+    let getGroupKey: ((item: TransactionEventData) => string | undefined) | undefined = undefined;
+    let showGroupToggle = false;
 
-        const sorted = [...filteredEventsRaw].sort((a, b) => {
+    if (enableTableLogic) {
+        // Only use useTableLogic if enabled
+        const {
+            filteredRows,
+            masterTableGroupBy: hookGroupBy,
+            getGroupKey: hookGetGroupKey,
+        } = useTableLogic({
+            data: events,
+            filterSearch: filterTransactionEvents,
+            filterStatus: (item, status) => {
+                if (status === "All") return true;
+                return item.event.status.toLowerCase() === status.toLowerCase();
+            },
+            dateField: (row) => row.event.date,
+        });
+        displayedEvents = filteredRows;
+        masterTableGroupBy = hookGroupBy;
+        getGroupKey = hookGetGroupKey;
+        showGroupToggle = true;
+    } else {
+        // If table logic is disabled, use initialEvents directly
+        displayedEvents = initialEvents;
+    }
+
+    // Apply sorting (only if table logic is enabled, otherwise assume pre-sorted)
+    const finalFilteredAndSortedEvents = useMemo(() => {
+        if (!enableTableLogic || !sort.field) return displayedEvents; // Use displayedEvents here
+
+        const sorted = [...displayedEvents].sort((a, b) => { // Sort displayedEvents
             let aValue: any;
             let bValue: any;
 
@@ -210,24 +129,9 @@ export function TransactionEventsTable({
         });
 
         return sorted;
-    }, [filteredEventsRaw, sort]);
+    }, [displayedEvents, sort, enableTableLogic]); // Depend on displayedEvents
 
-    const handleEquipmentUpdate = (eventId: string, equipment: any) => {
-        setEvents((prev) =>
-            prev.map((row) => {
-                if (row.event.id === eventId) {
-                    return {
-                        ...row,
-                        event: { ...row.event, status: "completed" },
-                        equipments: [...(row.equipments || []), equipment],
-                    };
-                }
-                return row;
-            }),
-        );
-    };
-
-    const desktopColumns: ColumnDef<TransactionEventData>[] = [
+    const desktopColumns: ColumnDef<TransactionEventData>[] = useMemo(() => [
         {
             header: "Date",
             headerClassName: `${HEADER_CLASSES.blue} text-center`,
@@ -341,7 +245,19 @@ export function TransactionEventsTable({
         {
             header: "Equipment",
             headerClassName: HEADER_CLASSES.purple,
-            render: (data) => <EquipmentFulfillmentCell data={data} onUpdate={handleEquipmentUpdate} />,
+            render: (data) => (
+                <EquipmentFulfillmentCell
+                    eventId={data.event.id}
+                    equipments={data.equipments}
+                    categoryId={data.packageData.categoryEquipment}
+                    teacherId={data.teacher.id}
+                    teacherUsername={data.teacher.username}
+                    eventTime={data.event.date.split("T")[1].substring(0,5)}
+                    eventDuration={data.event.duration}
+                    eventStatus={data.event.status}
+                    onUpdate={handleEquipmentUpdate}
+                />
+            ),
         },
         {
             header: "Comm.",
@@ -399,9 +315,9 @@ export function TransactionEventsTable({
                 ) : null;
             },
         },
-    ];
+    ], [showYear, handleEquipmentUpdate]); // Dependencies for useMemo
 
-    const mobileColumns: MobileColumnDef<TransactionEventData>[] = [
+    const mobileColumns: MobileColumnDef<TransactionEventData>[] = useMemo(() => [
         {
             label: "Event",
             render: (data) => {
@@ -471,9 +387,9 @@ export function TransactionEventsTable({
                 ) : null;
             },
         },
-    ];
+    ], [handleEquipmentUpdate]); // Dependencies for useMemo
 
-    const calculateStats = (groupRows: TransactionEventData[]) => {
+    const calculateStats = useCallback((groupRows: TransactionEventData[]) => {
         return groupRows.reduce(
             (acc, curr) => ({
                 totalDuration: acc.totalDuration + curr.event.duration,
@@ -494,9 +410,9 @@ export function TransactionEventsTable({
                 totalProfit: 0,
             },
         );
-    };
+    }, []);
 
-    const GroupHeaderStats = ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
+    const GroupHeaderStats = useCallback(({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
         <>
             <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
             <StatItemUI
@@ -516,23 +432,32 @@ export function TransactionEventsTable({
                 iconColor={false}
             />
         </>
-    );
+    ), []);
 
-    const renderGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+    const renderGroupHeader = useCallback((title: string, stats: GroupStats, groupBy: GroupingType) => (
         <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
             <GroupHeaderStats stats={stats} />
         </TableGroupHeader>
-    );
+    ), [GroupHeaderStats]);
 
-    const renderMobileGroupHeader = (title: string, stats: GroupStats, groupBy: GroupingType) => (
+    const renderMobileGroupHeader = useCallback((title: string, stats: GroupStats, groupBy: GroupingType) => (
         <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
             <GroupHeaderStats stats={stats} hideLabel />
         </TableMobileGroupHeader>
-    );
+    ), [GroupHeaderStats]);
+
+
+    if (finalFilteredAndSortedEvents.length === 0) {
+        return (
+            <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
+                No transactions match your criteria.
+            </div>
+        );
+    }
 
     return (
         <MasterTable
-            rows={filteredEvents}
+            rows={finalFilteredAndSortedEvents}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
             getGroupKey={getGroupKey}
@@ -540,7 +465,7 @@ export function TransactionEventsTable({
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
             groupBy={groupBy || masterTableGroupBy}
-            showGroupToggle={false}
+            showGroupToggle={showGroupToggle} // Use the new showGroupToggle variable
         />
     );
 }

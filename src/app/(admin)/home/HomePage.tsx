@@ -86,6 +86,8 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
         [classboardData, credentials.currency],
     );
 
+    console.log("🐛 [HomePage] allTransactionEvents:", allTransactionEvents);
+
     return (
         <TablesProvider>
             <div className="max-w-7xl mx-auto">
@@ -104,7 +106,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
                     {viewMode === "table" && (
                         <div className="space-y-4">
                             <TablesSearchHeader entityId="event" />
-                            <TransactionEventsTable events={allTransactionEvents} />
+                            <TransactionEventsTable events={allTransactionEvents} enableTableLogic={true} />
                         </div>
                     )}
 

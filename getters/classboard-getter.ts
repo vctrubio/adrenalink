@@ -10,7 +10,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
     return bookingsData
         .filter((bookingData) => bookingData.school_package) // Filter out bookings without school_package
         .map((bookingData) => {
-            const { id, date_start, date_end, school_id, leader_student_name, school_package, booking_student, lesson } = bookingData;
+            const { id, date_start, date_end, school_id, leader_student_name, status, school_package, booking_student, lesson } = bookingData;
 
             return {
                 booking: {
@@ -18,6 +18,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                     dateStart: date_start,
                     dateEnd: date_end,
                     leaderStudentName: leader_student_name,
+                    status: status, // Map the status from bookingData
                 },
                 schoolPackage: {
                     id: school_package.id,

@@ -1,8 +1,10 @@
 -- enriched RPC for Transaction table (Wall Clock Time)
 DROP FUNCTION IF EXISTS get_event_transaction(UUID);
 DROP FUNCTION IF EXISTS get_event_transactions_batch(UUID[]);
+DROP FUNCTION IF EXISTS get_base_event_transaction_data(UUID); -- Drop helper function if it exists
 
-CREATE OR REPLACE FUNCTION get_event_transaction(p_event_id UUID)
+-- Helper function to get common event transaction data
+CREATE OR REPLACE FUNCTION get_base_event_transaction_data(p_event_id UUID)
 RETURNS TABLE (
     event_id UUID,
     lesson_id UUID,
@@ -80,81 +82,43 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-CREATE OR REPLACE FUNCTION get_event_transactions_batch(p_event_ids UUID[])
-RETURNS TABLE (
-    event_id UUID,
-    lesson_id UUID,
-    booking_id UUID,
-    teacher_id UUID,
-    school_id UUID,
-    event_date TIMESTAMP,
-    event_duration INTEGER,
-    event_location VARCHAR,
-    event_status TEXT,
-    student_count INTEGER,
-    leader_student_name VARCHAR,
-    teacher_username VARCHAR,
-    package_description TEXT,
-    package_category_equipment TEXT,
-    package_capacity_equipment INTEGER,
-    package_capacity_students INTEGER,
-    price_per_student INTEGER,
-    commission_hourly NUMERIC,
-    commission_type TEXT,
-    gross_revenue NUMERIC,
-    teacher_commission NUMERIC,
-    net_revenue NUMERIC,
-    students_json JSONB,
-    equipments JSONB
-) AS $$
+-- Main RPC for single event
+CREATE OR REPLACE FUNCTION get_event_transaction(p_event_id UUID)
+RETURNS SETOF get_base_event_transaction_data
+AS $$
 BEGIN
-    RETURN QUERY
-    SELECT 
-        e.id,
-        e.lesson_id,
-        b.id,
-        l.teacher_id,
-        e.school_id,
-        e.date,
-        e.duration,
-        e.location,
-        e.status,
-        (SELECT COUNT(*) FROM booking_student bs WHERE bs.booking_id = b.id)::INTEGER,
-        b.leader_student_name,
-        t.username,
-        sp.description,
-        sp.category_equipment,
-        sp.capacity_equipment,
-        sp.capacity_students,
-        sp.price_per_student,
-        tc.cph::NUMERIC,
-        tc.commission_type,
-        (sp.price_per_student * (SELECT COUNT(*) FROM booking_student bs WHERE bs.booking_id = b.id))::NUMERIC,
-        (tc.cph::NUMERIC * (e.duration::NUMERIC / 60))::NUMERIC,
-        ((sp.price_per_student * (SELECT COUNT(*) FROM booking_student bs WHERE bs.booking_id = b.id))::NUMERIC 
-         - (tc.cph::NUMERIC * (e.duration::NUMERIC / 60)))::NUMERIC,
-        COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('id', s_inner.id, 'name', s_inner.first_name || ' ' || s_inner.last_name))
-             FROM booking_student bs
-             JOIN student s_inner ON bs.student_id = s_inner.id
-             WHERE bs.booking_id = b.id),
-            '[]'::jsonb
-        ),
-        COALESCE(
-            (SELECT jsonb_agg(jsonb_build_object('id', eq.id, 'brand', eq.brand, 'model', eq.model, 'size', eq.size, 'category', eq.category, 'sku', eq.sku, 'color', eq.color))
-             FROM equipment_event ee
-             JOIN equipment eq ON ee.equipment_id = eq.id
-             WHERE ee.event_id = e.id),
-            '[]'::jsonb
-        )
-    FROM event e
-    JOIN school s ON e.school_id = s.id
-    JOIN lesson l ON e.lesson_id = l.id
-    JOIN booking b ON l.booking_id = b.id
-    JOIN school_package sp ON b.school_package_id = sp.id
-    JOIN teacher_commission tc ON l.commission_id = tc.id
-    JOIN teacher t ON l.teacher_id = t.id
-    WHERE e.id = ANY(p_event_ids)
-    ORDER BY e.date DESC;
+    RETURN QUERY SELECT * FROM get_base_event_transaction_data(p_event_id);
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+-- Main RPC for batch events
+CREATE OR REPLACE FUNCTION get_event_transactions_batch(p_event_ids UUID[])
+RETURNS SETOF get_base_event_transaction_data
+AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT * 
+    FROM get_base_event_transaction_data(e.id) AS base_data
+    WHERE base_data.event_id = ANY(p_event_ids)
+    ORDER BY base_data.event_date DESC;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Optional: If get_booking_event_transactions is also in this file and needs cleanup
+-- Assuming get_booking_event_transactions uses a similar structure and can benefit
+-- from get_base_event_transaction_data
+/*
+DROP FUNCTION IF EXISTS get_booking_event_transactions(UUID);
+CREATE OR REPLACE FUNCTION get_booking_event_transactions(p_booking_id UUID)
+RETURNS SETOF get_base_event_transaction_data
+AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT * 
+    FROM get_base_event_transaction_data(e.id) AS base_data
+    JOIN event e ON base_data.event_id = e.id
+    WHERE e.lesson_id IN (SELECT id FROM lesson WHERE booking_id = p_booking_id)
+    ORDER BY base_data.event_date DESC;
+END;
+$$ LANGUAGE plpgsql STABLE;
+*/

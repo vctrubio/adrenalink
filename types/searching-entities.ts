@@ -15,7 +15,7 @@ export const SEARCH_FIELDS_DESCRIPTION = {
  * Generic search filter helper
  */
 export function filterBySearch<T>(items: T[], search: string, getSearchableText: (item: T) => string): T[] {
-    if (!search) return items;
+    if (!search.trim()) return items; // Return all items if search is empty or whitespace
     const searchLower = search.toLowerCase();
     return items.filter((item) => getSearchableText(item).toLowerCase().includes(searchLower));
 }
@@ -45,36 +45,23 @@ export function filterBookings(bookings: BookingTableData[], search: string): Bo
     });
 }
 
-import type { TransactionEventData } from "@/types/transaction-event";
-import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
-
 /**
- * Filter TransactionEventData by search query and status
+ * Filter TransactionEventData by search query
+ * Status filtering is handled externally by useTableLogic
  */
 export function filterTransactionEvents(
     events: TransactionEventData[],
     searchQuery: string,
-    statusFilter: EventStatusFilter,
 ): TransactionEventData[] {
-    let filtered = events;
+    if (!searchQuery.trim()) return events; // Return all events if search query is empty or whitespace
 
-    // Filter by status
-    if (statusFilter !== "all") {
-        filtered = filtered.filter((event) => event.event.status === statusFilter);
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(
-            (event) =>
-                event.booking?.leaderStudentName?.toLowerCase().includes(query) ||
-                event.event.location?.toLowerCase().includes(query) ||
-                event.teacher.username.toLowerCase().includes(query),
-        );
-    }
-
-    return filtered;
+    const query = searchQuery.toLowerCase();
+    return events.filter(
+        (event) =>
+            event.booking?.leaderStudentName?.toLowerCase().includes(query) ||
+            event.event.location?.toLowerCase().includes(query) ||
+            event.teacher.username.toLowerCase().includes(query),
+    );
 }
 
 /**

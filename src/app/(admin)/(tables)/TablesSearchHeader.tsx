@@ -26,7 +26,7 @@ const getStatusOptions = (entityId: string): string[] => {
         return ["All", "Ongoing", "Completed"];
     }
     if (entityId === "event") {
-        return ["All", "Planned", "TBC", "Completed", "Uncompleted"];
+        return ["All", "Date", "Week", "Month"]; // Changed for event-specific date grouping toggles
     }
     if (entityId === "equipment") {
         return ["All", "Kite", "Wing", "Windsurf"];
@@ -50,37 +50,53 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
     if (!entity) return null;
 
     const statusOptions = getStatusOptions(entity.id);
+    const showSortDropdown = entity.id === "booking" || entity.id === "event"; // Show sort dropdown for bookings and events
+
+    // Render only the search input if entityId is "event", as per instruction.
+    // Otherwise, render all controls.
+    if (entity.id === "event") {
+        return (
+            <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
+                <div className="flex-1 min-w-[200px]">
+                    <SearchInput
+                        id="tables-search-input"
+                        entityColor={entity.color}
+                        value={controller.search}
+                        onChange={(e) => controller.onSearchChange(e.target.value)}
+                        placeholder="Search students or teachers..."
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
-            {/* Search */}
+            {/* Search Input - always takes full width on small screens, flex-1 on larger */}
             <div className="flex-1 min-w-[200px]">
                 <SearchInput
                     id="tables-search-input"
                     entityColor={entity.color}
                     value={controller.search}
                     onChange={(e) => controller.onSearchChange(e.target.value)}
-                    placeholder={entity.id === "event" ? "Search students or teachers..." : `Search ${entity.name.toLowerCase()}...`}
+                    placeholder={`Search ${entity.name.toLowerCase()}...`}
                 />
             </div>
 
-            {/* Filters */}
-            <div className="flex items-center gap-2">
-                {/* Use SortDropdown for event/booking entities */}
-                {entity.id === "booking" && (
+            {/* Right-aligned filters/grouping/status/actions */}
+            <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-2">
+                {/* Sort Dropdown (only for applicable entities) */}
+                {showSortDropdown && (
                     <SortDropdown
                         value={controller.sort}
-                        options={ENTITY_SORT_OPTIONS.event || ENTITY_SORT_OPTIONS.booking || []}
+                        options={ENTITY_SORT_OPTIONS[entity.id as keyof typeof ENTITY_SORT_OPTIONS] || []}
                         onChange={controller.onSortChange}
                         entityColor={entity.color}
                     />
                 )}
 
-                {/* Only show Group for time-relevant entities */}
-                {(entity.id === "booking" ||
-                    entity.id === "event" ||
-                    entity.id === "teacher" ||
-                    entity.id === "student") && (
+                {/* Group FilterDropdown */}
+                {(entity.id === "event" || entity.id === "teacher" || entity.id === "student") && ( // Only show Group for time-relevant entities
                     <FilterDropdown
                         label="Group"
                         value={controller.group}
@@ -90,21 +106,23 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                     />
                 )}
 
-                {/* Status Filter Buttons for student, teacher, booking, package, equipment */}
+                {/* Status/Date Filter Buttons */}
                 {(entity.id === "student" ||
                     entity.id === "teacher" ||
                     entity.id === "booking" ||
                     entity.id === "schoolPackage" ||
-                    entity.id === "equipment") && (
+                    entity.id === "equipment" ||
+                    entity.id === "event") && ( // Show for events too
                     <StatusFilterButtons
                         options={statusOptions}
                         value={controller.status}
                         onChange={(v) => controller.onStatusChange(v as TableActivityFilter)}
+                        entityColor={entity.color}
                     />
                 )}
 
                 {/* Actions Toggle */}
-                {entity.id !== "event" && (
+                {entity.id !== "event" && ( // Example: Not showing actions toggle for events, adjust as needed
                     <button
                         type="button"
                         onClick={() => controller.onShowActionsChange(!controller.showActions)}

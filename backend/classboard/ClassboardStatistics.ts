@@ -12,6 +12,8 @@
 import type { TeacherQueue } from "@/backend/classboard/TeacherQueue";
 import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import type { TransactionEventData } from "@/types/transaction-event";
+import { safeArray } from "@/backend/error-handlers"; // Import safeArray
+import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator"; // Import calculator
 
 export interface RevenueStats {
     commission: number;
@@ -90,10 +92,9 @@ export class ClassboardStatistics {
             const leaderStudent = bookingStudents[0]?.student;
             const leaderStudentName = leaderStudent ? `${leaderStudent.firstName} ${leaderStudent.lastName}` : "Unknown";
             const studentCount = bookingStudents.length;
-            const studentNames = bookingStudents.map((bs) => `${bs.student.firstName} ${bs.student.lastName}`);
 
-            lessons.forEach((lesson) => {
-                lesson.events.forEach((event) => {
+            safeArray(lessons).forEach((lesson) => {
+                safeArray(lesson.events).forEach((event) => {
                     // Apply date filter if provided
                     if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
                         return;
@@ -103,34 +104,40 @@ export class ClassboardStatistics {
                     const shouldCountEvent = this.countAllEvents || event.status === "completed" || event.status === "uncompleted";
 
                     if (shouldCountEvent) {
-                        const durationHours = event.duration / 60;
-                        const studentRevenue = schoolPackage.pricePerStudent * durationHours * studentCount;
-                        const cph = parseFloat(lesson.commission.cph) || 0;
-
-                        let teacherEarnings = 0;
-                        if (lesson.commission.type === "fixed") {
-                            teacherEarnings = cph * durationHours;
-                        } else {
-                            teacherEarnings = studentRevenue * (cph / 100);
-                        }
+                        const studentRevenue = calculateLessonRevenue(
+                            schoolPackage.pricePerStudent,
+                            studentCount,
+                            event.duration,
+                            schoolPackage.durationMinutes
+                        );
+                        const commCalc = calculateCommission(
+                            event.duration,
+                            { 
+                                type: lesson.commission.type as "fixed" | "percentage", 
+                                cph: parseFloat(lesson.commission.cph) 
+                            },
+                            studentRevenue,
+                            schoolPackage.durationMinutes
+                        );
+                        const teacherEarnings = commCalc.earned;
 
                         events.push({
                             event: {
                                 id: event.id,
-                                lessonId: event.lessonId,
+                                lessonId: lesson.id,
                                 date: event.date,
                                 duration: event.duration,
                                 location: event.location,
                                 status: event.status,
                             },
                             lesson: {
-                                id: event.lessonId,
-                                status: "active", // Default since classboard model might not have lesson status
+                                id: lesson.id,
+                                status: lesson.status, // Use actual lesson status
                             },
                             booking: {
-                                id: booking.id,
+                                id: booking.id, // Map booking id
                                 leaderStudentName,
-                                status: booking.status,
+                                status: booking.status, // Use actual booking status
                                 students: bookingStudents.map((bs) => ({
                                     id: bs.student.id,
                                     firstName: bs.student.firstName,
@@ -155,8 +162,8 @@ export class ClassboardStatistics {
                             commission: {
                                 id: lesson.commission.id,
                                 type: lesson.commission.type as "fixed" | "percentage",
-                                cph: cph,
-                                description: null,
+                                cph: parseFloat(lesson.commission.cph),
+                                description: lesson.commission.description || null,
                             },
                             financials: {
                                 teacherEarnings,
@@ -164,9 +171,9 @@ export class ClassboardStatistics {
                                 profit: studentRevenue - teacherEarnings,
                                 currency: currency,
                                 commissionType: lesson.commission.type as "fixed" | "percentage",
-                                commissionValue: cph,
+                                commissionValue: parseFloat(lesson.commission.cph),
                             },
-                            equipments: (event as any).equipments || [],
+                            equipments: safeArray((event as any).equipments), // Ensure equipments are safe array
                         });
                     }
                 });
@@ -193,7 +200,7 @@ export class ClassboardStatistics {
             const durationCount = activeTeacherStats.reduce((sum, stats) => sum + stats.totalHours * 60, 0);
             const totalRevenue = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.revenue, 0);
             const totalCommission = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.commission, 0);
-            const totalProfit = activeTeacherStats.reduce((sum, stats) => sum + stats.totalRevenue.profit, 0);
+            const totalProfit = totalRevenue - totalCommission;
 
             return {
                 teacherCount,
@@ -216,8 +223,8 @@ export class ClassboardStatistics {
             let totalCommission = 0;
 
             Object.values(this.classboardData).forEach((booking) => {
-                booking.lessons.forEach((lesson) => {
-                    lesson.events.forEach((event) => {
+                safeArray(booking.lessons).forEach((lesson) => {
+                    safeArray(lesson.events).forEach((event) => {
                         // Apply date filter if provided
                         if (this.dateFilter && !event.date.startsWith(this.dateFilter)) {
                             return;
@@ -234,12 +241,12 @@ export class ClassboardStatistics {
                             totalDuration += event.duration;
 
                             // Track unique students
-                            booking.bookingStudents.forEach((student) => {
+                            safeArray(booking.bookingStudents).forEach((student) => {
                                 uniqueStudents.add(student.student.id);
                             });
 
                             // Calculate revenue and commission
-                            const studentCount = booking.bookingStudents.length;
+                            const studentCount = safeArray(booking.bookingStudents).length;
                             const hours = event.duration / 60;
                             const revenue = booking.schoolPackage.pricePerStudent * studentCount * hours;
                             totalRevenue += revenue;

@@ -305,7 +305,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
                         </div>
 
                         {filteredEvents.length > 0 ? (
-                            <TransactionEventsTable events={filteredEvents} groupBy="all" />
+                            <TransactionEventsTable events={filteredEvents} groupBy="all" enableTableLogic={false} />
                         ) : (
                             <div className="p-12 text-center border-2 border-dashed border-border rounded-3xl bg-muted/5 max-w-7xl mx-auto">
                                 <p className="text-muted-foreground font-medium italic">No transactions recorded for this date.</p>

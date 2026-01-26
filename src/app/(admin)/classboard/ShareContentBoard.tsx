@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Copy, Check, Mail, Share2 } from "lucide-react";
-import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
+import { TransactionEventsTable, DUMMY_EXPORT } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import type { StudentViewData, TeacherViewData } from "@/src/hooks/useClassboardShareExportData";
 import type { TransactionEventData } from "@/types/transaction-event";
@@ -168,7 +168,7 @@ function capitalize(str: string): string {
 function AdminView({ events }: { events: TransactionEventData[] }) {
     return (
         <TablesProvider>
-            <TransactionEventsTable events={events} groupBy="all" />
+            <TransactionEventsTable events={events} groupBy="all" enableTableLogic={false} />
         </TablesProvider>
     );
 }

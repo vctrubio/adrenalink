@@ -1,5 +1,5 @@
 import { getServerConnection } from "@/supabase/connection";
-import { getEventTransaction, mapTransactionToEventData } from "@/supabase/rpc/event_transaction";
+import { getEventTransaction } from "@/supabase/rpc/event_transaction"; // Only getEventTransaction
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { ChangeTheWindFooter } from "@/src/components/ui/ChangeTheWindFooter";
 import { SchoolAdranlinkConnectionHeader } from "@/src/components/school/SchoolAdranlinkConnectionHeader";
@@ -8,6 +8,7 @@ import { getTimeFromISO } from "@/getters/queue-getter";
 import { TransactionEventsTable } from "../(admin)/(tables)/TransactionEventsTable";
 import { TablesProvider } from "../(admin)/(tables)/layout";
 import Link from "next/link";
+import type { TransactionEventData } from "@/types/transaction-event"; // Import TransactionEventData type
 
 // Icons
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -46,11 +47,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
     }
 
     const supabase = getServerConnection();
-    let transaction;
+    let transaction: TransactionEventData | null = null; // Type as TransactionEventData
     let errorMsg;
 
     try {
-        transaction = await getEventTransaction(supabase, eventId);
+        transaction = await getEventTransaction(supabase, eventId, currency); // Pass currency
     } catch (e: any) {
         errorMsg = e.message;
     }
@@ -63,8 +64,9 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
         );
     }
 
-    const tableData = mapTransactionToEventData(transaction, currency);
-    const { event, teacher, studentNames, packageData, financials } = tableData;
+    // tableData is now directly transaction
+    const tableData = transaction;
+    const { event, teacher, booking, packageData, financials } = tableData;
 
     // Derived values for perspective cards
     const teacherPricePerHour = financials.teacherEarnings / (event.duration / 60);
@@ -97,7 +99,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                 {/* Transaction Record */}
                 <section className="max-w-7xl mx-auto space-y-4">
                     <h2 className="text-xl font-bold tracking-tight uppercase">Transaction Record</h2>
-                    <TransactionEventsTable events={[tableData]} />
+                    <TransactionEventsTable events={[tableData]} enableTableLogic={false} />
                 </section>
 
                 <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 relative">
@@ -110,11 +112,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         iconColor="text-emerald-500"
                         viewingAs={{
                             label: teacher.username,
-                            link: `/teachers/${teacher.username}`,
+                            link: `/teachers/${teacher.id}`, // Use teacher.id for link
                         }}
                     >
                         <EventTeacherCard
-                            students={studentNames}
+                            students={booking.students.map(s => `${s.firstName} ${s.lastName}`)} // Use booking.students
                             location={event.location || "TBD"}
                             date={event.date}
                             duration={event.duration}
@@ -139,15 +141,15 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         iconColor="text-yellow-500"
                     >
                         <div className="space-y-6">
-                            {transaction.students_json.map((s: any, idx: number) => (
-                                <div key={idx} className="space-y-2">
+                            {booking.students.map((s: any, idx: number) => ( // Use booking.students
+                                <div key={s.id || idx} className="space-y-2">
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                                         Viewing as:{" "}
                                         <a
                                             href={`/students/${s.id}`}
                                             className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all font-black"
                                         >
-                                            {s.name}
+                                            {`${s.firstName} ${s.lastName}`}
                                         </a>
                                     </p>
                                     <EventStudentCard
@@ -179,8 +181,8 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {(() => {
-                            const leaderStudent = transaction.students_json.find(
-                                (s: any) => s.name === transaction.leader_student_name,
+                            const leaderStudent = booking.students.find( // Use booking.students
+                                (s) => s.id === booking.id, // Find leader by ID, not name
                             );
                             return (
                                 <ResumeCard
@@ -192,10 +194,10 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                             label: "Booking",
                                             value: (
                                                 <Link
-                                                    href={`/bookings/${transaction.booking_id}`}
+                                                    href={`/bookings/${booking.id}`} // Use booking.id
                                                     className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
                                                 >
-                                                    {transaction.booking_id.slice(0, 8)}...
+                                                    {booking.id.slice(0, 8)}...
                                                 </Link>
                                             ),
                                         },
@@ -206,16 +208,16 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                                     href={`/students/${leaderStudent.id}`}
                                                     className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
                                                 >
-                                                    {transaction.leader_student_name}
+                                                    {`${leaderStudent.firstName} ${leaderStudent.lastName}`}
                                                 </Link>
                                             ) : (
-                                                transaction.leader_student_name
+                                                booking.leaderStudentName // Fallback to leaderStudentName
                                             ),
                                         },
-                                        { label: "Package", value: transaction.package_description },
+                                        { label: "Package", value: packageData.description },
                                         {
                                             label: "PPH",
-                                            value: `${(transaction.price_per_student / (transaction.event_duration / 60)).toFixed(2)} ${currency}/h`,
+                                            value: `${(packageData.pricePerStudent / (packageData.durationMinutes / 60)).toFixed(2)} ${currency}/h`,
                                         },
                                     ]}
                                 />
@@ -231,22 +233,22 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                     label: "Username",
                                     value: (
                                         <Link
-                                            href={`/teachers/${transaction.teacher_id}`}
+                                            href={`/teachers/${teacher.id}`} // Use teacher.id
                                             className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
                                         >
-                                            {transaction.teacher_username}
+                                            {teacher.username}
                                         </Link>
                                     ),
                                 },
-                                { label: "Comm. Type", value: transaction.commission_type, isCapitalize: true },
+                                { label: "Comm. Type", value: financials.commissionType, isCapitalize: true },
                                 {
                                     label: "Comm. Value",
                                     value:
-                                        transaction.commission_type === "fixed"
-                                            ? `${transaction.commission_hourly} ${currency}/h`
-                                            : `${transaction.commission_hourly}%`,
+                                        financials.commissionType === "fixed"
+                                            ? `${financials.commissionValue} ${currency}/h`
+                                            : `${financials.commissionValue}%`,
                                 },
-                                { label: "Net Earning", value: `${transaction.teacher_commission.toFixed(2)} ${currency}` },
+                                { label: "Net Earning", value: `${financials.teacherEarnings.toFixed(2)} ${currency}` },
                             ]}
                         />
 
@@ -257,7 +259,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             data={[
                                 {
                                     label: "Date",
-                                    value: new Date(transaction.event_date).toLocaleDateString("en-US", {
+                                    value: new Date(event.date).toLocaleDateString("en-US", {
                                         month: "long",
                                         day: "numeric",
                                         year: "numeric",
@@ -265,10 +267,10 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                 },
                                 {
                                     label: "Time",
-                                    value: getTimeFromISO(transaction.event_date),
+                                    value: getTimeFromISO(event.date),
                                 },
-                                { label: "Location", value: transaction.event_location || "TBD" },
-                                { label: "Status", value: transaction.event_status, isStatusBadge: true },
+                                { label: "Location", value: event.location || "TBD" },
+                                { label: "Status", value: event.status, isStatusBadge: true },
                             ]}
                         />
 
@@ -276,14 +278,14 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             title="Student"
                             icon={HelmetIcon}
                             color="#eab308"
-                            data={transaction.students_json.map((s: any) => ({
+                            data={booking.students.map((s: any) => ({ // Use booking.students
                                 label: "Involved",
                                 value: (
                                     <a
                                         href={`/students/${s.id}`}
                                         className="hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all"
                                     >
-                                        {s.name}
+                                        {`${s.firstName} ${s.lastName}`}
                                     </a>
                                 ),
                             }))}
@@ -294,8 +296,8 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             icon={EquipmentIcon}
                             color="#a855f7"
                             data={
-                                transaction.equipments.length > 0
-                                    ? transaction.equipments.map((e: any) => ({
+                                tableData.equipments && tableData.equipments.length > 0 // Use tableData.equipments
+                                    ? tableData.equipments.map((e: any) => ({
                                           label: e.category || "Equipment",
                                           value: `${e.brand} ${e.model} (${e.size || "N/A"})`,
                                           isCapitalize: true,
@@ -309,11 +311,11 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                             icon={CreditIcon}
                             color="#71717a"
                             data={[
-                                { label: "Gross Revenue", value: `${transaction.gross_revenue} ${currency}` },
-                                { label: "Teacher Comm.", value: `${transaction.teacher_commission.toFixed(2)} ${currency}` },
+                                { label: "Gross Revenue", value: `${financials.studentRevenue} ${currency}` }, // Use financials
+                                { label: "Teacher Comm.", value: `${financials.teacherEarnings.toFixed(2)} ${currency}` }, // Use financials
                                 {
                                     label: "Net Profit",
-                                    value: `${transaction.net_revenue.toFixed(2)} ${currency}`,
+                                    value: `${financials.profit.toFixed(2)} ${currency}`, // Use financials
                                     isStatusBadge: true,
                                 },
                             ]}

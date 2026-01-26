@@ -128,7 +128,7 @@ export function BookingRightColumn({ booking }: BookingRightColumnProps) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                     >
-                        <TransactionEventsTable events={transactionEvents} />
+                        <TransactionEventsTable events={transactionEvents} enableTableLogic={false} />
                     </motion.div>
                 )}
                 {viewMode === "receipt" && (

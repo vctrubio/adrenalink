@@ -4,6 +4,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import { getAllTransactionEvents } from "@/src/app/(admin)/home/getters";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
+import type { ClassboardData } from "@/backend/classboard/ClassboardModel"; // Import ClassboardData
 
 export interface TeacherViewData {
     teacherId: string;
@@ -18,6 +19,24 @@ export interface TeacherViewData {
     }[];
 }
 
+export interface StudentViewData {
+    iteration: number;
+    bookingId: string;
+    dateRange: string;
+    packageInfo: {
+        categoryEquipment: string;
+        capacityEquipment: number;
+        durationFormatted: string;
+    };
+    students: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        country: string;
+        passport: string;
+    }[];
+}
+
 export function useClassboardShareExportData() {
     const { bookingsForSelectedDate, globalFlag, selectedDate } = useClassboardContext();
     const credentials = useSchoolCredentials();
@@ -27,6 +46,7 @@ export function useClassboardShareExportData() {
         if (!sharingMode || !bookingsForSelectedDate || !credentials) return [];
 
         // 1. Get all transaction events for these bookings
+        // Note: bookingsForSelectedDate here is ClassboardData[], not BookingData[]
         const allEvents = getAllTransactionEvents(bookingsForSelectedDate, credentials.currency);
 
         // 2. Filter strictly for the selected date
@@ -40,7 +60,7 @@ export function useClassboardShareExportData() {
                 totalDuration: acc.totalDuration + curr.event.duration,
                 eventCount: acc.eventCount + 1,
                 completedCount: acc.completedCount + (curr.event.status === "completed" ? 1 : 0),
-                studentCount: acc.studentCount + curr.studentCount,
+                studentCount: acc.studentCount + (curr.booking?.students?.length || 0),
                 totalCommissions: acc.totalCommissions + curr.financials.teacherEarnings,
                 totalRevenue: acc.totalRevenue + curr.financials.studentRevenue,
                 totalProfit: acc.totalProfit + curr.financials.profit,
@@ -60,14 +80,15 @@ export function useClassboardShareExportData() {
     const studentViewData: StudentViewData[] = useMemo(() => {
         if (!bookingsForSelectedDate) return [];
 
-        return bookingsForSelectedDate.map((bookingData, index) => ({
+        // Correctly map ClassboardData to StudentViewData
+        return bookingsForSelectedDate.map((bookingData: ClassboardData, index) => ({
             iteration: index + 1,
-            bookingId: bookingData.booking.id,
-            dateRange: `${bookingData.booking.dateStart} to ${bookingData.booking.dateEnd}`,
+            bookingId: bookingData.booking.id, // Corrected access
+            dateRange: `${bookingData.booking.dateStart} to ${bookingData.booking.dateEnd}`, // Corrected access
             packageInfo: {
-                categoryEquipment: bookingData.schoolPackage.categoryEquipment,
-                capacityEquipment: bookingData.schoolPackage.capacityEquipment,
-                durationFormatted: getHMDuration(bookingData.schoolPackage.durationMinutes),
+                categoryEquipment: bookingData.schoolPackage.categoryEquipment, // Correct access
+                capacityEquipment: bookingData.schoolPackage.capacityEquipment, // Correct access
+                durationFormatted: getHMDuration(bookingData.schoolPackage.durationMinutes), // Correct access
             },
             students: bookingData.bookingStudents.map((bs) => ({
                 id: bs.student.id,
@@ -83,7 +104,7 @@ export function useClassboardShareExportData() {
         const teacherMap = new Map<string, TeacherViewData>();
 
         adminViewData.forEach((data) => {
-            const { teacher, event, leaderStudentName, studentNames } = data;
+            const { teacher, event, booking } = data; // Destructure booking
             if (!teacherMap.has(teacher.id)) {
                 teacherMap.set(teacher.id, {
                     teacherId: teacher.id,
@@ -98,8 +119,8 @@ export function useClassboardShareExportData() {
                 time: event.date.split("T")[1].substring(0, 5),
                 location: event.location,
                 durationFormatted: getHMDuration(event.duration),
-                leaderStudentName,
-                studentNames,
+                leaderStudentName: booking.leaderStudentName, // Access from nested booking
+                studentNames: booking.students.map(s => `${s.firstName} ${s.lastName}`), // Access from nested booking
             });
         });
 
