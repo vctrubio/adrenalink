@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { UpdateEntityColumnCard } from "@/src/components/ids/UpdateEntityColumnCard";
-import { EquipmentStatusLabel } from "@/src/components/labels/EquipmentStatusLabel";
 import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
 import { EquipmentTeacherManModal } from "@/src/components/modals/admin";
 import { updateEquipmentStatus } from "@/supabase/server/equipment-status";
