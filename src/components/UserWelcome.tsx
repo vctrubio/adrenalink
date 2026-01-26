@@ -35,7 +35,7 @@ export default function UserWelcome({ firstName, lastName, schoolName, children 
                         transition={{ duration: 0.4, delay: 0.7 }}
                         className="text-xl md:text-2xl text-muted-foreground font-medium"
                     >
-                        Welcome to {schoolName}
+                        Welcome to <span className="border-b-2 border-foreground/30 pb-1">{schoolName}</span>
                     </motion.p>
                 )}
             </motion.div>

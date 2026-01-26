@@ -17,7 +17,8 @@ interface CommissionGroup {
 }
 
 export function TeacherCommissionsClient() {
-    const { data: teacherUser, currency } = useTeacherUser();
+    const { data: teacherUser, schoolHeader } = useTeacherUser();
+    const currency = schoolHeader?.currency || "YEN";
 
     // Group lesson summaries by commission ID
     const commissionGroups = useMemo(() => {

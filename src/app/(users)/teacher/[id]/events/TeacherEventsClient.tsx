@@ -11,7 +11,8 @@ import { useTeacherUser } from "@/src/providers/teacher-user-provider";
 import type { EventNode } from "@/types/classboard-teacher-queue";
 
 export function TeacherEventsClient() {
-    const { data: teacherUser, currency } = useTeacherUser();
+    const { data: teacherUser, schoolHeader } = useTeacherUser();
+    const currency = schoolHeader?.currency || "YEN";
     const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
 
     // Date Logic

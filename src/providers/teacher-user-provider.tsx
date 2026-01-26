@@ -4,12 +4,11 @@ import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { getClientConnection } from "@/supabase/connection";
 import type { TeacherUserData } from "@/supabase/server/teacher-user";
+import type { HeaderContext } from "@/types/headers";
 
 interface TeacherUserContextValue {
     data: TeacherUserData;
-    schoolId: string;
-    currency: string;
-    timezone?: string;
+    schoolHeader: HeaderContext | null;
 }
 
 const TeacherUserContext = createContext<TeacherUserContextValue | null>(null);
@@ -17,9 +16,7 @@ const TeacherUserContext = createContext<TeacherUserContextValue | null>(null);
 interface TeacherUserProviderProps {
     children: ReactNode;
     data: TeacherUserData;
-    schoolId: string;
-    currency: string;
-    timezone?: string;
+    schoolHeader: HeaderContext | null;
 }
 
 /**
@@ -39,15 +36,13 @@ interface TeacherUserProviderProps {
 export function TeacherUserProvider({
     children,
     data,
-    schoolId,
-    currency,
-    timezone,
+    schoolHeader,
 }: TeacherUserProviderProps) {
     const router = useRouter();
 
     // Set up real-time subscription for event and lesson updates
     useEffect(() => {
-        if (!schoolId) return;
+        if (!schoolHeader?.id) return;
 
         const supabase = getClientConnection();
 
@@ -60,7 +55,7 @@ export function TeacherUserProvider({
                     event: "*",
                     schema: "public",
                     table: "event",
-                    filter: `school_id=eq.${schoolId}`,
+                    filter: `school_id=eq.${schoolHeader.id}`,
                 },
                 (payload) => {
                     console.log("[TeacherUserProvider] Event change detected:", payload);
@@ -135,13 +130,11 @@ export function TeacherUserProvider({
             supabase.removeChannel(equipmentEventChannel);
             supabase.removeChannel(paymentChannel);
         };
-    }, [schoolId, data.teacher.id, router]);
+    }, [schoolHeader?.id, data.teacher.id, router]);
 
     const value: TeacherUserContextValue = {
         data,
-        schoolId,
-        currency,
-        timezone,
+        schoolHeader,
     };
 
     return <TeacherUserContext.Provider value={value}>{children}</TeacherUserContext.Provider>;

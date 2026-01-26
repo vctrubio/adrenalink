@@ -4,9 +4,11 @@ import { useStudentUser } from "@/src/providers/student-user-provider";
 import { BOOKING_STATUS_CONFIG, type BookingStatus } from "@/types/status";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { Package } from "lucide-react";
+import { getHMDuration } from "@/getters/duration-getter";
 
 export function StudentBookingsClient() {
-    const { data: studentUser, currency } = useStudentUser();
+    const { data: studentUser, schoolHeader } = useStudentUser();
+    const currency = schoolHeader?.currency || "YEN";
     const hasBookings = studentUser.bookings.length > 0;
 
     return (
@@ -108,12 +110,11 @@ function BookingProgressCard({ booking, currency }: { booking: any; currency: st
 
 // Sub-component: Status Pill
 function StatusPill({ label, minutes, color }: { label: string; minutes: number; color: string }) {
-    const hours = minutes / 60;
     return (
         <div className="flex flex-col items-center py-2 px-2 rounded-lg bg-muted/30">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</span>
             <span className="text-sm font-bold mt-1" style={{ color }}>
-                {hours.toFixed(1)}h
+                {getHMDuration(minutes)}
             </span>
         </div>
     );

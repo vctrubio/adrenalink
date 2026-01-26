@@ -26,7 +26,8 @@ import { getServerConnection } from "@/supabase/connection";
  */
 export interface HeaderContext {
     id: string;
-    name: string;
+    name: string; // username for schools
+    schoolName?: string; // actual school name for display
     zone: string;
     currency: string;
 }
@@ -69,6 +70,7 @@ export const getSchoolHeader = cache(async (): Promise<HeaderContext | null> => 
         return {
             id: schoolData.id,
             name: schoolData.username,
+            schoolName: schoolData.name,
             zone: schoolData.timezone,
             currency: schoolData.currency || "YEN",
         };

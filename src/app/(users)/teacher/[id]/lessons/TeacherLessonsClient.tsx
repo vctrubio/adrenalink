@@ -20,7 +20,8 @@ const SORT_OPTIONS = [
 const FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted"] as const;
 
 export function TeacherLessonsClient() {
-    const { data: teacherUser, currency } = useTeacherUser();
+    const { data: teacherUser, schoolHeader } = useTeacherUser();
+    const currency = schoolHeader?.currency || "YEN";
     const [searchQuery, setSearchQuery] = useState("");
     const [sort, setSort] = useState<{ field: string; direction: "asc" | "desc" }>({ field: "date", direction: "desc" });
     const [filter, setFilter] = useState<string>("All");

@@ -1,12 +1,10 @@
 "use server";
 
 import { clerkClient } from "@clerk/nextjs/server";
+import type { ClerkData } from "@/types/user";
 
-export interface ClerkSearchResult {
-    id: string;
+export interface ClerkSearchResult extends ClerkData {
     fullName: string | null;
-    email: string;
-    imageUrl: string;
 }
 
 /**
@@ -27,9 +25,11 @@ export async function searchClerkUsers(query: string): Promise<{ success: boolea
 
         const results: ClerkSearchResult[] = users.map(user => ({
             id: user.id,
-            fullName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username || "Unknown User",
-            email: user.emailAddresses[0]?.emailAddress || "No email",
-            imageUrl: user.imageUrl,
+            email: user.emailAddresses[0]?.emailAddress || "",
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            imageUrl: user.imageUrl || "",
+            fullName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username || null,
         }));
 
         return { success: true, data: results };

@@ -10,7 +10,8 @@ import Image from "next/image";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon.jsx";
 
 export function StudentRequestsClient() {
-    const { data: studentUser, currency } = useStudentUser();
+    const { data: studentUser, schoolHeader } = useStudentUser();
+    const currency = schoolHeader?.currency || "YEN";
     const hasRequests = studentUser.packageRequests.length > 0;
 
     return (

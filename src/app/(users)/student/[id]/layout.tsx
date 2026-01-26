@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { getStudentUser } from "@/supabase/server/student-user";
-import { getSchoolHeader } from "@/types/headers";
+import { getUserSchoolContext } from "@/src/providers/user-school-provider";
 import UserWelcome from "@/src/components/UserWelcome";
 import { StudentUserProvider } from "@/src/providers/student-user-provider";
 import { StudentNavigation } from "./StudentNavigation";
@@ -13,7 +13,7 @@ interface StudentLayoutProps {
 export default async function StudentLayout({ children, params }: StudentLayoutProps) {
     const { id: studentId } = await params;
 
-    const schoolHeader = await getSchoolHeader();
+    const { schoolHeader } = await getUserSchoolContext();
     const studentUserResult = await getStudentUser(studentId);
 
     if (!studentUserResult.success || !studentUserResult.data) {
@@ -25,12 +25,10 @@ export default async function StudentLayout({ children, params }: StudentLayoutP
     return (
         <StudentUserProvider
             data={studentUser}
-            schoolId={schoolHeader?.id || ""}
-            currency={schoolHeader?.currency || "YEN"}
-            timezone={schoolHeader?.timezone}
+            schoolHeader={schoolHeader}
         >
             <div className="space-y-6 max-w-2xl mx-auto p-4">
-                <UserWelcome firstName={studentUser.student.first_name} lastName={studentUser.student.last_name} schoolName={schoolHeader?.name} />
+                <UserWelcome firstName={studentUser.student.first_name} lastName={studentUser.student.last_name} schoolName={schoolHeader?.schoolName} />
                 <StudentNavigation studentId={studentId} />
                 {children}
             </div>

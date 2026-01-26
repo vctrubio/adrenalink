@@ -5,7 +5,8 @@ import { useStudentUser } from "@/src/providers/student-user-provider";
 import { EventStudentCard } from "@/src/components/events/EventStudentCard";
 
 export function StudentEventsClient() {
-    const { data: studentUser, currency } = useStudentUser();
+    const { data: studentUser, schoolHeader } = useStudentUser();
+    const currency = schoolHeader?.currency || "YEN";
 
     // Filter events (show planned, tbc, and completed)
     const visibleEvents = useMemo(() => {

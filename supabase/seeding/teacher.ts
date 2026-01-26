@@ -18,17 +18,20 @@ export interface TeacherInput {
 }
 
 export const createTeachers = async (schoolId: string, count = 2): Promise<any[]> => {
-    const teachers = Array.from({ length: count }, () => ({
-        first_name: faker.person.firstName(),
-        last_name: faker.person.lastName(),
-        username: faker.person.firstName().toLowerCase(),
-        passport: faker.string.alphanumeric(10).toUpperCase(),
-        country: faker.location.country(),
-        phone: faker.string.numeric(10),
-        school_id: schoolId,
-        languages: ["English", faker.helpers.arrayElement(["Portuguese", "Spanish", "French", "German", "Italian"])],
-        active: true,
-    }));
+    const teachers = Array.from({ length: count }, () => {
+        const firstName = faker.person.firstName();
+        return {
+            first_name: firstName,
+            last_name: faker.person.lastName(),
+            username: firstName,
+            passport: faker.string.alphanumeric(10).toUpperCase(),
+            country: faker.location.country(),
+            phone: faker.string.numeric(10),
+            school_id: schoolId,
+            languages: ["English", faker.helpers.arrayElement(["Portuguese", "Spanish", "French", "German", "Italian"])],
+            active: true,
+        };
+    });
 
     const { data, error } = await supabase.from("teacher").insert(teachers).select();
     if (error) throw error;
