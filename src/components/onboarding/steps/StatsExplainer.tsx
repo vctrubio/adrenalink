@@ -57,7 +57,7 @@ export default function StatsExplainer() {
                                     onClick={(e) => togglePillar(pillar.id, e)}
                                     className="group py-10 flex items-center gap-8 px-6 cursor-pointer"
                                     onMouseEnter={(e) => {
-                                        const iconDiv = e.currentTarget.querySelector('[data-icon-container]') as HTMLElement;
+                                        const iconDiv = e.currentTarget.querySelector("[data-icon-container]") as HTMLElement;
                                         if (iconDiv) {
                                             if (!iconDiv.dataset.originalBorder) {
                                                 iconDiv.dataset.originalBorder = getComputedStyle(iconDiv).borderColor;
@@ -66,7 +66,7 @@ export default function StatsExplainer() {
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        const iconDiv = e.currentTarget.querySelector('[data-icon-container]') as HTMLElement;
+                                        const iconDiv = e.currentTarget.querySelector("[data-icon-container]") as HTMLElement;
                                         if (iconDiv && iconDiv.dataset.originalBorder) {
                                             iconDiv.style.borderColor = iconDiv.dataset.originalBorder;
                                         }

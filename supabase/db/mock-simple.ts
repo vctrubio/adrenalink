@@ -150,8 +150,8 @@ const seedSimpleFresh = async () => {
         await createDefaultSchoolPackages(schoolId);
 
         console.log("\n✨ Simple seed (Santa Barbara) completed successfully!");
-        console.log(`   School: Santa Barbara Surf Center`);
-        console.log(`   Username: sb_surf`);
+        console.log("   School: Santa Barbara Surf Center");
+        console.log("   Username: sb_surf");
         console.log(`   Teachers: ${teachers.length}`);
         console.log(`   Students: ${students.length}`);
         console.log("   No bookings or lessons created. ✅\n");

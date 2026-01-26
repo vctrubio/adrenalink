@@ -12,6 +12,7 @@ import { HomeActivity } from "./HomeActivity";
 import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./getters";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import { TablesSearchHeader } from "@/src/app/(admin)/(tables)/TablesSearchHeader";
+import type { GroupingType } from "@/src/app/(admin)/(tables)/MasterTable";
 
 import type { TransactionEventData } from "@/types/transaction-event";
 
@@ -78,6 +79,7 @@ function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMo
 export function HomePage({ classboardData }: { classboardData: ClassboardModel }) {
     const credentials = useSchoolCredentials();
     const [viewMode, setViewMode] = useState<ViewMode>("grouped");
+    const [groupBy, setGroupBy] = useState<GroupingType>("all");
 
     const globalTotals = useMemo(() => getHomeStats(classboardData), [classboardData]);
     const groupedEvents = useMemo(() => getGroupedEvents(classboardData), [classboardData]);
@@ -105,8 +107,12 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "table" && (
                         <div className="space-y-4">
-                            {/* <TablesSearchHeader entityId="event" /> */}
-                            <TransactionEventsTable events={allTransactionEvents} enableTableLogic={true} />
+                            <TablesSearchHeader
+                                entityId="event"
+                                groupBy={groupBy}
+                                onGroupByChange={setGroupBy}
+                            />
+                            <TransactionEventsTable events={allTransactionEvents} groupBy={groupBy} enableTableLogic={true} />
                         </div>
                     )}
 

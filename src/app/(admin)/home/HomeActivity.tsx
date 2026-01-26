@@ -9,6 +9,7 @@ import { getHMDuration } from "@/getters/duration-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
+import { HomeDailyStatsDisplay } from "./HomeDailyStatsDisplay";
 
 interface HomeActivityProps {
     events: TransactionEventData[];
@@ -276,6 +277,25 @@ export function HomeActivity({ events }: HomeActivityProps) {
         return events.filter((e) => e.event.date.startsWith(selectedDate));
     }, [events, selectedDate]);
 
+    const selectedDateStats = useMemo(() => {
+        if (!selectedDate) return null;
+        const dayEvents = events.filter((e) => e.event.date.startsWith(selectedDate));
+        const studentCount = dayEvents.reduce((sum, e) => sum + (e.booking?.students?.length || 0), 0);
+        const teacherCount = new Set(dayEvents.map((e) => e.teacher.id).filter((id) => id)).size;
+        const durationCount = dayEvents.reduce((sum, e) => sum + e.event.duration, 0);
+        const revenue = dayEvents.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
+        const commission = dayEvents.reduce((sum, e) => sum + e.financials.commissionValue, 0);
+        const profit = dayEvents.reduce((sum, e) => sum + e.financials.profit, 0);
+        const eventCount = dayEvents.length;
+        return {
+            studentCount,
+            teacherCount,
+            durationCount,
+            eventCount,
+            revenue: { revenue, commission, profit },
+        };
+    }, [selectedDate, events]);
+
     return (
         <div className="space-y-8">
             <Heatmap data={dateStats} onDateSelect={setSelectedDate} selectedDate={selectedDate} />
@@ -299,9 +319,9 @@ export function HomeActivity({ events }: HomeActivityProps) {
                                     year: "numeric",
                                 })}
                             </h3>
-                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest ">
-                                {filteredEvents.length} Lessons
-                            </span>
+                              {selectedDateStats && (
+                                <HomeDailyStatsDisplay stats={selectedDateStats} events={filteredEvents} />
+                            )}
                         </div>
 
                         {filteredEvents.length > 0 ? (

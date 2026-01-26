@@ -211,9 +211,9 @@ export function MultiFormContainer<T extends FieldValues = FieldValues>({
                             <span 
                                 className="text-xl font-mono tracking-wide leading-relaxed"
                                 style={{ 
-                                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-                                    letterSpacing: '0.05em',
-                                    lineHeight: '1.6'
+                                    fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+                                    letterSpacing: "0.05em",
+                                    lineHeight: "1.6"
                                 }}
                             >
                                 {currentSubtitle || title || "Details"}

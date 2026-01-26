@@ -212,7 +212,7 @@ export function StudentRequestModal({ isOpen, onClose, pkg, currencySymbol }: St
 
                                     {user && (
                                         <div className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer overflow-hidden rounded-bl-[2rem]">
-                                            <UserButton afterSignOutUrl={typeof window !== 'undefined' ? window.location.href : "/"} />
+                                            <UserButton afterSignOutUrl={typeof window !== "undefined" ? window.location.href : "/"} />
                                         </div>
                                     )}
                                 </div>
@@ -373,7 +373,7 @@ function IdentityStep({ relationData, pkg, currencySymbol, pph, formMethods, onS
                     <div className="bg-muted/30 border border-border rounded-3xl p-6 space-y-4 relative overflow-hidden">
                         <div className="flex items-center gap-4 border-b border-border/50 pb-4 justify-between">
                             <div className="flex items-center gap-4">
-                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border border-border shadow-inner bg-card`}>
+                                <div className={"w-14 h-14 rounded-full flex items-center justify-center border border-border shadow-inner bg-card"}>
                                     <HelmetIcon 
                                         className={isRental ? "text-destructive" : "text-yellow-500"} 
                                         size={28} 

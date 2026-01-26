@@ -86,7 +86,7 @@ function PackageRequestCard({ request, currency }: { request: any; currency: str
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <HelmetIcon size={16} className="opacity-60" />
-                            <span className="text-xs font-semibold uppercase tracking-wider">{request.capacityStudents} {request.capacityStudents === 1 ? 'Student' : 'Students'}</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider">{request.capacityStudents} {request.capacityStudents === 1 ? "Student" : "Students"}</span>
                         </div>
                     </div>
 

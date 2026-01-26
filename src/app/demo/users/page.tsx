@@ -5,7 +5,7 @@ export default async function DemoUsersPage() {
     const client = await clerkClient();
     const { data: users } = await client.users.getUserList({
         limit: 20,
-        orderBy: '-created_at'
+        orderBy: "-created_at"
     });
 
     return (

@@ -121,7 +121,7 @@ export function useAdminReservationPackageListener({
                         }
                     } else {
                         // If we can't determine the school, refetch anyway (safer)
-                        console.log(`[RESERVATION-LISTENER] ⚠️ Could not determine school_package_id, refetching anyway`);
+                        console.log("[RESERVATION-LISTENER] ⚠️ Could not determine school_package_id, refetching anyway");
                         fetchAndNotify();
                     }
                 };

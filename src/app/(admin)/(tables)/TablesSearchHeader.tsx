@@ -11,6 +11,7 @@ import { ENTITY_SORT_OPTIONS } from "@/types/sort";
 import type { TableGroupByDate, TableActivityFilter } from "@/config/tables";
 import type { SortConfig } from "@/types/sort";
 import { Settings2 } from "lucide-react";
+import type { GroupingType } from "./MasterTable";
 
 const GROUP_OPTIONS: TableGroupByDate[] = ["All", "Weekly", "Monthly"];
 
@@ -39,9 +40,11 @@ const getStatusOptions = (entityId: string): string[] => {
 
 interface TablesSearchHeaderProps {
     entityId?: string;
+    groupBy?: GroupingType;
+    onGroupByChange?: (groupBy: GroupingType) => void;
 }
 
-export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
+export function TablesSearchHeader({ entityId, groupBy, onGroupByChange }: TablesSearchHeaderProps) {
     const pathname = usePathname();
     const controller = useTablesController();
 
@@ -52,8 +55,7 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
     const statusOptions = getStatusOptions(entity.id);
     const showSortDropdown = entity.id === "booking" || entity.id === "event"; // Show sort dropdown for bookings and events
 
-    // Render only the search input if entityId is "event", as per instruction.
-    // Otherwise, render all controls.
+    // Render search input and grouping for events
     if (entity.id === "event") {
         return (
             <div className="flex flex-wrap items-center gap-3 max-w-7xl mx-auto">
@@ -66,6 +68,35 @@ export function TablesSearchHeader({ entityId }: TablesSearchHeaderProps) {
                         placeholder="Search students or teachers..."
                     />
                 </div>
+                {/* Grouping Buttons for Events */}
+                {onGroupByChange && (
+                    <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit">
+                        <button
+                            onClick={() => onGroupByChange("all")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "all" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => onGroupByChange("date")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "date" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Date
+                        </button>
+                        <button
+                            onClick={() => onGroupByChange("week")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Week
+                        </button>
+                        <button
+                            onClick={() => onGroupByChange("month")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "month" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Month
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }

@@ -72,9 +72,9 @@ export function lessonsToTransactionEvents(
                 event: {
                     id: evt.id,
                     lessonId: lesson.id,
-                    date: typeof evt.date === 'string' 
+                    date: typeof evt.date === "string" 
                         ? evt.date 
-                        : new Date(evt.date).toLocaleString('sv-SE').replace(' ', 'T'),
+                        : new Date(evt.date).toLocaleString("sv-SE").replace(" ", "T"),
                     duration: evt.duration || 0,
                     location: evt.location,
                     status: evt.status,

@@ -26,7 +26,7 @@ export async function getSchool4Subdomain(username: string): Promise<SchoolWithP
         const { data, error } = await supabase.from("school").select("*, school_package(*)").eq("username", username).single();
 
         if (error) {
-            logger.error(`Error fetching school by username`, { username, error });
+            logger.error("Error fetching school by username", { username, error });
             return null;
         }
 

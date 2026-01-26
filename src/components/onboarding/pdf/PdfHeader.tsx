@@ -39,8 +39,8 @@ export function PdfHeader() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Adrenalink Onboarding',
-          text: 'Adrenalink: Administration Guide for Schools looking to get started',
+          title: "Adrenalink Onboarding",
+          text: "Adrenalink: Administration Guide for Schools looking to get started",
           url: window.location.href,
         });
       } catch (err) {

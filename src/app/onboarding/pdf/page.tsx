@@ -27,10 +27,10 @@ export default function PdfPage() {
             animation: none !important;
           }
         }
-      `}} />
+      ` }} />
       <div 
         className="w-[297mm] min-h-[420mm] bg-white shadow-2xl relative border border-gray-200 print:shadow-none print:border-none print:w-full print:h-auto"
-        style={{ contentVisibility: 'auto' }}
+        style={{ contentVisibility: "auto" }}
       >
         {/* <Link 
           href="https://adrenalink.tech" 

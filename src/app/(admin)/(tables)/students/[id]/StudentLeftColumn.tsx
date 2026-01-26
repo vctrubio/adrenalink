@@ -259,7 +259,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
                 accentColor={(formValues) => {
                     const isActive = formValues.active;
                     const hasRental = formValues.rental;
-                    let color = "#9ca3af"; // muted (inactive)
+                    const color = "#9ca3af"; // muted (inactive)
                     if (isActive && hasRental) {
                         return rentalEntity?.color || "#ef4444"; // red for rental
                     } else if (isActive) {

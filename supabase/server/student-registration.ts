@@ -151,7 +151,7 @@ export async function registerStudentForSchool(params: {
                 email: params.email,
                 active: true,
                 rental: false, // Default to false
-            }, { onConflict: 'school_id, student_id' });
+            }, { onConflict: "school_id, student_id" });
 
         if (relationError) {
             logger.error("Error creating school_student relation", relationError);

@@ -308,7 +308,7 @@ export default function StudentBookingCard({ bookingData }: StudentBookingCardPr
             return;
         }
         const target = e.target as HTMLElement;
-        if (target.closest("button") || target.closest('[role="button"]')) {
+        if (target.closest("button") || target.closest("[role=\"button\"]")) {
             e.preventDefault();
             return;
         }

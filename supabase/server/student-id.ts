@@ -106,7 +106,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                             date_end: b.date_end,
                             status: b.status,
                             school_package: b.school_package,
-                            booking_student: safeArray(b.booking_student).map((bs:any) => ({student: bs.student}))
+                            booking_student: safeArray(b.booking_student).map((bs:any) => ({ student: bs.student }))
                         }
                     })),
                     student_booking_payment: safeArray(b.student_booking_payment).map((p: any) => ({

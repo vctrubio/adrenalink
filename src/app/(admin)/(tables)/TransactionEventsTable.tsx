@@ -8,7 +8,7 @@ import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equ
 import { TeacherUsernameCommissionBadge } from "@/src/components/ui/badge/teacher-username-commission";
 import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import { TransactionEventData } from "@/types/transaction-event";
+import { TransactionEventData, TransactionEventEquipment } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber } from "@/getters/integer-getter";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
@@ -35,12 +35,12 @@ const HEADER_CLASSES = {
 
 export function TransactionEventsTable({
     events: initialEvents = [],
-    groupBy,
+    groupBy = "all",
     showYear = false,
     enableTableLogic = true, // New prop to control useTableLogic
 }: {
     events: TransactionEventData[];
-    groupBy?: GroupingType;
+    groupBy: GroupingType;
     showYear?: boolean;
     enableTableLogic?: boolean;
 }) {
@@ -52,7 +52,7 @@ export function TransactionEventsTable({
         setEvents(initialEvents);
     }, [initialEvents]);
 
-    const handleEquipmentUpdate = (eventId: string, equipment: any) => {
+    const handleEquipmentUpdate = (eventId: string, equipment: TransactionEventEquipment) => {
         setEvents((prev) =>
             prev.map((row) => {
                 if (row.event.id === eventId) {
@@ -69,28 +69,28 @@ export function TransactionEventsTable({
 
     let displayedEvents: TransactionEventData[] = events;
     let masterTableGroupBy: GroupingType | undefined = groupBy;
-    let getGroupKey: ((item: TransactionEventData) => string | undefined) | undefined = undefined;
-    let showGroupToggle = false;
+    let getGroupKey: ((item: TransactionEventData, groupBy: GroupingType) => string) | undefined = undefined;
+
+    // Always call useTableLogic to satisfy React hooks rules
+    const {
+        filteredRows,
+        masterTableGroupBy: hookGroupBy,
+        getGroupKey: hookGetGroupKey,
+    } = useTableLogic({
+        data: events,
+        filterSearch: filterTransactionEvents,
+        filterStatus: (item, status) => {
+            if (status === "All") return true;
+            return item.event.status.toLowerCase() === status.toLowerCase();
+        },
+        dateField: (row) => row.event.date,
+    });
 
     if (enableTableLogic) {
-        // Only use useTableLogic if enabled
-        const {
-            filteredRows,
-            masterTableGroupBy: hookGroupBy,
-            getGroupKey: hookGetGroupKey,
-        } = useTableLogic({
-            data: events,
-            filterSearch: filterTransactionEvents,
-            filterStatus: (item, status) => {
-                if (status === "All") return true;
-                return item.event.status.toLowerCase() === status.toLowerCase();
-            },
-            dateField: (row) => row.event.date,
-        });
         displayedEvents = filteredRows;
-        masterTableGroupBy = hookGroupBy;
+        // Use the groupBy prop instead of hookGroupBy for consistency
+        masterTableGroupBy = groupBy;
         getGroupKey = hookGetGroupKey;
-        showGroupToggle = true;
     } else {
         // If table logic is disabled, use initialEvents directly
         displayedEvents = initialEvents;
@@ -102,8 +102,8 @@ export function TransactionEventsTable({
 
         const sorted = [...displayedEvents].sort((a, b) => {
             // Sort displayedEvents
-            let aValue: any;
-            let bValue: any;
+            let aValue: unknown;
+            let bValue: unknown;
 
             if (sort.field === "date") {
                 aValue = new Date(a.event.date).getTime();
@@ -118,8 +118,8 @@ export function TransactionEventsTable({
                 return 0;
             }
 
-            if (aValue < bValue) return sort.direction === "asc" ? -1 : 1;
-            if (aValue > bValue) return sort.direction === "asc" ? 1 : -1;
+            if ((aValue as number) < (bValue as number)) return sort.direction === "asc" ? -1 : 1;
+            if ((aValue as number) > (bValue as number)) return sort.direction === "asc" ? 1 : -1;
             return 0;
         });
 
@@ -392,12 +392,13 @@ export function TransactionEventsTable({
     ); // Dependencies for useMemo
 
     const calculateStats = useCallback((groupRows: TransactionEventData[]) => {
-        return groupRows.reduce(
+        const stats = groupRows.reduce(
             (acc, curr) => ({
                 totalDuration: acc.totalDuration + curr.event.duration,
                 eventCount: acc.eventCount + 1,
                 completedCount: acc.completedCount + (curr.event.status === "completed" ? 1 : 0),
                 studentCount: acc.studentCount + (curr.booking?.students?.length || 0),
+                teacherCount: acc.teacherCount,
                 totalCommissions: acc.totalCommissions + curr.financials.teacherEarnings,
                 totalRevenue: acc.totalRevenue + curr.financials.studentRevenue,
                 totalProfit: acc.totalProfit + curr.financials.profit,
@@ -407,26 +408,30 @@ export function TransactionEventsTable({
                 eventCount: 0,
                 completedCount: 0,
                 studentCount: 0,
+                teacherCount: 0,
                 totalCommissions: 0,
                 totalRevenue: 0,
                 totalProfit: 0,
             },
         );
+        stats.teacherCount = new Set(groupRows.map(r => r.teacher.id)).size;
+        return stats;
     }, []);
 
     const GroupHeaderStats = useCallback(
         ({ stats, hideLabel = false }: { stats: GroupStats; hideLabel?: boolean }) => (
             <>
-                <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
                 <StatItemUI
                     type="events"
                     value={hideLabel ? stats.eventCount : `${stats.completedCount}/${stats.eventCount}`}
                     hideLabel={hideLabel}
                     iconColor={false}
                 />
+                <StatItemUI type="students" value={stats.studentCount} hideLabel={hideLabel} iconColor={false} />
+                <StatItemUI type="teachers" value={stats.teacherCount} hideLabel={hideLabel} iconColor={false} />
                 <StatItemUI type="duration" value={stats.totalDuration} hideLabel={hideLabel} iconColor={false} />
-                <StatItemUI type="commission" value={stats.totalCommissions} hideLabel={hideLabel} iconColor={false} />
                 <StatItemUI type="revenue" value={stats.totalRevenue} hideLabel={hideLabel} iconColor={false} />
+                <StatItemUI type="commission" value={stats.totalCommissions} hideLabel={hideLabel} iconColor={false} />
                 <StatItemUI
                     type={stats.totalProfit >= 0 ? "profit" : "loss"}
                     value={Math.abs(stats.totalProfit)}
@@ -457,7 +462,39 @@ export function TransactionEventsTable({
         [GroupHeaderStats],
     );
 
-    if (finalFilteredAndSortedEvents.length === 0) {
+    const groupedData = useMemo(() => {
+        if (!finalFilteredAndSortedEvents || finalFilteredAndSortedEvents.length === 0) return null;
+        if (!groupBy || groupBy === "all") return { All: finalFilteredAndSortedEvents };
+
+        const groups: Record<string, TransactionEventData[]> = {};
+        finalFilteredAndSortedEvents.forEach((event) => {
+            let key: string;
+            const date = new Date(event.event.date);
+
+            switch (groupBy) {
+                case "date":
+                    key = event.event.date.split("T")[0];
+                    break;
+                case "week":
+                    const weekStart = new Date(date);
+                    weekStart.setDate(date.getDate() - date.getDay());
+                    key = weekStart.toISOString().split("T")[0];
+                    break;
+                case "month":
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+                    break;
+                default:
+                    key = "All";
+            }
+
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(event);
+        });
+
+        return groups;
+    }, [finalFilteredAndSortedEvents, groupBy]);
+
+    if (!groupedData || finalFilteredAndSortedEvents.length === 0) {
         return (
             <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
                 No transactions match your criteria.
@@ -465,17 +502,79 @@ export function TransactionEventsTable({
         );
     }
 
+    const sortedGroupEntries = Object.entries(groupedData).sort((a, b) => b[0].localeCompare(a[0]));
+
     return (
-        <MasterTable
-            rows={finalFilteredAndSortedEvents}
-            columns={desktopColumns}
-            mobileColumns={mobileColumns}
-            getGroupKey={getGroupKey}
-            calculateStats={calculateStats}
-            renderGroupHeader={renderGroupHeader}
-            renderMobileGroupHeader={renderMobileGroupHeader}
-            groupBy={groupBy || masterTableGroupBy}
-            showGroupToggle={showGroupToggle} // Use the new showGroupToggle variable
-        />
+        <div className="w-full space-y-4">
+            <div className="w-full rounded-2xl border border-border shadow-md bg-card">
+                <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                        <thead className="text-[10px] uppercase bg-muted/50 text-muted-foreground border-b border-border">
+                            <tr>
+                                {desktopColumns.map((col, idx) => (
+                                    <th key={idx} className={`${col.headerClassName || "px-2 py-3 font-medium"} ${col.className || ""}`}>
+                                        {col.header}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        {sortedGroupEntries.map(([title, groupRows]) => {
+                            const stats = calculateStats(groupRows);
+                            return (
+                                <tbody key={title} className="divide-y divide-border">
+                                    {groupBy !== "all" && <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
+                                        <GroupHeaderStats stats={stats} />
+                                    </TableGroupHeader>}
+                                    {groupRows.map((row, idx) => (
+                                        <tr
+                                            key={idx}
+                                            className="hover:bg-muted/5 transition-colors border-b border-border/40 last:border-0 group/row"
+                                        >
+                                            {desktopColumns.map((col, colIdx) => (
+                                                <td key={colIdx} className={`px-2 py-3 whitespace-nowrap ${col.className || ""}`}>
+                                                    {col.render(row)}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            );
+                        })}
+                    </table>
+                </div>
+                <div className="sm:hidden">
+                    <table className="w-full text-sm text-left border-collapse">
+                        <thead className="text-[10px] uppercase bg-muted/50 text-muted-foreground border-b border-border">
+                            <tr>
+                                {mobileColumns.map((col, idx) => (
+                                    <th key={idx} className={col.headerClassName || "px-3 py-2 font-black"}>
+                                        {col.label}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        {sortedGroupEntries.map(([title, groupRows]) => {
+                            const stats = calculateStats(groupRows);
+                            return (
+                                <tbody key={title} className="divide-y divide-border">
+                                    {groupBy !== "all" && <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
+                                        <GroupHeaderStats stats={stats} hideLabel />
+                                    </TableMobileGroupHeader>}
+                                    {groupRows.map((row, idx) => (
+                                        <tr key={idx} className="hover:bg-muted/5 transition-colors cursor-pointer border-b border-border/40">
+                                            {mobileColumns.map((col, colIdx) => (
+                                                <td key={colIdx} className="px-3 py-3 align-middle">
+                                                    {col.render(row)}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            );
+                        })}
+                    </table>
+                </div>
+            </div>
+        </div>
     );
 }

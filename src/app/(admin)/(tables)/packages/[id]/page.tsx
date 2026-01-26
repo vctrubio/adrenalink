@@ -27,7 +27,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
     const packageRequests = allRequests.filter((req) => req.school_package?.id === id);
     
     // Update packageData relations with requests that include student_name
-    if (packageData && typeof packageData === 'object') {
+    if (packageData && typeof packageData === "object") {
         (packageData as any).relations = {
             ...(packageData as any).relations,
             requests: packageRequests,

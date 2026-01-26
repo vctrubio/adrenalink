@@ -22,7 +22,7 @@ export default function DemoPage() {
                             ← BACK
                         </Link>
                         <div className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-tighter">
-                            UID: {user?.id || 'ANONYMOUS'}
+                            UID: {user?.id || "ANONYMOUS"}
                         </div>
                     </div>
                 </div>

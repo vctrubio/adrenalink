@@ -108,7 +108,7 @@ const PillarsMinimal = () => {
                                     onClick={() => togglePillar(pillar.id)}
                                     className="py-12 flex items-center gap-8 hover:bg-muted/30 transition-colors px-4 -mx-4 cursor-pointer"
                                     onMouseEnter={(e) => {
-                                        const iconDiv = e.currentTarget.querySelector('[data-icon-container]') as HTMLElement;
+                                        const iconDiv = e.currentTarget.querySelector("[data-icon-container]") as HTMLElement;
                                         if (iconDiv) {
                                             if (!iconDiv.dataset.originalBorder) {
                                                 iconDiv.dataset.originalBorder = getComputedStyle(iconDiv).borderColor;
@@ -117,7 +117,7 @@ const PillarsMinimal = () => {
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        const iconDiv = e.currentTarget.querySelector('[data-icon-container]') as HTMLElement;
+                                        const iconDiv = e.currentTarget.querySelector("[data-icon-container]") as HTMLElement;
                                         if (iconDiv && iconDiv.dataset.originalBorder && !isExpanded) {
                                             iconDiv.style.borderColor = iconDiv.dataset.originalBorder;
                                         }

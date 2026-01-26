@@ -31,7 +31,7 @@ export function useTeacherEquipment(teacherId: string, categoryFilter?: string) 
         try {
             const supabase = getClientConnection();
 
-            let query = supabase
+            const query = supabase
                 .from("teacher_equipment")
                 .select(`
                     equipment_id,

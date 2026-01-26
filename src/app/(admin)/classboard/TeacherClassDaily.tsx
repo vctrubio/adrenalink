@@ -12,7 +12,7 @@ import { useClassboardContext } from "@/src/providers/classboard-provider";
 import type { TeacherQueue, ControllerSettings } from "@/backend/classboard/TeacherQueue";
 import { useClassboardShareExportData } from "@/src/hooks/useClassboardShareExportData";
 import { ShareContentBoard } from "./ShareContentBoard";
-import { StatItemUI } from "@/backend/data/StatsData";
+import { HomeDailyStatsDisplay } from "@/src/app/(admin)/home/HomeDailyStatsDisplay";
 
 // Muted green - softer than entity color
 const TEACHER_COLOR = "#16a34a";
@@ -77,7 +77,7 @@ export default function TeacherClassDaily() {
     const earliestTime = useMemo(() => {
         const earliestTimes = teacherQueues.map((queue) => queue.getEarliestTime()).filter((time) => time != null);
         return earliestTimes.length === 0 ? null : earliestTimes.sort()[0];
-    }, [teacherQueues.map((q) => q.getEarliestTime()).join(",")]);
+    }, [teacherQueues]);
 
     const isEarliestTimeSet = earliestTime && earliestTime === controller?.submitTime;
     const flagColor = isEarliestTimeSet ? ACTION_CYAN : STATUS_DARK;
@@ -93,6 +93,29 @@ export default function TeacherClassDaily() {
             counts: { active: onboardQueues.length, all: teacherQueues.length },
         };
     }, [teacherQueues, filter]);
+
+    const dailyStats = useMemo(() => {
+        if (!adminStats) return null;
+        return {
+            studentCount: adminStats.studentCount,
+            teacherCount: counts.all,
+            eventCount: adminStats.eventCount,
+            durationCount: adminStats.totalDuration,
+            revenue: {
+                revenue: adminStats.totalRevenue,
+                commission: adminStats.totalCommissions,
+                profit: adminStats.totalProfit,
+            },
+        };
+    }, [adminStats, counts.all]);
+
+    const allEvents = useMemo(() => {
+        return teacherQueues.flatMap((q) => q.getAllEvents());
+    }, [teacherQueues]);
+
+    const completedCount = useMemo(() => {
+        return allEvents.filter((e) => e.eventData.status === "completed" || e.eventData.status === "uncompleted").length;
+    }, [allEvents]);
 
     return (
         <div className="flex flex-col h-full">
@@ -112,24 +135,8 @@ export default function TeacherClassDaily() {
                                 })}
                             </span>
 
-                            {adminStats && (
-                                <div className="flex items-center gap-4 scale-90 origin-right">
-                                    <StatItemUI type="students" value={adminStats.studentCount} iconColor={false} />
-                                    <StatItemUI
-                                        type="events"
-                                        value={`${adminStats.completedCount}/${adminStats.eventCount}`}
-                                        iconColor={false}
-                                    />
-                                    <StatItemUI type="duration" value={adminStats.totalDuration} iconColor={false} />
-                                    <StatItemUI type="commission" value={adminStats.totalCommissions} iconColor={false} />
-                                    <StatItemUI type="revenue" value={adminStats.totalRevenue} iconColor={false} />
-                                    <StatItemUI
-                                        type={adminStats.totalProfit >= 0 ? "profit" : "loss"}
-                                        value={Math.abs(adminStats.totalProfit)}
-                                        variant="primary"
-                                        iconColor={false}
-                                    />
-                                </div>
+                            {dailyStats && (
+                                <HomeDailyStatsDisplay stats={dailyStats} completedCount={completedCount} />
                             )}
                         </div>
                     </>

@@ -43,7 +43,7 @@ const seedFiveSchools = async () => {
             const { data: existing } = await supabase.from("school").select("id").eq("username", loc.username);
             if (existing && existing.length > 0) {
                 const schoolId = existing[0].id;
-                console.log(`   🗑️  Cleaning up existing school...`);
+                console.log("   🗑️  Cleaning up existing school...");
                 // Cascade delete handles everything
                 await supabase.from("school").delete().eq("id", schoolId);
             }

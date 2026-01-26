@@ -73,7 +73,6 @@ interface MasterTableProps<T> {
     calculateStats?: (rows: T[]) => GroupStats;
     renderGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
     renderMobileGroupHeader?: (title: string, stats: GroupStats, groupBy: GroupingType) => ReactNode;
-    showGroupToggle?: boolean;
     populateType?: "student" | "teacher" | "package" | "equipment";
 }
 
@@ -180,28 +179,19 @@ export function MasterTable<T extends Record<string, any>>({
     rows = [],
     columns,
     mobileColumns,
-    groupBy: initialGroupBy = "all",
+    groupBy = "all",
     getGroupKey,
     calculateStats,
     renderGroupHeader,
     renderMobileGroupHeader,
-    showGroupToggle = true,
     populateType,
 }: MasterTableProps<T>) {
     const { search, onSearchChange } = useTablesController();
 
-    const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy || "all");
     const [isPopulating, setIsPopulating] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const credentials = useSchoolCredentials();
-
-    // Sync state with prop if controlled
-    useEffect(() => {
-        if (initialGroupBy) {
-            setGroupBy(initialGroupBy);
-        }
-    }, [initialGroupBy]);
 
     // Determine current entity for search hints
     const entity = ENTITY_DATA.find((e) => pathname.includes(e.link));
@@ -313,37 +303,6 @@ export function MasterTable<T extends Record<string, any>>({
 
     return (
         <div className="w-full space-y-4">
-            <div className="max-w-7xl mx-auto">
-                {showGroupToggle && (
-                    <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit ml-auto">
-                        <button
-                            onClick={() => setGroupBy("all")}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "all" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => setGroupBy("date")}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "date" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            Date
-                        </button>
-                        <button
-                            onClick={() => setGroupBy("week")}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            Week
-                        </button>
-                        <button
-                            onClick={() => setGroupBy("month")}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "month" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            Month
-                        </button>
-                    </div>
-                )}
-            </div>
-
             <div className="w-full rounded-2xl border border-border shadow-md bg-card">
                 <DesktopTable
                     columns={columns}

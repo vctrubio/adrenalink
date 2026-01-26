@@ -8,12 +8,14 @@ import type { TransactionEventData } from "@/types/transaction-event";
 
 interface HomeDailyStatsDisplayProps {
     stats: DailyLessonStats;
-    events: TransactionEventData[]; // For calculating completed/total events
+    events?: TransactionEventData[]; // For calculating completed/total events
+    completedCount?: number; // Optional override for completed events count
 }
 
-export function HomeDailyStatsDisplay({ stats, events }: HomeDailyStatsDisplayProps) {
-    const completedEvents = events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length;
-    const totalEvents = events.length;
+export function HomeDailyStatsDisplay({ stats, events, completedCount }: HomeDailyStatsDisplayProps) {
+    const calculatedCompleted = events ? events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length : 0;
+    const completedEvents = completedCount ?? calculatedCompleted;
+    const totalEvents = events ? events.length : stats.eventCount;
 
     return (
         <div className="flex items-center gap-4 sm:gap-6 text-sm">

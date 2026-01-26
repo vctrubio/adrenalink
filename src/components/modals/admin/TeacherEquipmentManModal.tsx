@@ -132,7 +132,7 @@ export function TeacherEquipmentManModal({ isOpen, onClose, teacher }: TeacherEq
 
     // Filter by assigned/all and sort
     const displayEquipment = useMemo(() => {
-        let filtered = filterMode === "all" ? categoryFilteredEquipment : categoryFilteredEquipment.filter((e) => linkedEquipmentIds.has(e.id));
+        const filtered = filterMode === "all" ? categoryFilteredEquipment : categoryFilteredEquipment.filter((e) => linkedEquipmentIds.has(e.id));
 
         // Sort
         return [...filtered].sort((a, b) => {
