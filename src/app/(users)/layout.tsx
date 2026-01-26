@@ -37,7 +37,7 @@ export default async function UsersLayout({ children }: UsersLayoutProps) {
                 }
                 rightSlot={
                     <Suspense fallback={<NavIconsRightSkeleton />}>
-                        <RightIconsServer />
+                        <RightIconsServer credentials={credentials} />
                     </Suspense>
                 }
             />

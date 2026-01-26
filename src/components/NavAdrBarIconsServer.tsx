@@ -1,12 +1,9 @@
-import { getSchoolHeader } from "@/types/headers";
 import { LeftIcons, RightIcons } from "./NavAdrBarIcons";
 
-export async function LeftIconsServer() {
-    const credentials = await getSchoolHeader();
+export async function LeftIconsServer({ credentials }: { credentials: any }) {
     return <LeftIcons credentials={credentials} />;
 }
 
-export async function RightIconsServer() {
-    const credentials = await getSchoolHeader();
+export async function RightIconsServer({ credentials }: { credentials: any }) {
     return <RightIcons credentials={credentials} />;
 }
