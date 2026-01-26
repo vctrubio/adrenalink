@@ -266,7 +266,7 @@ export function HomeActivity({ events }: HomeActivityProps) {
             stats[d].count += 1;
             stats[d].profit += e.financials.profit;
             stats[d].duration += e.event.duration;
-            stats[d].studentCount += e.studentCount;
+            stats[d].studentCount += (e.booking?.students?.length || 0);
         });
         return stats;
     }, [events]);

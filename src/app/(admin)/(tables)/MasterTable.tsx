@@ -189,7 +189,7 @@ export function MasterTable<T extends Record<string, any>>({
     populateType,
 }: MasterTableProps<T>) {
     const { search, onSearchChange } = useTablesController();
-    
+
     const [groupBy, setGroupBy] = useState<GroupingType>(initialGroupBy || "all");
     const [isPopulating, setIsPopulating] = useState(false);
     const pathname = usePathname();
@@ -298,7 +298,9 @@ export function MasterTable<T extends Record<string, any>>({
                                     }
                                 `}
                             >
-                                {isPopulating ? "Populating..." : `Populate ${populateType.charAt(0).toUpperCase() + populateType.slice(1)}s`}
+                                {isPopulating
+                                    ? "Populating..."
+                                    : `Populate ${populateType.charAt(0).toUpperCase() + populateType.slice(1)}s`}
                             </button>
                         )}
                     </div>
@@ -311,34 +313,36 @@ export function MasterTable<T extends Record<string, any>>({
 
     return (
         <div className="w-full space-y-4">
-            {showGroupToggle && (
-                <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit ml-auto">
-                    <button
-                        onClick={() => setGroupBy("all")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "all" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setGroupBy("date")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "date" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                        Date
-                    </button>
-                    <button
-                        onClick={() => setGroupBy("week")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                        Week
-                    </button>
-                    <button
-                        onClick={() => setGroupBy("month")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "month" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                        Month
-                    </button>
-                </div>
-            )}
+            <div className="max-w-7xl mx-auto">
+                {showGroupToggle && (
+                    <div className="flex items-center bg-muted/50 p-1 rounded-xl border border-border w-fit ml-auto">
+                        <button
+                            onClick={() => setGroupBy("all")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "all" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => setGroupBy("date")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "date" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Date
+                        </button>
+                        <button
+                            onClick={() => setGroupBy("week")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "week" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Week
+                        </button>
+                        <button
+                            onClick={() => setGroupBy("month")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${groupBy === "month" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            Month
+                        </button>
+                    </div>
+                )}
+            </div>
 
             <div className="w-full rounded-2xl border border-border shadow-md bg-card">
                 <DesktopTable

@@ -9,7 +9,6 @@ import { ClassboardStatistics } from "@/backend/classboard/ClassboardStatistics"
 import { ToggleAdranalinkIcon } from "@/src/components/ui/ToggleAdranalinkIcon";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
 import { BrandSizeCategoryList, BrandSizeCategoryListHorizontal } from "@/src/components/ui/badge/brand-size-category";
-import { StatItemUI } from "@/backend/data/StatsData";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import { EventHomeStatusLabel } from "@/src/components/labels/EventHomeStatusLabel";
 import { getHMDuration } from "@/getters/duration-getter";
@@ -18,6 +17,7 @@ import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import type { DateGroup } from "./HomePage";
 import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-value";
+import { HomeDailyStatsDisplay } from "./HomeDailyStatsDisplay";
 
 interface HomeGroupedProps {
     groupedEvents: DateGroup[];
@@ -87,118 +87,8 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-4 sm:gap-6 text-sm">
-                                {/* Completed - Always visible on sm+ */}
-                                <div className="flex items-center gap-4 border-r border-border/50 pr-4">
-                                    {/* Desktop version with labels */}
-                                    <div className="hidden xl:block">
-                                        <StatItemUI
-                                            type="completed"
-                                            value={`${group.events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length}/${group.events.length}`}
-                                            className="justify-center"
-                                            hideLabel={false}
-                                        />
-                                    </div>
-                                    {/* Mobile/tablet version without labels */}
-                                    <div className="xl:hidden">
-                                        <StatItemUI
-                                            type="completed"
-                                            value={`${group.events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length}/${group.events.length}`}
-                                            className="justify-center"
-                                            hideLabel={true}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Students - Hidden on sm, visible on md+ */}
-                                <div className="hidden md:block">
-                                    {/* Desktop with labels */}
-                                    <div className="hidden xl:block">
-                                        <StatItemUI type="students" value={stats.studentCount} className="justify-center" hideLabel={false} />
-                                    </div>
-                                    {/* md/lg without labels */}
-                                    <div className="xl:hidden">
-                                        <StatItemUI type="students" value={stats.studentCount} className="justify-center" hideLabel={true} />
-                                    </div>
-                                </div>
-
-                                {/* Teachers - Hidden on sm, visible on md+ */}
-                                <div className="hidden md:block">
-                                    {/* Desktop with labels */}
-                                    <div className="hidden xl:block">
-                                        <StatItemUI type="teachers" value={stats.teacherCount} className="justify-center" hideLabel={false} />
-                                    </div>
-                                    {/* md/lg without labels */}
-                                    <div className="xl:hidden">
-                                        <StatItemUI type="teachers" value={stats.teacherCount} className="justify-center" hideLabel={true} />
-                                    </div>
-                                </div>
-
-                                {/* Duration - Hidden on sm, visible on md+ */}
-                                <div className="hidden md:block">
-                                    {/* Desktop with labels */}
-                                    <div className="hidden xl:block">
-                                        <StatItemUI type="duration" value={stats.durationCount} className="justify-center" hideLabel={false} />
-                                    </div>
-                                    {/* md/lg without labels */}
-                                    <div className="xl:hidden">
-                                        <StatItemUI type="duration" value={stats.durationCount} className="justify-center" hideLabel={true} />
-                                    </div>
-                                </div>
-
-                                {/* Revenue & Commission - Hidden on sm and md, visible on lg+ */}
-                                <div className="hidden lg:flex items-center gap-4 border-l border-border/50 pl-4">
-                                    {/* Desktop version with labels */}
-                                    <div className="hidden xl:flex items-center gap-4">
-                                        <StatItemUI 
-                                            type="revenue" 
-                                            value={stats.revenue.revenue} 
-                                            className="justify-center" 
-                                            hideLabel={false}
-                                        />
-                                        <StatItemUI 
-                                            type="commission" 
-                                            value={stats.revenue.commission} 
-                                            className="justify-center" 
-                                            hideLabel={false}
-                                        />
-                                        <StatItemUI 
-                                            type="profit" 
-                                            value={stats.revenue.profit} 
-                                            variant="profit" 
-                                            className="justify-center" 
-                                            hideLabel={false}
-                                        />
-                                    </div>
-                                    {/* lg version without labels */}
-                                    <div className="xl:hidden flex items-center gap-4">
-                                        <StatItemUI 
-                                            type="revenue" 
-                                            value={stats.revenue.revenue} 
-                                            className="justify-center" 
-                                            hideLabel={true}
-                                        />
-                                        <StatItemUI 
-                                            type="commission" 
-                                            value={stats.revenue.commission} 
-                                            className="justify-center" 
-                                            hideLabel={true}
-                                        />
-                                        <StatItemUI 
-                                            type="profit" 
-                                            value={stats.revenue.profit} 
-                                            variant="profit" 
-                                            className="justify-center" 
-                                            hideLabel={true}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Profit - Visible on sm and md, hidden on lg+ (where it's in the revenue group) */}
-                                <div className="md:block lg:hidden">
-                                    <StatItemUI type="profit" value={stats.revenue.profit} variant="profit" className="justify-center" hideLabel={true} />
-                                </div>
-                            </div>
+                            {/* Use the new HomeDailyStatsDisplay component */}
+                            <HomeDailyStatsDisplay stats={stats} events={group.events} />
 
                             <div className="ml-4 shrink-0">
                                 <ToggleAdranalinkIcon isOpen={isExpanded} />
@@ -223,7 +113,13 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                                                     <div className="sm:hidden flex items-center justify-between w-full mb-2">
                                                         <div className="flex items-center gap-2">
-                                                            <div style={{ color: EVENT_STATUS_CONFIG[event.event.status]?.color || EVENT_STATUS_CONFIG.planned.color }}>
+                                                            <div
+                                                                style={{
+                                                                    color:
+                                                                        EVENT_STATUS_CONFIG[event.event.status]?.color ||
+                                                                        EVENT_STATUS_CONFIG.planned.color,
+                                                                }}
+                                                            >
                                                                 <FlagIcon size={16} className="opacity-80" />
                                                             </div>
                                                             <span className="text-sm font-mono text-muted-foreground tabular-nums">
@@ -235,7 +131,10 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             equipmentCapacity={event.packageData.capacityEquipment}
                                                             studentCapacity={event.packageData.capacityStudents}
                                                             packageDurationHours={event.packageData.durationMinutes / 60}
-                                                            pricePerHour={event.packageData.pricePerStudent / (event.packageData.durationMinutes / 60)}
+                                                            pricePerHour={
+                                                                event.packageData.pricePerStudent /
+                                                                (event.packageData.durationMinutes / 60)
+                                                            }
                                                         />
                                                     </div>
                                                     <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">
@@ -297,7 +196,10 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         equipmentCapacity={event.packageData.capacityEquipment}
                                                         studentCapacity={event.packageData.capacityStudents}
                                                         packageDurationHours={event.packageData.durationMinutes / 60}
-                                                        pricePerHour={event.packageData.pricePerStudent / (event.packageData.durationMinutes / 60)}
+                                                        pricePerHour={
+                                                            event.packageData.pricePerStudent /
+                                                            (event.packageData.durationMinutes / 60)
+                                                        }
                                                     />
 
                                                     <EventHomeStatusLabel eventId={event.event.id} status={event.event.status} />

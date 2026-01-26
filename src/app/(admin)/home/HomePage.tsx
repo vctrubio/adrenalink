@@ -105,12 +105,12 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "table" && (
                         <div className="space-y-4">
-                            <TablesSearchHeader entityId="event" />
+                            {/* <TablesSearchHeader entityId="event" /> */}
                             <TransactionEventsTable events={allTransactionEvents} enableTableLogic={true} />
                         </div>
                     )}
 
-                    {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} />}
+                    {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} classboardData={classboardData} />}
                 </div>
             </div>
         </TablesProvider>
