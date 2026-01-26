@@ -170,9 +170,10 @@ async function customProxy(authObject: any, request: NextRequest) {
             hostname,
             user_agent: request.headers.get("user-agent"),
             url: request.url,
-            ip: request.headers.get("x-forwarded-for"),
-            user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined,
-            user_header: request.headers.get("user1"),
+            ip_private: (request as any).ip || request.headers.get("x-forwarded-for"),
+            ip_public: request.headers.get("CF-Connecting-IP"), // Proxied from CloudFlare
+            school_id: request.headers.get("x-school-id"),
+            user_id: request.headers.get("x-user-id")
         });
     }
 }
