@@ -16,6 +16,7 @@ import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import type { SortConfig, SortOption } from "@/types/sort";
 import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
+import { LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
 import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
@@ -27,13 +28,21 @@ import { StatItemUI } from "@/backend/data/StatsData";
 import { CommissionsView } from "@/src/components/teacher/CommissionsView";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
+type StatusFilter = EventStatusFilter | LessonStatus | "fixed" | "percentage" | "all";
 
 const SORT_OPTIONS: SortOption[] = [
     { field: "date", direction: "desc", label: "Newest" },
     { field: "date", direction: "asc", label: "Oldest" },
 ];
 
-const FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted"] as const;
+// Event status filter options
+const EVENT_FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted"] as const;
+
+// Lesson status filter options
+const LESSON_FILTER_OPTIONS = ["All", ...Object.values(LESSON_STATUS_CONFIG).map((config) => config.status)] as const;
+
+// Commission type filter options
+const COMMISSION_FILTER_OPTIONS = ["All", "fixed", "percentage"] as const;
 
 const VIEW_MODE_OPTIONS = [
     { id: "timeline", label: "Timeline", icon: Calendar },
@@ -102,9 +111,43 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
-    const [filter, setFilter] = useState<EventStatusFilter>("all");
+    const [filter, setFilter] = useState<StatusFilter>("all");
     const credentials = useSchoolCredentials();
     const currency = credentials?.currency || "YEN";
+
+    // Reset filter when view mode changes
+    const handleViewModeChange = useCallback((mode: string) => {
+        setViewMode(mode as ViewMode);
+        setFilter("all");
+    }, []);
+
+    // Get filter options based on view mode
+    const filterOptions = useMemo(() => {
+        switch (viewMode) {
+            case "timeline":
+                return EVENT_FILTER_OPTIONS;
+            case "lessons":
+                return LESSON_FILTER_OPTIONS;
+            case "commissions":
+                return COMMISSION_FILTER_OPTIONS;
+            default:
+                return EVENT_FILTER_OPTIONS;
+        }
+    }, [viewMode]);
+
+    // Get filter label based on view mode
+    const filterLabel = useMemo(() => {
+        switch (viewMode) {
+            case "timeline":
+                return "Event Status";
+            case "lessons":
+                return "Lesson Status";
+            case "commissions":
+                return "Commission Type";
+            default:
+                return "Status";
+        }
+    }, [viewMode]);
 
     const formatCurrency = (num: number) => `${num.toFixed(2)} ${currency}`;
 
@@ -126,10 +169,10 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         [router],
     );
 
-    // Filter events by search and status
+    // Filter events by search and status (for timeline view)
     const filteredEvents = useMemo(() => {
         let filtered = transactionEvents;
-        if (filter !== "all") {
+        if (viewMode === "timeline" && filter !== "all") {
             filtered = filtered.filter((event) => event.event.status === filter);
         }
         if (searchQuery.trim()) {
@@ -142,7 +185,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
             );
         }
         return filtered;
-    }, [transactionEvents, searchQuery, filter]);
+    }, [transactionEvents, searchQuery, filter, viewMode]);
 
     // Sort events
     const sortedEvents = useMemo(() => {
@@ -174,7 +217,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     // Build lesson rows from lessons + filtered events
     const lessonRows: LessonRow[] = useMemo(() => {
-        return lessons
+        let rows = lessons
             .map((lesson: any) => {
                 const lessonEvents = sortedEvents.filter((event) => event.event.lessonId === lesson.id);
 
@@ -215,20 +258,24 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 };
             })
             .filter((row): row is LessonRow => row !== null);
-    }, [lessons, sortedEvents]);
+
+        // Apply view-specific filters
+        if (viewMode === "lessons" && filter !== "all") {
+            rows = rows.filter((row) => row.lessonStatus === filter);
+        } else if (viewMode === "commissions" && filter !== "all") {
+            rows = rows.filter((row) => row.commissionType === filter);
+        }
+
+        return rows;
+    }, [lessons, sortedEvents, viewMode, filter]);
 
     // Adapt TransactionEventData to TimelineEvent for timeline view
     const timelineEvents = useMemo(() => {
         return sortedEvents.map(transactionEventToTimelineEvent);
     }, [sortedEvents]);
 
-    if (lessonRows.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
-                No lessons found for this teacher
-            </div>
-        );
-    }
+    // Check if there are no lessons at all (before filtering)
+    const hasNoLessons = lessons.length === 0;
 
     return (
         <div className="space-y-4">
@@ -249,52 +296,62 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                     toggleMode={true}
                 />
                 <FilterDropdown
-                    label="Status"
+                    label={filterLabel}
                     value={filter === "all" ? "All" : filter}
-                    options={[...FILTER_OPTIONS]}
-                    onChange={(value) => setFilter(value === "All" ? "all" : (value as EventStatusFilter))}
+                    options={[...filterOptions]}
+                    onChange={(value) => setFilter(value === "All" ? "all" : (value as StatusFilter))}
                     entityColor={teacherEntity.color}
                 />
             </div>
 
-            <ToggleBar value={viewMode} onChange={(v) => setViewMode(v as ViewMode)} options={VIEW_MODE_OPTIONS} />
+            <ToggleBar value={viewMode} onChange={handleViewModeChange} options={VIEW_MODE_OPTIONS} />
 
-            <AnimatePresence mode="wait">
-                {viewMode === "lessons" && (
-                    <LessonsView
-                        lessonRows={lessonRows}
-                        expandedLesson={expandedLesson}
-                        setExpandedLesson={setExpandedLesson}
-                        currency={currency}
-                        teacherId={teacher.schema.id}
-                        teacherUsername={teacher.schema.username}
-                        onEquipmentUpdate={handleEquipmentUpdate}
-                    />
-                )}
-                {viewMode === "commissions" && (
-                    <CommissionsView
-                        lessonRows={lessonRows}
-                        expandedLesson={expandedLesson}
-                        setExpandedLesson={setExpandedLesson}
-                        currency={currency}
-                        teacherId={teacher.schema.id}
-                        teacherUsername={teacher.schema.username}
-                        onEquipmentUpdate={handleEquipmentUpdate}
-                    />
-                )}
-                {viewMode === "timeline" && (
-                    <Timeline
-                        events={timelineEvents}
-                        currency={currency}
-                        formatCurrency={formatCurrency}
-                        showTeacher={false}
-                        showFinancials={true}
-                        teacherId={teacher.schema.id}
-                        teacherUsername={teacher.schema.username}
-                        onEquipmentUpdate={handleEquipmentUpdate}
-                    />
-                )}
-            </AnimatePresence>
+            {hasNoLessons ? (
+                <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
+                    No lessons found for this teacher
+                </div>
+            ) : lessonRows.length === 0 ? (
+                <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
+                    No lessons match your search or filter criteria
+                </div>
+            ) : (
+                <AnimatePresence mode="wait">
+                    {viewMode === "lessons" && (
+                        <LessonsView
+                            lessonRows={lessonRows}
+                            expandedLesson={expandedLesson}
+                            setExpandedLesson={setExpandedLesson}
+                            currency={currency}
+                            teacherId={teacher.schema.id}
+                            teacherUsername={teacher.schema.username}
+                            onEquipmentUpdate={handleEquipmentUpdate}
+                        />
+                    )}
+                    {viewMode === "commissions" && (
+                        <CommissionsView
+                            lessonRows={lessonRows}
+                            expandedLesson={expandedLesson}
+                            setExpandedLesson={setExpandedLesson}
+                            currency={currency}
+                            teacherId={teacher.schema.id}
+                            teacherUsername={teacher.schema.username}
+                            onEquipmentUpdate={handleEquipmentUpdate}
+                        />
+                    )}
+                    {viewMode === "timeline" && (
+                        <Timeline
+                            events={timelineEvents}
+                            currency={currency}
+                            formatCurrency={formatCurrency}
+                            showTeacher={false}
+                            showFinancials={true}
+                            teacherId={teacher.schema.id}
+                            teacherUsername={teacher.schema.username}
+                            onEquipmentUpdate={handleEquipmentUpdate}
+                        />
+                    )}
+                </AnimatePresence>
+            )}
         </div>
     );
 }
