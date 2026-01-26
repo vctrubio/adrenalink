@@ -41,8 +41,8 @@ const EVENT_FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted
 // Lesson status filter options
 const LESSON_FILTER_OPTIONS = ["All", ...Object.values(LESSON_STATUS_CONFIG).map((config) => config.status)] as const;
 
-// Commission type filter options
-const COMMISSION_FILTER_OPTIONS = ["All", "fixed", "percentage"] as const;
+// Commission type filter options (with proper capitalization for display)
+const COMMISSION_FILTER_OPTIONS = ["All", "Fixed", "Percentage"] as const;
 
 const VIEW_MODE_OPTIONS = [
     { id: "timeline", label: "Timeline", icon: Calendar },
@@ -263,7 +263,9 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         if (viewMode === "lessons" && filter !== "all") {
             rows = rows.filter((row) => row.lessonStatus === filter);
         } else if (viewMode === "commissions" && filter !== "all") {
-            rows = rows.filter((row) => row.commissionType === filter);
+            // Convert display label back to lowercase for filtering
+            const commissionType = filter === "Fixed" ? "fixed" : filter === "Percentage" ? "percentage" : filter;
+            rows = rows.filter((row) => row.commissionType === commissionType);
         }
 
         return rows;
@@ -297,9 +299,24 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 />
                 <FilterDropdown
                     label={filterLabel}
-                    value={filter === "all" ? "All" : filter}
+                    value={
+                        filter === "all"
+                            ? "All"
+                            : viewMode === "commissions" && (filter === "fixed" || filter === "percentage")
+                              ? filter.charAt(0).toUpperCase() + filter.slice(1)
+                              : filter
+                    }
                     options={[...filterOptions]}
-                    onChange={(value) => setFilter(value === "All" ? "all" : (value as StatusFilter))}
+                    onChange={(value) => {
+                        if (value === "All") {
+                            setFilter("all");
+                        } else if (viewMode === "commissions") {
+                            // Convert display label to lowercase for state
+                            setFilter(value.toLowerCase() as StatusFilter);
+                        } else {
+                            setFilter(value as StatusFilter);
+                        }
+                    }}
                     entityColor={teacherEntity.color}
                 />
             </div>

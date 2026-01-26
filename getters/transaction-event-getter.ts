@@ -1,6 +1,8 @@
 import type { TransactionEventData } from "@/types/transaction-event";
 import type { TimelineEvent } from "@/src/components/timeline/types";
 import { getTimeFromISO } from "@/getters/queue-getter";
+import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Transform lessons to TransactionEventData
@@ -13,49 +15,80 @@ export function lessonsToTransactionEvents(
 ): TransactionEventData[] {
     const events: TransactionEventData[] = [];
 
-    for (const lesson of lessons) {
+    for (const lesson of safeArray(lessons)) {
         const teacher = lesson.teacher;
         const commission = lesson.teacher_commission;
         const booking = lesson.booking;
         const schoolPackage = booking?.school_package;
-        const students = booking?.students || [];
-        const lessonEvents = lesson.event || lesson.events || [];
+        
+        // Handle both student relation names (students or booking_student)
+        const rawStudents = safeArray(booking?.booking_student || booking?.students);
+        const students = rawStudents.map((s: any) => s.student || s);
+        
+        const lessonEvents = safeArray(lesson.event || lesson.events);
 
         if (!schoolPackage || !commission) continue;
 
         const leaderName = booking?.leader_student_name || "";
 
         for (const evt of lessonEvents) {
-            const duration = evt.duration || 0;
-            const hours = duration / 60;
-            const pricePerStudent = schoolPackage.price_per_student || 0;
-            const studentRevenue = pricePerStudent * students.length * hours;
+            const studentRevenue = calculateLessonRevenue(
+                schoolPackage.price_per_student,
+                students.length,
+                evt.duration,
+                schoolPackage.duration_minutes
+            );
 
-            let teacherEarnings = 0;
-            if (commission.commission_type === "fixed") {
-                teacherEarnings = parseFloat(commission.cph) * hours;
-            } else if (commission.commission_type === "percentage") {
-                teacherEarnings = studentRevenue * (parseFloat(commission.cph) / 100);
-            }
+            const commCalc = calculateCommission(
+                evt.duration,
+                { 
+                    type: commission.commission_type as "fixed" | "percentage", 
+                    cph: parseFloat(commission.cph) 
+                },
+                studentRevenue,
+                schoolPackage.duration_minutes
+            );
+
+            const teacherEarnings = commCalc.earned;
+
+            // Map equipments from equipment_event if present
+            const equipments = safeArray(evt.equipment_event).map((ee: any) => ({
+                id: ee.equipment?.id || "",
+                brand: ee.equipment?.brand || "",
+                model: ee.equipment?.model || "",
+                size: ee.equipment?.size || null,
+                sku: ee.equipment?.sku,
+                color: ee.equipment?.color,
+            }));
 
             events.push({
                 event: {
                     id: evt.id,
                     lessonId: lesson.id,
+                    bookingId: booking?.id,
                     // Force string format to preserve Wall Clock Time across the network
                     date: typeof evt.date === 'string' 
                         ? evt.date 
                         : new Date(evt.date).toLocaleString('sv-SE').replace(' ', 'T'),
-                    duration,
+                    duration: evt.duration || 0,
                     location: evt.location,
                     status: evt.status,
                 },
                 teacher: {
+                    id: teacher?.id,
                     username: teacher?.username || "",
                 },
                 leaderStudentName: leaderName,
                 studentCount: students.length,
                 studentNames: students.map((s: any) => `${s.first_name} ${s.last_name}`),
+                bookingStudents: students.map((s: any) => ({
+                    id: s.id,
+                    firstName: s.first_name,
+                    lastName: s.last_name,
+                    passport: s.passport,
+                    country: s.country,
+                    phone: s.phone,
+                })),
                 packageData: {
                     description: schoolPackage.description || "",
                     pricePerStudent: schoolPackage.price_per_student || 0,
@@ -67,7 +100,8 @@ export function lessonsToTransactionEvents(
                 commission: {
                     id: commission.id || "",
                     type: (commission.commission_type as "fixed" | "percentage") || "fixed",
-                    cph: commission ? parseFloat(commission.cph) : 0,
+                    cph: parseFloat(commission.cph || "0"),
+                    description: commission.description || null,
                 },
                 financials: {
                     teacherEarnings,
@@ -75,9 +109,11 @@ export function lessonsToTransactionEvents(
                     profit: studentRevenue - teacherEarnings,
                     currency,
                     commissionType: (commission.commission_type as "fixed" | "percentage") || "fixed",
-                    commissionValue: commission ? parseFloat(commission.cph) : 0,
+                    commissionValue: parseFloat(commission.cph || "0"),
                 },
-                equipments: evt.equipments,
+                equipments: equipments.length > 0 ? equipments : (evt.equipments || []),
+                lessonStatus: lesson.status,
+                bookingStatus: booking?.status,
             });
         }
     }
@@ -107,17 +143,21 @@ export function transactionEventToTimelineEvent(event: TransactionEventData): Ti
         duration,
         durationLabel,
         location: event.event.location || "",
-        teacherId: "",
+        teacherId: event.teacher.id || "",
         teacherName: "",
         teacherUsername: event.teacher.username,
         eventStatus: event.event.status,
-        lessonStatus: "active",
+        lessonStatus: event.lessonStatus || "active",
         teacherEarning: event.financials.teacherEarnings,
         schoolRevenue: event.financials.studentRevenue,
         totalRevenue: event.financials.studentRevenue,
         commissionType: event.financials.commissionType,
         commissionCph: event.financials.commissionValue,
-        bookingStudents: event.studentNames.map((name, idx) => ({
+        bookingStudents: event.bookingStudents?.map((s: any) => ({
+            id: s.id,
+            firstName: s.firstName || s.first_name,
+            lastName: s.lastName || s.last_name,
+        })) || event.studentNames.map((name, idx) => ({
             id: `student-${idx}`,
             firstName: name.split(" ")[0] || "",
             lastName: name.split(" ")[1] || "",
