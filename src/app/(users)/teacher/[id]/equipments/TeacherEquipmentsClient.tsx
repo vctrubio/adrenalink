@@ -1,21 +1,37 @@
 "use client";
 
-import { EQUIPMENT_STATUS_CONFIG, type EquipmentStatus } from "@/types/status";
-import { BrandSizeCategoryBadge } from "@/src/components/ui/badge/brand-size-category";
-import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import Link from "next/link";
+import { useMemo } from "react";
 import { useTeacherUser } from "@/src/providers/teacher-user-provider";
-
-const TEACHER_STATUS_CONFIG = {
-    active: { label: "Active", color: "#22c55e" },
-    inactive: { label: "Inactive", color: "#6b7280" },
-};
+import { EquipmentDisplay } from "@/src/app/(admin)/(tables)/equipments/EquipmentsTable";
+import { StatItemUI } from "@/backend/data/StatsData";
 
 export function TeacherEquipmentsClient() {
     const { data: teacherUser } = useTeacherUser();
 
     const equipmentRelations = teacherUser.equipment || [];
     const activeCount = equipmentRelations.filter((item) => item.active).length;
+
+    // Calculate event count and duration for each equipment
+    const equipmentStats = useMemo(() => {
+        const statsMap = new Map<string, { eventCount: number; totalDurationMinutes: number }>();
+
+        // Iterate through all lesson rows and their events
+        for (const lessonRow of teacherUser.lessonRows) {
+            for (const event of lessonRow.events) {
+                if (event.equipments) {
+                    for (const equipment of event.equipments) {
+                        const current = statsMap.get(equipment.id) || { eventCount: 0, totalDurationMinutes: 0 };
+                        statsMap.set(equipment.id, {
+                            eventCount: current.eventCount + 1,
+                            totalDurationMinutes: current.totalDurationMinutes + event.duration,
+                        });
+                    }
+                }
+            }
+        }
+
+        return statsMap;
+    }, [teacherUser.lessonRows]);
 
     return (
         <div className="space-y-6">
@@ -42,73 +58,51 @@ export function TeacherEquipmentsClient() {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {equipmentRelations.map((item, index) => {
+                    {equipmentRelations.map((item) => {
                         const equip = item.equipment;
-                        const teacherStatus = item.active ? "active" : "inactive";
-                        const teacherStatusConfig = TEACHER_STATUS_CONFIG[teacherStatus];
-                        const equipStatus = (equip.status || "rental") as EquipmentStatus;
-                        const equipStatusConfig = EQUIPMENT_STATUS_CONFIG[equipStatus];
-
-                        const categoryConfig = EQUIPMENT_CATEGORIES.find((c) => c.id === equip.category);
+                        const stats = equipmentStats.get(equip.id) || { eventCount: 0, totalDurationMinutes: 0 };
 
                         return (
-                            <Link key={item.id || `equipment-${index}`} href={`/equipments/${equip.id}`} className="group block">
-                                <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200">
-                                    <div className="flex items-start justify-between gap-4">
-                                        {/* Left Section - Main Info */}
-                                        <div className="flex-1 min-w-0 space-y-3">
-                                            {/* Top Row - Badge and Status */}
-                                            <div className="flex items-center gap-3 flex-wrap">
-                                                <BrandSizeCategoryBadge
-                                                    id={equip.id}
-                                                    model={equip.model}
-                                                    size={equip.size}
-                                                    categoryId={equip.category}
-                                                />
-                                                <span
-                                                    className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
-                                                    style={{
-                                                        backgroundColor: `${teacherStatusConfig.color}15`,
-                                                        color: teacherStatusConfig.color,
-                                                    }}
-                                                >
-                                                    {teacherStatusConfig.label}
-                                                </span>
-                                                {categoryConfig && (
-                                                    <span className="text-xs text-muted-foreground font-medium">{categoryConfig.name}</span>
-                                                )}
-                                            </div>
+                            <div
+                                key={equip.id}
+                                className="p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    {/* Left Section - Equipment Display */}
+                                    <div className="flex-1 min-w-0">
+                                        <EquipmentDisplay
+                                            equipment={{
+                                                id: equip.id,
+                                                brand: equip.brand,
+                                                model: equip.model,
+                                                size: equip.size,
+                                                sku: equip.sku,
+                                                color: equip.color,
+                                                category: equip.category,
+                                            }}
+                                            variant="full"
+                                            iconSize={16}
+                                            showSku={true}
+                                        />
+                                    </div>
 
-                                            {/* Details Row */}
-                                            <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
-                                                <span className="font-semibold text-foreground">{equip.brand}</span>
-                                                <span className="w-1 h-1 rounded-full bg-border" />
-                                                <span className="font-mono text-xs">{equip.sku}</span>
-                                                {equip.color && (
-                                                    <>
-                                                        <span className="w-1 h-1 rounded-full bg-border" />
-                                                        <span className="capitalize">{equip.color}</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Right Section - Status and ID */}
-                                        <div className="flex flex-col items-end gap-2 shrink-0">
-                                            <span
-                                                className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest"
-                                                style={{
-                                                    backgroundColor: `${equipStatusConfig.color}15`,
-                                                    color: equipStatusConfig.color,
-                                                }}
-                                            >
-                                                {equipStatusConfig.label}
-                                            </span>
-                                            <span className="text-[10px] font-mono text-muted-foreground">{equip.id.slice(0, 8)}</span>
-                                        </div>
+                                    {/* Right Section - Stats */}
+                                    <div className="flex items-center gap-3 text-xs font-medium shrink-0">
+                                        <StatItemUI
+                                            type="events"
+                                            value={stats.eventCount}
+                                            iconColor={true}
+                                            hideLabel={true}
+                                        />
+                                        <StatItemUI
+                                            type="duration"
+                                            value={stats.totalDurationMinutes}
+                                            iconColor={true}
+                                            hideLabel={true}
+                                        />
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         );
                     })}
                 </div>

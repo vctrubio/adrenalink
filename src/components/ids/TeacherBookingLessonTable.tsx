@@ -1,55 +1,66 @@
 "use client";
 
-import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 import { LessonEventRow } from "@/src/components/ids/LessonEventRow";
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import { type LessonRow } from "@/backend/data/TeacherLessonData";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
+import { getPPP } from "@/getters/integer-getter";
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { LessonHeaderStats, type LessonHeaderStats as LessonHeaderStatsType } from "./LessonHeaderStats";
 
 interface TeacherBookingLessonTableProps {
     lesson: LessonRow;
     isExpanded: boolean;
     onToggle: () => void;
-    bookingEntity: any;
-    studentEntity: any;
+    currency: string;
     teacherId?: string;
     teacherUsername?: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
+    clickable?: boolean; // Default true for admin view, false for teacher user view
+    headerStats?: LessonHeaderStatsType | null; // If null, don't show header. If provided, show header with stats.
 }
 
 export function TeacherBookingLessonTable({
     lesson,
     isExpanded,
     onToggle,
-    bookingEntity,
-    studentEntity,
+    currency,
     teacherId,
     teacherUsername,
     onEquipmentUpdate,
+    clickable = true,
+    headerStats,
 }: TeacherBookingLessonTableProps) {
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === lesson.equipmentCategory);
     const EquipmentIcon = equipmentConfig?.icon;
-    const credentials = useSchoolCredentials();
-    const currency = credentials?.currency || "YEN";
 
-    return (
-        <div className="rounded-lg border border-border overflow-hidden bg-card hover:border-primary/30 transition-colors">
+    const borderClass = headerStats ? "border-t border-border" : "rounded-lg border border-border";
+    const tableContent = (
+        <div className={`${borderClass} bg-card hover:border-primary/30 transition-colors`}>
             <div
                 onClick={onToggle}
                 className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
             >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     {EquipmentIcon && (
-                        <HoverToEntity entity={bookingEntity} id={lesson.bookingId}>
+                        clickable ? (
+                            <Link 
+                                href={`/bookings/${lesson.bookingId}`}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0 hover:bg-muted/40 transition-colors">
+                                    <EquipmentIcon size={16} className="text-foreground/60" />
+                                </div>
+                            </Link>
+                        ) : (
                             <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0">
                                 <EquipmentIcon size={16} className="text-foreground/60" />
                             </div>
-                        </HoverToEntity>
+                        )
                     )}
                     
                     <div className="flex-1 min-w-0 space-y-1">
@@ -59,7 +70,7 @@ export function TeacherBookingLessonTable({
                         <div className="flex items-center gap-2">
                             <BookingStatusLabel
                                 status={lesson.bookingStatus}
-                                bookingId={lesson.bookingId}
+                                bookingId={clickable ? lesson.bookingId : undefined}
                                 size={12}
                                 startDate={lesson.dateStart}
                                 endDate={lesson.dateEnd}
@@ -75,7 +86,7 @@ export function TeacherBookingLessonTable({
                         <LessonEventDurationBadge status={lesson.lessonStatus} events={lesson.eventCount} hours={lesson.totalHours} />
                         <span className="text-muted-foreground/60">=</span>
                         <span className="text-green-600 dark:text-green-400 font-bold">
-                            {(Math.round(lesson.totalEarning * 100) / 100).toFixed(2)} {currency}
+                            {getPPP(lesson.totalEarning)} {currency}
                         </span>
                     </div>
                     <ChevronDown 
@@ -99,4 +110,19 @@ export function TeacherBookingLessonTable({
             )}
         </div>
     );
+
+    // If headerStats is provided, wrap in container with header
+    if (headerStats) {
+        return (
+            <div className="rounded-lg border border-border overflow-hidden">
+                <LessonHeaderStats stats={headerStats} />
+                <div className="bg-card">
+                    {tableContent}
+                </div>
+            </div>
+        );
+    }
+
+    // Otherwise, return table without header
+    return tableContent;
 }

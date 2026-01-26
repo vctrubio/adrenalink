@@ -24,6 +24,7 @@ import { TeacherLessonCard, TeacherBookingLessonTable } from "@/src/components/i
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import { getHMDuration } from "@/getters/duration-getter";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { CommissionsView } from "@/src/components/teacher/CommissionsView";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
 
@@ -40,124 +41,13 @@ const VIEW_MODE_OPTIONS = [
     { id: "commissions", label: "By Commission", icon: HandshakeIcon },
 ] as const;
 
-// Sub-component: Commission Header
-function CommissionHeader({ commission, formatCurrency }: { commission: CommissionGroup; formatCurrency: (num: number) => string }) {
-    const credentials = useSchoolCredentials();
-    const currency = credentials?.currency || "YEN";
-
-    return (
-        <div className="flex items-center justify-between py-3 border-b border-border/40">
-            <div className="flex items-center gap-3">
-                <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={currency} />
-            </div>
-            <div className="flex items-center gap-x-6 gap-y-2 opacity-80">
-                <StatItemUI type="lessons" value={commission.lessonCount} hideLabel={false} iconColor={false} />
-                <StatItemUI type="duration" value={commission.hours * 60} hideLabel={false} iconColor={false} />
-                <StatItemUI type="commission" value={commission.earning} hideLabel={false} variant="primary" iconColor={false} />
-            </div>
-        </div>
-    );
-}
-
-// Sub-component: Commissions View
-function CommissionsView({
-    lessonRows,
-    expandedLesson,
-    setExpandedLesson,
-    formatCurrency,
-    bookingEntity,
-    studentEntity,
-    teacherId,
-    teacherUsername,
-    onEquipmentUpdate,
-    credentials,
-}: {
-    lessonRows: LessonRow[];
-    expandedLesson: string | null;
-    setExpandedLesson: (id: string | null) => void;
-    formatCurrency: (num: number) => string;
-    bookingEntity: any;
-    studentEntity: any;
-    teacherId?: string;
-    teacherUsername?: string;
-    onEquipmentUpdate?: (eventId: string, equipment: any) => void;
-    credentials?: any;
-}) {
-    // Group lessons by commission
-    const commissionGroups = useMemo(() => {
-        const map = new Map<string, LessonRow[]>();
-        for (const lesson of lessonRows) {
-            const key = `${lesson.commissionType}-${lesson.cph}`;
-            if (!map.has(key)) {
-                map.set(key, []);
-            }
-            map.get(key)!.push(lesson);
-        }
-
-        return Array.from(map.entries()).map(([key, lessons]) => {
-            const firstLesson = lessons[0];
-            const totalHours = lessons.reduce((sum, l) => sum + l.totalHours, 0);
-            const totalEarning = lessons.reduce((sum, l) => sum + l.totalEarning, 0);
-
-            return {
-                type: firstLesson.commissionType as "fixed" | "percentage",
-                cph: firstLesson.cph,
-                lessonCount: lessons.length,
-                hours: totalHours,
-                earning: totalEarning,
-                lessons,
-            };
-        });
-    }, [lessonRows]);
-
-    return (
-        <motion.div
-            key="commissions"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
-        >
-            {commissionGroups.map((commission, idx) => (
-                <div key={idx} className="space-y-2">
-                    <div className="flex items-center justify-between py-3 border-b border-border/40">
-                        <div className="flex items-center gap-3">
-                            <TeacherLessonComissionValue commissionType={commission.type} cph={commission.cph} currency={credentials?.currency || "YEN"} />
-                        </div>
-                        <div className="flex items-center gap-x-6 gap-y-2 opacity-80">
-                            <StatItemUI type="lessons" value={commission.lessonCount} hideLabel={false} iconColor={false} />
-                            <StatItemUI type="duration" value={commission.hours * 60} hideLabel={false} iconColor={false} />
-                            <StatItemUI type="commission" value={commission.earning} hideLabel={false} variant="primary" iconColor={false} />
-                        </div>
-                    </div>
-                    <div className="space-y-3">
-                        {commission.lessons.map((lesson) => (
-                            <TeacherBookingLessonTable
-                                key={lesson.lessonId}
-                                lesson={lesson}
-                                isExpanded={expandedLesson === lesson.lessonId}
-                                onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                                bookingEntity={bookingEntity}
-                                studentEntity={studentEntity}
-                                teacherId={teacherId}
-                                teacherUsername={teacherUsername}
-                                onEquipmentUpdate={onEquipmentUpdate}
-                            />
-                        ))}
-                    </div>
-                </div>
-            ))}
-        </motion.div>
-    );
-}
 
 // Sub-component: Lessons View
 export function LessonsView({
     lessonRows,
     expandedLesson,
     setExpandedLesson,
-    bookingEntity,
-    studentEntity,
+    currency,
     teacherId,
     teacherUsername,
     onEquipmentUpdate,
@@ -165,8 +55,7 @@ export function LessonsView({
     lessonRows: LessonRow[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
-    bookingEntity: any;
-    studentEntity: any;
+    currency: string;
     teacherId?: string;
     teacherUsername?: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
@@ -185,11 +74,17 @@ export function LessonsView({
                     lesson={lesson}
                     isExpanded={expandedLesson === lesson.lessonId}
                     onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
-                    bookingEntity={bookingEntity}
-                    studentEntity={studentEntity}
+                    currency={currency}
                     teacherId={teacherId}
                     teacherUsername={teacherUsername}
                     onEquipmentUpdate={onEquipmentUpdate}
+                    headerStats={{
+                        bookingStatus: lesson.bookingStatus,
+                        lessonStatus: lesson.lessonStatus,
+                        totalRevenue: lesson.totalRevenue || 0,
+                        totalPayments: lesson.totalPayments || 0,
+                        currency,
+                    }}
                 />
             ))}
         </motion.div>
@@ -213,8 +108,6 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     const formatCurrency = (num: number) => `${num.toFixed(2)} ${currency}`;
 
-    const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
-    const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
     // Use standardized snake_case relation
@@ -226,9 +119,12 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     }, [lessons, currency]);
 
     // Handle equipment assignment and status update, then revalidate
-    const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
-        router.refresh();
-    }, [router]);
+    const handleEquipmentUpdate = useCallback(
+        (eventId: string, equipment: any) => {
+            router.refresh();
+        },
+        [router],
+    );
 
     // Filter events by search and status
     const filteredEvents = useMemo(() => {
@@ -278,36 +174,47 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     // Build lesson rows from lessons + filtered events
     const lessonRows: LessonRow[] = useMemo(() => {
-        return lessons.map((lesson: any) => {
-            const lessonEvents = sortedEvents.filter((event) => event.event.lessonId === lesson.id);
+        return lessons
+            .map((lesson: any) => {
+                const lessonEvents = sortedEvents.filter((event) => event.event.lessonId === lesson.id);
 
-            if (lessonEvents.length === 0) return null;
+                if (lessonEvents.length === 0) return null;
 
-            const booking = lesson.booking;
-            const commission = lesson.teacher_commission;
-            const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
-            const totalHours = totalDuration / 60;
-            const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+                const booking = lesson.booking;
+                const commission = lesson.teacher_commission;
+                const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
+                const totalHours = totalDuration / 60;
+                const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+                const totalRevenue = lessonEvents.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
+                // Calculate actual teacher payments from teacher_lesson_payment
+                const totalPayments = (lesson.teacher_lesson_payment || []).reduce(
+                    (sum: number, p: any) => sum + (p.amount || 0),
+                    0
+                );
 
-            return {
-                lessonId: lesson.id,
-                bookingId: booking?.id || "",
-                leaderName: booking?.leader_student_name || "",
-                dateStart: booking?.date_start || "",
-                dateEnd: booking?.date_end || "",
-                lessonStatus: lesson.status || "",
-                bookingStatus: booking?.status || "",
-                commissionType: (commission?.commission_type as "fixed" | "percentage") || "fixed",
-                cph: commission ? parseFloat(commission.cph) : 0,
-                totalDuration,
-                totalHours,
-                totalEarning,
-                eventCount: lessonEvents.length,
-                events: lessonEvents.map(transactionEventToTimelineEvent),
-                equipmentCategory: lessonEvents[0]?.packageData.categoryEquipment || "",
-                studentCapacity: lessonEvents[0]?.packageData.capacityStudents || 0,
-            };
-        }).filter((row): row is LessonRow => row !== null);
+                return {
+                    lessonId: lesson.id,
+                    bookingId: booking?.id || "",
+                    leaderName: booking?.leader_student_name || "",
+                    dateStart: booking?.date_start || "",
+                    dateEnd: booking?.date_end || "",
+                    lessonStatus: lesson.status || "",
+                    bookingStatus: booking?.status || "",
+                    commissionType: (commission?.commission_type as "fixed" | "percentage") || "fixed",
+                    cph: commission ? parseFloat(commission.cph) : 0,
+                    commissionDescription: commission?.description || null,
+                    totalDuration,
+                    totalHours,
+                    totalEarning,
+                    totalRevenue,
+                    totalPayments,
+                    eventCount: lessonEvents.length,
+                    events: lessonEvents.map(transactionEventToTimelineEvent),
+                    equipmentCategory: lessonEvents[0]?.packageData.categoryEquipment || "",
+                    studentCapacity: lessonEvents[0]?.packageData.capacityStudents || 0,
+                };
+            })
+            .filter((row): row is LessonRow => row !== null);
     }, [lessons, sortedEvents]);
 
     // Adapt TransactionEventData to TimelineEvent for timeline view
@@ -358,8 +265,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                         lessonRows={lessonRows}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
-                        bookingEntity={bookingEntity}
-                        studentEntity={studentEntity}
+                        currency={currency}
                         teacherId={teacher.schema.id}
                         teacherUsername={teacher.schema.username}
                         onEquipmentUpdate={handleEquipmentUpdate}
@@ -370,13 +276,10 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                         lessonRows={lessonRows}
                         expandedLesson={expandedLesson}
                         setExpandedLesson={setExpandedLesson}
-                        formatCurrency={formatCurrency}
-                        bookingEntity={bookingEntity}
-                        studentEntity={studentEntity}
+                        currency={currency}
                         teacherId={teacher.schema.id}
                         teacherUsername={teacher.schema.username}
                         onEquipmentUpdate={handleEquipmentUpdate}
-                        credentials={credentials}
                     />
                 )}
                 {viewMode === "timeline" && (

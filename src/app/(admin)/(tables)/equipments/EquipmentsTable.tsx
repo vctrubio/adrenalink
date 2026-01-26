@@ -31,7 +31,7 @@ interface EquipmentDisplayProps {
     showSku?: boolean;
 }
 
-function EquipmentDisplay({ equipment, variant = "full", iconSize = 16, showSku = true }: EquipmentDisplayProps) {
+export function EquipmentDisplay({ equipment, variant = "full", iconSize = 16, showSku = true }: EquipmentDisplayProps) {
     const equipmentEntity = ENTITY_DATA.find((e) => e.id === "equipment")!;
     const config = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.category);
     const Icon = config?.icon || Activity;

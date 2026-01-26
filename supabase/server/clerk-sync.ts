@@ -6,7 +6,7 @@ import { ClerkUserMetadata } from "@/types/user";
 
 /**
  * Syncs the Clerk User's roles across ALL schools based on database records.
- * 
+ *
  * Strategy:
  * 1. Sweep all role tables (school, teacher, school_students) for this clerk_id.
  * 2. Build a mapping of schoolId -> ClerkUserMetadata.
@@ -21,24 +21,24 @@ export async function syncUserRole(clerkId: string) {
         const [ownerResult, teacherResult, studentResult] = await Promise.all([
             supabase.from("school").select("id, username").eq("clerk_id", clerkId),
             supabase.from("teacher").select("id, school_id, active").eq("clerk_id", clerkId),
-            supabase.from("school_students").select("school_id, rental, student_id, active").eq("clerk_id", clerkId)
+            supabase.from("school_students").select("school_id, rental, student_id, active").eq("clerk_id", clerkId),
         ]);
 
         const schoolMap: Record<string, ClerkUserMetadata> = {};
 
         // 2. Populate Owners (Schools they own)
-        ownerResult.data?.forEach(s => {
+        ownerResult.data?.forEach((s) => {
             schoolMap[s.id] = {
                 role: "owner",
                 entityId: s.id,
                 isActive: true,
                 isRental: false,
-                schoolId: s.id
+                schoolId: s.id,
             };
         });
 
         // 3. Populate Teachers
-        teacherResult.data?.forEach(t => {
+        teacherResult.data?.forEach((t) => {
             // Owner role takes precedence if they are both
             if (!schoolMap[t.school_id]) {
                 schoolMap[t.school_id] = {
@@ -46,13 +46,13 @@ export async function syncUserRole(clerkId: string) {
                     entityId: t.id,
                     isActive: t.active,
                     isRental: false,
-                    schoolId: t.school_id
+                    schoolId: t.school_id,
                 };
             }
         });
 
         // 4. Populate Students
-        studentResult.data?.forEach(s => {
+        studentResult.data?.forEach((s) => {
             // Staff roles take precedence over student roles per school context
             if (!schoolMap[s.school_id]) {
                 schoolMap[s.school_id] = {
@@ -60,7 +60,7 @@ export async function syncUserRole(clerkId: string) {
                     entityId: s.student_id,
                     isActive: s.active,
                     isRental: s.rental,
-                    schoolId: s.school_id
+                    schoolId: s.school_id,
                 };
             }
         });
@@ -73,9 +73,9 @@ export async function syncUserRole(clerkId: string) {
         const existingSchools = existingMetadata.schools || {};
 
         const finalSchools: Record<string, any> = { ...schoolMap };
-        
+
         // Null out any schools that exist in Clerk but are no longer in our DB map
-        Object.keys(existingSchools).forEach(sId => {
+        Object.keys(existingSchools).forEach((sId) => {
             if (!finalSchools[sId]) {
                 finalSchools[sId] = null;
             }
@@ -90,14 +90,13 @@ export async function syncUserRole(clerkId: string) {
                 entityId: null,
                 isActive: null,
                 isRental: null,
-                partition: null 
-            }
+                partition: null,
+            },
         });
 
         const schoolIds = Object.keys(schoolMap);
         console.log(`✅ Synced ${schoolIds.length} school contexts for User ${clerkId}`);
         return { success: true, schoolCount: schoolIds.length };
-
     } catch (error) {
         console.error("❌ Sync User Role Failed:", error);
         return { success: false, error: "Failed to sync user role" };
@@ -107,11 +106,7 @@ export async function syncUserRole(clerkId: string) {
 /**
  * Links a database entity (Teacher or Student) to a Clerk User ID.
  */
-export async function linkEntityToClerk(
-    entityId: string, 
-    entityType: "teacher" | "student" | "school", 
-    clerkId: string
-) {
+export async function linkEntityToClerk(entityId: string, entityType: "teacher" | "student" | "school", clerkId: string) {
     const supabase = getServerConnection();
     const client = await clerkClient();
 
@@ -124,20 +119,14 @@ export async function linkEntityToClerk(
         }
         throw error;
     }
-    
+
     const clerkEmail = clerkUser.emailAddresses[0]?.emailAddress || null;
-    
+
     if (entityType === "teacher") {
-        const { error } = await supabase
-            .from("teacher")
-            .update({ clerk_id: clerkId })
-            .eq("id", entityId);
+        const { error } = await supabase.from("teacher").update({ clerk_id: clerkId }).eq("id", entityId);
         if (error) throw error;
     } else if (entityType === "school") {
-        const { error } = await supabase
-            .from("school")
-            .update({ clerk_id: clerkId })
-            .eq("id", entityId);
+        const { error } = await supabase.from("school").update({ clerk_id: clerkId }).eq("id", entityId);
         if (error) throw error;
     } else {
         // Students: Set both clerk_id and email from Clerk user
@@ -162,22 +151,15 @@ export async function unlinkEntityFromClerk(
     entityId: string,
     entityType: "teacher" | "student" | "school",
     clerkId: string,
-    schoolId: string
+    schoolId: string,
 ) {
     const supabase = getServerConnection();
 
     if (entityType === "teacher") {
-        const { error } = await supabase
-            .from("teacher")
-            .update({ clerk_id: null })
-            .eq("id", entityId)
-            .eq("school_id", schoolId);
+        const { error } = await supabase.from("teacher").update({ clerk_id: null }).eq("id", entityId).eq("school_id", schoolId);
         if (error) throw error;
     } else if (entityType === "school") {
-        const { error } = await supabase
-            .from("school")
-            .update({ clerk_id: null })
-            .eq("id", entityId);
+        const { error } = await supabase.from("school").update({ clerk_id: null }).eq("id", entityId);
         if (error) throw error;
     } else {
         // Students: Clear clerk_id and email for this specific school relationship
@@ -194,49 +176,4 @@ export async function unlinkEntityFromClerk(
     if (!syncResult.success) throw new Error(syncResult.error);
 
     return { success: true };
-}
-
-/**
- * Gets student full name from clerk_id
- */
-export async function getNameFromClerkId(clerkId: string): Promise<{ success: boolean; data?: { firstName: string; lastName: string; fullName: string }; error?: string }> {
-    try {
-        const supabase = getServerConnection();
-        const { getSchoolHeader } = await import("@/types/headers");
-        const schoolHeader = await getSchoolHeader();
-        
-        if (!schoolHeader) {
-            return { success: false, error: "School context not found" };
-        }
-
-        const { data, error } = await supabase
-            .from("school_students")
-            .select(`
-                student!inner(
-                    first_name,
-                    last_name
-                )
-            `)
-            .eq("school_id", schoolHeader.id)
-            .eq("clerk_id", clerkId)
-            .maybeSingle();
-
-        if (error || !data) {
-            return { success: false, error: "Student not found" };
-        }
-
-        const student = data.student as { first_name: string; last_name: string } | null;
-        if (!student) {
-            return { success: false, error: "Student data not found" };
-        }
-
-        const firstName = student.first_name || "";
-        const lastName = student.last_name || "";
-        const fullName = `${firstName} ${lastName}`.trim();
-
-        return { success: true, data: { firstName, lastName, fullName } };
-    } catch (error) {
-        console.error("Error getting name from clerk_id", error);
-        return { success: false, error: "Failed to get student name" };
-    }
 }

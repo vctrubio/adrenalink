@@ -31,6 +31,7 @@ export interface TransactionEventCommission {
     id: string;
     type: "fixed" | "percentage";
     cph: number;
+    description?: string | null;
 }
 
 export interface TransactionEventData {
@@ -52,4 +53,7 @@ export interface TransactionEventData {
     commission: TransactionEventCommission;
     financials: TransactionEventFinancials;
     equipments?: TransactionEventEquipment[];
+    lessonStatus?: string;
+    bookingStatus?: string;
+    bookingId?: string;
 }

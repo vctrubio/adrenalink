@@ -10,9 +10,11 @@ interface TeacherLessonComissionValueProps {
 
 export function TeacherLessonComissionValue({ commissionType, cph, currency }: TeacherLessonComissionValueProps) {
     return (
-        <div className="flex items-center gap-1.5" style={{ color: "#22c55e" }}>
-            <HandshakeIcon size={14} />
-            <span className="font-bold text-green-600 dark:text-green-400">
+        <div className="flex items-center gap-1.5">
+            <div className="text-green-600 dark:text-green-400">
+                <HandshakeIcon size={14} />
+            </div>
+            <span className="font-bold">
                 {commissionType === "percentage" ? `${cph}%` : `${cph} ${currency}`}
             </span>
         </div>

@@ -15,6 +15,11 @@ import { EventDurationTag } from "@/src/components/tags/EventDurationTag";
 import { updateEventStatus } from "@/supabase/server/classboard";
 import { EventStatusLabel } from "@/src/components/labels/EventStatusLabel";
 import { EquipmentFulfillmentCell } from "@/src/components/equipment/EquipmentFulfillmentCell";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import CreditIcon from "@/public/appSvgs/CreditIcon";
+import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
+import { getPPP } from "@/getters/integer-getter";
+import { TrendingUp } from "lucide-react";
 import type { TimelineEvent, EquipmentAssignmentProps } from "./types";
 
 interface TimelineEventCardProps extends EquipmentAssignmentProps {
@@ -132,13 +137,18 @@ export function TimelineEventCard({
                     <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs">
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Teacher Commission</span>
-                            <div className="flex items-center gap-1">
-                                <span className="font-mono ">{event.commissionCph}</span>
+                            <div className="grid grid-cols-[auto_auto_auto_auto_auto_auto] items-center gap-1">
+                                <div className="text-green-600 dark:text-green-400">
+                                    <HandshakeIcon size={14} />
+                                </div>
+                                <span className="font-bold">
+                                    {event.commissionType === "percentage" ? `${event.commissionCph}%` : `${event.commissionCph} ${currency}`}
+                                </span>
                                 <span className="text-muted-foreground">×</span>
-                                <span className="font-mono ">{getHMDuration(event.duration)}</span>
+                                <span className="font-mono">{getHMDuration(event.duration)}</span>
                                 <span className="text-muted-foreground">=</span>
-                                <span className="font-mono font-semibold ">
-                                    {formatCurrency(Math.round(event.teacherEarning * 100) / 100)}
+                                <span className="font-mono font-semibold">
+                                    {getPPP(Math.round(event.teacherEarning * 100) / 100)} {currency}
                                 </span>
                             </div>
                         </div>
@@ -146,15 +156,44 @@ export function TimelineEventCard({
                             <>
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Students Paid</span>
-                                    <span className="font-mono font-semibold">
-                                        {formatCurrency(Math.round(event.totalRevenue * 100) / 100)}
-                                    </span>
+                                    <div className="grid grid-cols-[auto_auto_auto_auto_auto_auto] items-center gap-1">
+                                        <div className="text-foreground">
+                                            <CreditIcon size={14} />
+                                        </div>
+                                        <div className="flex items-baseline gap-0.5">
+                                            <span className="font-mono text-xs">
+                                                {(() => {
+                                                    const studentCount = event.bookingStudents?.length || event.capacityStudents || 1;
+                                                    const hours = event.duration / 60;
+                                                    // Calculate price per hour: totalRevenue = pricePerHour * studentCount * hours
+                                                    // So: pricePerHour = totalRevenue / (studentCount * hours)
+                                                    const pricePerHour = studentCount > 0 && hours > 0 ? event.totalRevenue / (studentCount * hours) : 0;
+                                                    return pricePerHour && isFinite(pricePerHour) ? getPPP(Math.round(pricePerHour * 100) / 100) : "0";
+                                                })()}
+                                            </span>
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">/h</span>
+                                        </div>
+                                        <span className="text-muted-foreground">×</span>
+                                        <span className="font-mono">{event.bookingStudents?.length || event.capacityStudents || 0}</span>
+                                        <span className="text-muted-foreground">=</span>
+                                        <span className="font-mono font-semibold">
+                                            {getPPP(Math.round(event.totalRevenue * 100) / 100)} {currency}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Revenue</span>
-                                    <span className="font-mono font-semibold text-orange-600 dark:text-orange-400">
-                                        {formatCurrency(Math.round(event.schoolRevenue * 100) / 100)}
-                                    </span>
+                                    <span className="text-muted-foreground">Profit</span>
+                                    <div className="grid grid-cols-[auto_auto_auto_auto_auto_auto] items-center gap-1">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span className="flex items-center gap-1 font-mono font-semibold text-primary">
+                                            <TrendingUp size={14} className="text-foreground/60" />
+                                            {getPPP(Math.round((event.totalRevenue - event.teacherEarning) * 100) / 100)} {currency}
+                                        </span>
+                                    </div>
                                 </div>
                             </>
                         )}

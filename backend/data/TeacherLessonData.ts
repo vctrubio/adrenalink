@@ -15,9 +15,12 @@ export interface LessonRow {
     bookingStatus: string;
     commissionType: string;
     cph: number;
+    commissionDescription?: string | null;
     totalDuration: number;
     totalHours: number;
     totalEarning: number;
+    totalRevenue?: number;
+    totalPayments?: number;
     eventCount: number;
     events: TimelineEvent[];
     equipmentCategory: string;
@@ -55,6 +58,7 @@ export function buildTeacherLessonData(
         bookingStatus: group.bookingStatus,
         commissionType: group.commissionType,
         cph: group.cph,
+        commissionDescription: group.commissionDescription,
         totalDuration: group.totalDuration,
         totalHours: group.totalHours,
         totalEarning: group.totalEarning,

@@ -5,6 +5,8 @@ import type { TransactionEventData } from "@/types/transaction-event";
 import { logger } from "@/backend/logger";
 import { safeArray } from "@/backend/error-handlers";
 import type { LessonStatus, EventStatus } from "@/supabase/db/enums";
+import { groupEventsByLesson, transactionEventToTimelineEvent } from "@/getters/teacher-lesson-getter";
+import type { LessonRow } from "@/backend/data/TeacherLessonData";
 
 /**
  * Comprehensive teacher user data with ALL relations
@@ -40,12 +42,6 @@ export async function getTeacherUser(teacherId: string): Promise<{
                     teacher_commission(*),
                     booking(
                         *,
-                        school(
-                            id,
-                            name,
-                            username,
-                            currency
-                        ),
                         school_package(
                             *
                         ),
@@ -53,7 +49,22 @@ export async function getTeacherUser(teacherId: string): Promise<{
                             student(*)
                         )
                     ),
-                    event(*),
+                    event(
+                        *,
+                        equipment_event(
+                            equipment_id,
+                            equipment(
+                                id,
+                                sku,
+                                brand,
+                                model,
+                                color,
+                                size,
+                                category,
+                                status
+                            )
+                        )
+                    ),
                     teacher_lesson_payment(*)
                 )
             `,
@@ -67,14 +78,20 @@ export async function getTeacherUser(teacherId: string): Promise<{
             return { success: false, error: "Teacher not found" };
         }
 
-        const currency = teacher.lesson?.[0]?.booking?.school?.currency || "YEN";
+        const currency = schoolHeader.currency || "YEN";
 
-        // Build EventNode array and TransactionEventData array
+        // Build EventNode array for events page and TransactionEventData array for lessonRows
         const events: EventNode[] = [];
         const transactions: TransactionEventData[] = [];
-        const lessonMap = new Map<string, LessonSummary>();
+        const lessonPaymentsMap = new Map<string, number>();
 
         for (const lesson of safeArray(teacher.lesson)) {
+            // Calculate total payments for this lesson
+            const totalPayments = safeArray(lesson.teacher_lesson_payment).reduce(
+                (sum: number, p: any) => sum + (p.amount || 0),
+                0
+            );
+            lessonPaymentsMap.set(lesson.id, totalPayments);
             const booking = lesson.booking;
             const commission = lesson.teacher_commission;
             const schoolPackage = booking?.school_package;
@@ -92,19 +109,6 @@ export async function getTeacherUser(teacherId: string): Promise<{
             }));
 
             const studentNames = bookingStudents.map((s) => `${s.firstName} ${s.lastName}`.trim());
-
-            // Track lesson for commissions grouping
-            if (!lessonMap.has(lesson.id)) {
-                lessonMap.set(lesson.id, {
-                    lessonId: lesson.id,
-                    commissionId: commission.id,
-                    commissionType: commission.commission_type as "fixed" | "percentage",
-                    cph: parseFloat(commission.cph || "0"),
-                    eventCount: 0,
-                    totalDuration: 0,
-                    totalEarnings: 0,
-                });
-            }
 
             // Process events for this lesson
             for (const evt of safeArray(lesson.event)) {
@@ -127,7 +131,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
                     eventData: {
                         date: evt.date,
                         duration: evt.duration,
-                        location: evt.location,
+                        location: evt.location || "",
                         status: evt.status as EventStatus,
                     },
                     lessonStatus: lesson.status as LessonStatus,
@@ -137,7 +141,7 @@ export async function getTeacherUser(teacherId: string): Promise<{
 
                 events.push(eventNode);
 
-                // Calculate financials for transaction
+                // Build TransactionEventData for lessonRows
                 const hours = evt.duration / 60;
                 const studentCount = bookingStudents.length;
                 const studentRevenue = schoolPackage.price_per_student * studentCount * hours;
@@ -151,7 +155,16 @@ export async function getTeacherUser(teacherId: string): Promise<{
 
                 const profit = studentRevenue - teacherEarnings;
 
-                // Build TransactionEventData for lessons page
+                // Map equipments from equipment_event relation
+                const equipments = safeArray(evt.equipment_event).map((ee: any) => ({
+                    id: ee.equipment?.id || "",
+                    brand: ee.equipment?.brand || "",
+                    model: ee.equipment?.model || "",
+                    size: ee.equipment?.size || null,
+                    sku: ee.equipment?.sku,
+                    color: ee.equipment?.color,
+                }));
+
                 const transaction: TransactionEventData = {
                     event: {
                         id: evt.id,
@@ -175,6 +188,12 @@ export async function getTeacherUser(teacherId: string): Promise<{
                         capacityEquipment: schoolPackage.capacity_equipment || 0,
                         capacityStudents: schoolPackage.capacity_students || 1,
                     },
+                    commission: {
+                        id: commission.id,
+                        type: commission.commission_type as "fixed" | "percentage",
+                        cph: parseFloat(commission.cph || "0"),
+                        description: commission.description || null,
+                    },
                     financials: {
                         teacherEarnings,
                         studentRevenue,
@@ -183,15 +202,13 @@ export async function getTeacherUser(teacherId: string): Promise<{
                         commissionType: commission.commission_type as "fixed" | "percentage",
                         commissionValue: parseFloat(commission.cph || "0"),
                     },
+                    equipments: equipments.length > 0 ? equipments : undefined,
+                    lessonStatus: lesson.status,
+                    bookingStatus: booking.status,
+                    bookingId: booking.id,
                 };
 
                 transactions.push(transaction);
-
-                // Update lesson summary for commissions
-                const lessonSummary = lessonMap.get(lesson.id)!;
-                lessonSummary.eventCount++;
-                lessonSummary.totalDuration += evt.duration;
-                lessonSummary.totalEarnings += teacherEarnings;
             }
         }
 
@@ -205,6 +222,38 @@ export async function getTeacherUser(teacherId: string): Promise<{
             updated_at: te.updated_at,
             equipment: te.equipment,
         }));
+
+        // Pre-compute lessonRows for DRY usage across components
+        const lessonPayments = Object.fromEntries(lessonPaymentsMap);
+        const lessonGroups = groupEventsByLesson(transactions);
+        const lessonRows: LessonRow[] = lessonGroups.map((group) => {
+            // Calculate total revenue from all events
+            const totalRevenue = group.events.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
+            // Get actual teacher payments for this lesson
+            const totalPayments = lessonPayments[group.lessonId] || 0;
+
+            return {
+                lessonId: group.lessonId,
+                bookingId: group.bookingId,
+                leaderName: group.leaderName,
+                dateStart: group.dateStart,
+                dateEnd: group.dateEnd,
+                lessonStatus: group.lessonStatus,
+                bookingStatus: group.bookingStatus,
+                commissionType: group.commissionType,
+                cph: group.cph,
+                commissionDescription: group.commissionDescription,
+                totalDuration: group.totalDuration,
+                totalHours: group.totalHours,
+                totalEarning: group.totalEarning,
+                totalRevenue,
+                totalPayments,
+                eventCount: group.eventCount,
+                events: group.events.map(transactionEventToTimelineEvent),
+                equipmentCategory: group.equipmentCategory,
+                studentCapacity: group.studentCapacity,
+            };
+        });
 
         // Build teacher user data
         const teacherUserData: TeacherUserData = {
@@ -222,11 +271,10 @@ export async function getTeacherUser(teacherId: string): Promise<{
                 created_at: teacher.created_at,
                 updated_at: teacher.updated_at,
             },
-            commissions: safeArray(teacher.teacher_commission),
             equipment,
             events,
-            lessons: transactions,
-            lessonSummaries: Array.from(lessonMap.values()),
+            lessonPayments,
+            lessonRows,
         };
 
         return { success: true, data: teacherUserData };
@@ -239,16 +287,6 @@ export async function getTeacherUser(teacherId: string): Promise<{
 // ============================================================================
 // Type Definitions
 // ============================================================================
-
-export interface LessonSummary {
-    lessonId: string;
-    commissionId: string;
-    commissionType: "fixed" | "percentage";
-    cph: number;
-    eventCount: number;
-    totalDuration: number;
-    totalEarnings: number;
-}
 
 export interface TeacherUserData {
     teacher: {
@@ -265,22 +303,10 @@ export interface TeacherUserData {
         created_at: string;
         updated_at: string;
     };
-    commissions: TeacherCommission[];
     equipment: TeacherEquipmentItem[];
     events: EventNode[];
-    lessons: TransactionEventData[];
-    lessonSummaries: LessonSummary[];
-}
-
-export interface TeacherCommission {
-    id: string;
-    teacher_id: string;
-    commission_type: string;
-    cph: string;
-    description: string | null;
-    active: boolean;
-    created_at: string;
-    updated_at: string;
+    lessonPayments: Record<string, number>; // lessonId -> total payments
+    lessonRows: LessonRow[]; // Pre-computed lesson rows for DRY usage
 }
 
 export interface TeacherEquipmentItem {

@@ -18,6 +18,7 @@ export interface LessonGroup {
     bookingStatus: string;
     commissionType: string;
     cph: number;
+    commissionDescription?: string | null;
     totalDuration: number;
     totalHours: number;
     totalEarning: number;
@@ -151,14 +152,15 @@ export function groupEventsByLesson(events: TransactionEventData[]): LessonGroup
 
         lessonGroups.push({
             lessonId,
-            bookingId: "unknown",
+            bookingId: firstEvent.bookingId || "unknown",
             leaderName: firstEvent.leaderStudentName,
             dateStart,
             dateEnd,
-            lessonStatus: "active",
-            bookingStatus: "active",
+            lessonStatus: firstEvent.lessonStatus || "active",
+            bookingStatus: firstEvent.bookingStatus || "active",
             commissionType: firstEvent.financials.commissionType,
             cph: firstEvent.financials.commissionValue,
+            commissionDescription: firstEvent.commission.description,
             totalDuration,
             totalHours,
             totalEarning,
@@ -240,7 +242,7 @@ export function transactionEventToTimelineEvent(event: TransactionEventData): Ti
         teacherName: "",
         teacherUsername: event.teacher.username,
         eventStatus: event.event.status,
-        lessonStatus: "active",
+        lessonStatus: event.lessonStatus || "active",
         teacherEarning: event.financials.teacherEarnings,
         schoolRevenue: event.financials.studentRevenue,
         totalRevenue: event.financials.studentRevenue,
@@ -251,6 +253,10 @@ export function transactionEventToTimelineEvent(event: TransactionEventData): Ti
             firstName: name.split(" ")[0] || "",
             lastName: name.split(" ")[1] || "",
         })),
+        equipmentCategory: event.packageData.categoryEquipment,
+        capacityEquipment: event.packageData.capacityEquipment,
+        capacityStudents: event.packageData.capacityStudents,
+        equipments: event.equipments,
     };
 }
 

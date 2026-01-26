@@ -9,11 +9,13 @@ import { StatItemUI } from "@/backend/data/StatsData";
 import { getTodayDateString } from "@/getters/date-getter";
 import { useTeacherUser } from "@/src/providers/teacher-user-provider";
 import type { EventNode } from "@/types/classboard-teacher-queue";
+import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 
 export function TeacherEventsClient() {
     const { data: teacherUser, schoolHeader } = useTeacherUser();
     const currency = schoolHeader?.currency || "YEN";
     const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+    const [viewMode, setViewMode] = useState<"date" | "all">("date");
 
     // Date Logic
     const dateObj = new Date(selectedDate + "T00:00:00");
@@ -57,18 +59,21 @@ export function TeacherEventsClient() {
     const badgeText =
         diffDays === 1 ? "Tomorrow" : diffDays === -1 ? "Yesterday" : `${diffDays > 0 ? "+" : "-"}${Math.abs(diffDays)}d`;
 
-    // Filter events for selected date
-    const eventsForDate = useMemo(() => {
+    // Filter events based on view mode
+    const filteredEvents = useMemo(() => {
+        if (viewMode === "all") {
+            return teacherUser.events;
+        }
         return teacherUser.events.filter((event) => {
             const eventDateStr = new Date(event.eventData.date).toISOString().split("T")[0];
             return eventDateStr === selectedDate;
         });
-    }, [teacherUser.events, selectedDate]);
+    }, [teacherUser.events, selectedDate, viewMode]);
 
     // Sort by time
     const sortedEvents = useMemo(() => {
-        return [...eventsForDate].sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
-    }, [eventsForDate]);
+        return [...filteredEvents].sort((a, b) => new Date(a.eventData.date).getTime() - new Date(b.eventData.date).getTime());
+    }, [filteredEvents]);
 
     // Calculate stats for the day
     const stats = useMemo(() => {
@@ -102,6 +107,15 @@ export function TeacherEventsClient() {
         };
     }, [sortedEvents]);
 
+    // Calculate counts for toggle
+    const allEventsCount = teacherUser.events.length;
+    const dateEventsCount = useMemo(() => {
+        return teacherUser.events.filter((event) => {
+            const eventDateStr = new Date(event.eventData.date).toISOString().split("T")[0];
+            return eventDateStr === selectedDate;
+        }).length;
+    }, [teacherUser.events, selectedDate]);
+
     return (
         <div className="space-y-6">
             {/* Date Picker Header */}
@@ -109,8 +123,26 @@ export function TeacherEventsClient() {
                 <h2 className="text-xl font-bold text-foreground">My Schedule</h2>
             </div>
 
+            {/* Stats Row with Toggle */}
+            <div className="flex items-center gap-6 py-3 px-4 bg-card rounded-xl border border-border">
+                <ToggleSwitch
+                    value={viewMode}
+                    onChange={(value) => setViewMode(value as "date" | "all")}
+                    values={{ left: "date", right: "all" }}
+                    counts={{ date: dateEventsCount, all: allEventsCount }}
+                    showLabels={true}
+                    tintColor="#16610e"
+                />
+                <div className="flex items-center gap-6">
+                    <StatItemUI type="events" value={`${stats.completedCount}/${stats.eventCount}`} hideLabel={false} iconColor={false} />
+                    <StatItemUI type="duration" value={stats.totalDuration} hideLabel={false} iconColor={false} />
+                    <StatItemUI type="commission" value={stats.totalEarning} hideLabel={false} variant="primary" iconColor={false} />
+                </div>
+            </div>
+
             {/* Date Picker */}
-            <div className="w-full flex items-stretch border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32 bg-card">
+            {viewMode === "date" && (
+                <div className="w-full flex items-stretch border border-border/30 rounded-lg overflow-hidden shadow-sm select-none min-h-32 bg-card">
                 {/* Main Content: Navigation & Date */}
                 <div className="flex-1 flex items-center justify-center gap-6 py-4 px-4 relative">
                     {/* Previous Button */}
@@ -180,19 +212,13 @@ export function TeacherEventsClient() {
                     </button>
                 </div>
             </div>
-
-            {/* Stats Row */}
-            <div className="flex items-center gap-6 py-3 px-4 bg-card rounded-xl border border-border">
-                <StatItemUI type="events" value={`${stats.completedCount}/${stats.eventCount}`} hideLabel={false} iconColor={false} />
-                <StatItemUI type="duration" value={stats.totalDuration} hideLabel={false} iconColor={false} />
-                <StatItemUI type="commission" value={stats.totalEarning} hideLabel={false} variant="primary" iconColor={false} />
-            </div>
+            )}
 
             {/* Events List */}
             <div className="space-y-4">
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={selectedDate}
+                        key={viewMode === "date" ? selectedDate : "all"}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -210,7 +236,7 @@ export function TeacherEventsClient() {
                             ))
                         ) : (
                             <div className="text-center py-12 bg-card rounded-2xl border-2 border-dashed border-border text-muted-foreground">
-                                No events scheduled for this day.
+                                {viewMode === "date" ? "No events scheduled for this day." : "No events scheduled."}
                             </div>
                         )}
                     </motion.div>

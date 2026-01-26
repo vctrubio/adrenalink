@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { EVENT_STATUS_CONFIG } from "@/types/status";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
+import DurationIcon from "@/public/appSvgs/DurationIcon";
+import { getHMDuration } from "@/getters/duration-getter";
 import { EquipmentFulfillmentCell } from "@/src/components/equipment/EquipmentFulfillmentCell";
 import type { TimelineEvent } from "@/src/components/timeline/types";
 
@@ -36,14 +38,14 @@ export function LessonEventRow({
                     <div className="px-6 py-3 space-y-2">
                         {events.map((event) => {
                             const statusConfig = EVENT_STATUS_CONFIG[event.eventStatus as keyof typeof EVENT_STATUS_CONFIG];
-                            const currentYear = new Date().getFullYear();
-                            const eventYear = event.date.getFullYear();
-                            const dateFormatted = event.date.toLocaleDateString("en-US", { 
-                                day: "numeric", 
-                                month: "short",
-                                ...(eventYear !== currentYear ? { year: "numeric" } : {})
-                            }).replace(",", "");
-                            const durationFormatted = event.durationLabel;
+                            
+                            // Format date like HomeGrouped.tsx
+                            const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                            const months = [
+                                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                            ];
+                            const dateStr = `${weekdays[event.date.getDay()]} ${event.date.getDate()} ${months[event.date.getMonth()]}`;
 
                             return (
                                 <div
@@ -54,9 +56,16 @@ export function LessonEventRow({
                                         <div style={{ color: statusConfig?.color }}>
                                             <FlagIcon size={16} />
                                         </div>
-                                        <span className="font-medium min-w-[100px]">{dateFormatted}</span>
-                                        <span className="font-mono text-muted-foreground min-w-[60px]">{event.time}</span>
-                                        <span className="font-mono text-muted-foreground min-w-[50px]">{durationFormatted}</span>
+                                        <span className="font-bold min-w-[140px]">
+                                            {dateStr}
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <DurationIcon size={14} className="text-muted-foreground/70" />
+                                            <span className="font-mono text-muted-foreground tabular-nums">{event.time}</span>
+                                        </div>
+                                        <span className="font-mono text-muted-foreground">
+                                            + {getHMDuration(event.duration)}
+                                        </span>
                                     </div>
                                     <EquipmentFulfillmentCell
                                         eventId={event.eventId}

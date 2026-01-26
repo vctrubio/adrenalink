@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { TrendingUpDown } from "lucide-react";
 import { DateSinceBadge } from "@/src/components/ui/badge/datesince";
 import { getHMDuration } from "@/getters/duration-getter";
 import FlagIcon from "@/public/appSvgs/FlagIcon";
@@ -48,7 +48,7 @@ export function TimelineDateGroup({
                     <span>{getHMDuration(totalDuration)}</span>
                     {showFinancials && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-                            <TrendingUp size={14} />
+                            <TrendingUpDown size={14} />
                             <span>{(Math.round(totalSchoolRevenue * 100) / 100).toString()}</span>
                         </div>
                     )}

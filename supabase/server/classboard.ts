@@ -351,7 +351,7 @@ export async function updateEventStatus(eventId: string, status: string): Promis
 
         logger.info("Event status updated", { eventId, status });
 
-        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
+        // Revalidate teachers path
         revalidatePath("/teachers");
 
         return { success: true, data: { success: true } };
@@ -744,8 +744,24 @@ export async function assignEquipmentToEvent(
             return { success: false, error: error.message || "Failed to assign equipment" };
         }
 
-        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
-        revalidatePath("/teachers");
+        // Fetch teacher ID from event to revalidate teacher routes
+        const { data: eventData } = await supabase
+            .from("event")
+            .select("lesson!inner(teacher_id)")
+            .eq("id", eventId)
+            .single();
+
+        // Revalidate paths
+        revalidatePath("/teachers"); // Admin teachers table
+        if (eventData?.lesson?.teacher_id) {
+            const teacherId = eventData.lesson.teacher_id;
+            // Revalidate teacher user routes
+            revalidatePath(`/teacher/${teacherId}/lessons`);
+            revalidatePath(`/teacher/${teacherId}/events`);
+            revalidatePath(`/teacher/${teacherId}/commissions`);
+            // Revalidate admin teacher detail page
+            revalidatePath(`/teachers/${teacherId}`);
+        }
 
         return { success: true, data: { success: true } };
     } catch (error) {
@@ -766,6 +782,13 @@ export async function unassignEquipmentFromEvent(
 
         const supabase = getServerConnection();
 
+        // Fetch teacher ID from event before deletion to revalidate teacher routes
+        const { data: eventData } = await supabase
+            .from("event")
+            .select("lesson!inner(teacher_id)")
+            .eq("id", eventId)
+            .single();
+
         const { error } = await supabase.from("equipment_event").delete().eq("event_id", eventId).eq("equipment_id", equipmentId);
 
         if (error) {
@@ -773,8 +796,17 @@ export async function unassignEquipmentFromEvent(
             return { success: false, error: "Failed to unassign equipment" };
         }
 
-        // Revalidate teachers path - Next.js will automatically revalidate /teachers/[id] routes
-        revalidatePath("/teachers");
+        // Revalidate paths
+        revalidatePath("/teachers"); // Admin teachers table
+        if (eventData?.lesson?.teacher_id) {
+            const teacherId = eventData.lesson.teacher_id;
+            // Revalidate teacher user routes
+            revalidatePath(`/teacher/${teacherId}/lessons`);
+            revalidatePath(`/teacher/${teacherId}/events`);
+            revalidatePath(`/teacher/${teacherId}/commissions`);
+            // Revalidate admin teacher detail page
+            revalidatePath(`/teachers/${teacherId}`);
+        }
 
         return { success: true, data: { success: true } };
     } catch (error) {
