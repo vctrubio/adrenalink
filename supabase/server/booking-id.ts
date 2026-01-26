@@ -6,6 +6,7 @@ import { BookingData, BookingUpdateForm, BookingRelations } from "@/backend/data
 import { Booking } from "@/supabase/db/types";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
+import { lessonsToTransactionEvents, groupTransactionsByLesson } from "@/getters/booking-lesson-event-getter";
 
 /**
  * Fetches a booking by ID with all relations mapped to BookingData interface.
@@ -17,7 +18,7 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             return { success: false, error: "School context not found" };
         }
         const schoolId = schoolHeader.id;
-        const timezone = schoolHeader.zone;
+        const currency = schoolHeader.currency || "YEN";
 
         const supabase = getServerConnection();
 
@@ -42,7 +43,8 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                     teacher_commission(
                         id,
                         cph,
-                        commission_type
+                        commission_type,
+                        description
                     ),
                     event(
                         *,
@@ -57,7 +59,8 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
                                 category
                             )
                         )
-                    )
+                    ),
+                    teacher_lesson_payment(*)
                 ),
                 student_booking_payment(
                     *,
@@ -73,32 +76,54 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             return handleSupabaseError(bookingError, "fetch booking details", "Booking not found");
         }
 
+        // Prepare lessons array for unified getters
+        const allLessons = safeArray(booking.lesson).map((l: any) => ({
+            ...l,
+            // Ensure necessary nested relations are directly available for the getter
+            teacher: l.teacher,
+            teacher_commission: l.teacher_commission,
+            booking: { // Simplified booking object for lesson context
+                id: booking.id,
+                date_start: booking.date_start,
+                date_end: booking.date_end,
+                leader_student_name: booking.leader_student_name,
+                status: booking.status,
+                school_package: booking.school_package,
+                booking_student: booking.booking_student, // Pass original booking_student for transaction events
+            },
+            event: safeArray(l.event).map((evt: any) => ({
+                ...evt,
+                equipment_event: safeArray(evt.equipment_event),
+            })),
+            teacher_lesson_payment: safeArray(l.teacher_lesson_payment),
+        }));
+
+        // Use unified getters to transform data
+        const transactions = lessonsToTransactionEvents(allLessons, currency);
+
+        const lessonPaymentsMap: Record<string, number> = {};
+        allLessons.forEach((l: any) => {
+            lessonPaymentsMap[l.id] = safeArray(l.teacher_lesson_payment).reduce(
+                (sum: number, p: any) => sum + (p.amount || 0),
+                0
+            );
+        });
+        const lessonRows = groupTransactionsByLesson(transactions, lessonPaymentsMap);
+
+        // Calculate aggregate stats for BookingData
+        const totalEventsCount = transactions.length;
+        const totalUsedMinutes = transactions.reduce((sum, tx) => sum + tx.event.duration, 0);
+        const totalPaidAmount = safeArray(booking.student_booking_payment).reduce((sum, p) => sum + p.amount, 0);
+        const totalRevenueFromTransactions = transactions.reduce((sum, tx) => sum + tx.financials.studentRevenue, 0);
+        const totalDueAmount = totalRevenueFromTransactions - totalPaidAmount;
+
         // Map Relations
         const students = safeArray(booking.booking_student).map((bs: any) => bs.student).filter(Boolean);
 
         const relations: BookingRelations = {
             school_package: booking.school_package,
             students,
-            lessons: safeArray(booking.lesson).map((l: any) => {
-                // Convert event times if timezone is available
-                const events = safeArray(l.event);
-
-                return {
-                    ...l,
-                    teacher: l.teacher,
-                    teacher_commission: l.teacher_commission,
-                    events: events,
-                    booking: {
-                        id: booking.id,
-                        date_start: booking.date_start,
-                        date_end: booking.date_end,
-                        leader_student_name: booking.leader_student_name,
-                        status: booking.status,
-                        school_package: booking.school_package,
-                        students,
-                    },
-                };
-            }),
+            lessons: allLessons, // Keep original lessons data for relations if needed elsewhere
             student_booking_payment: safeArray(booking.student_booking_payment).map((p: any) => ({
                 id: p.id,
                 amount: p.amount,
@@ -126,7 +151,13 @@ export async function getBookingId(id: string): Promise<{ success: boolean; data
             schema,
             updateForm,
             relations,
+            transactions,
+            lessonRows,
+            totalEventsCount,
+            totalUsedMinutes,
+            totalDueAmount,
         };
+
 
         logger.debug("Fetched booking details", { bookingId: id, schoolId, lessonCount: relations.lessons.length });
         return { success: true, data: bookingData };

@@ -33,10 +33,11 @@ export function TeacherLessonsClient() {
     const filteredAndSortedLessonRows = useMemo(() => {
         let filtered = teacherUser.lessonRows;
         
-        // Filter by lesson status
+        // Filter by status
         if (filter !== "All") {
             filtered = filtered.filter((lesson) => {
-                return lesson.lessonStatus === filter;
+                // Check if any event in the lesson matches the filter
+                return lesson.events.some((event: any) => event.eventStatus === filter);
             });
         }
         
@@ -46,9 +47,9 @@ export function TeacherLessonsClient() {
             filtered = filtered.filter(
                 (lesson) =>
                     lesson.leaderName.toLowerCase().includes(query) ||
-                    lesson.events.some((event) => 
+                    lesson.events.some((event: any) => 
                         event.location?.toLowerCase().includes(query) ||
-                        event.bookingStudents?.some((student) => 
+                        event.bookingStudents?.some((student: any) => 
                             `${student.firstName} ${student.lastName}`.toLowerCase().includes(query)
                         )
                     ),

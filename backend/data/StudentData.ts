@@ -1,6 +1,10 @@
 import type { StudentWithBookingsAndPayments, StudentTableStats, StudentTableData } from "@/config/tables";
+import type { TransactionEventData, LessonRow } from "@/types/transaction-event";
 
-export type StudentData = StudentTableData;
+export type StudentData = StudentTableData & {
+    transactions: TransactionEventData[];
+    lessonRows: LessonRow[];
+};
 export type StudentRelations = any; // Define properly if needed
 export type StudentUpdateForm = any; // Define properly if needed
 

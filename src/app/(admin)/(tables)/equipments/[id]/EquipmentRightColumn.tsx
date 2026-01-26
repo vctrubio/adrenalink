@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
-import { Calendar, Wrench, Package, MapPin, TrendingUp } from "lucide-react";
+import { Calendar, Wrench, Package, MapPin, TrendingUp, TrendingUpDown } from "lucide-react";
 import type { EquipmentData } from "@/backend/data/EquipmentData";
 import { getHMDuration } from "@/getters/duration-getter";
 import { getTimeFromISO } from "@/getters/queue-getter";
@@ -86,7 +86,7 @@ export function EquipmentRightColumn({ equipment }: EquipmentRightColumnProps) {
                                                 )}
                                                 {eventRevenue > 0 && (
                                                     <div className="flex items-center gap-2">
-                                                        <TrendingUp size={16} className="text-success" />
+                                                        <TrendingUpDown size={16} className="text-success" />
                                                         <span className="text-sm font-semibold text-success">{Math.round(eventRevenue)}</span>
                                                     </div>
                                                 )}

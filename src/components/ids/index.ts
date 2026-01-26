@@ -7,7 +7,6 @@ export {
     type EventData,
     type ReferralData,
 } from "./PackageRequestBookingContainer";
-export { FullBookingCard, type BookingData as FullBookingCardBookingData } from "./FullBookingContainer";
 export { TeacherLessonCard, type TeacherLessonCardData, type TeacherLessonCardEvent } from "./TeacherLessonCard";
 export { LessonEventRow } from "./LessonEventRow";
 export { TeacherBookingLessonTable } from "./TeacherBookingLessonTable";

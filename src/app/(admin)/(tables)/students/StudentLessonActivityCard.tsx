@@ -1,66 +1,52 @@
 "use client";
 
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, MapPin, ExternalLink } from "lucide-react";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 import { LessonEventRow } from "@/src/components/ids/LessonEventRow";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { type LessonRow } from "@/types/transaction-event";
 import { getLeaderCapacity } from "@/getters/bookings-getter";
 import { getPPP } from "@/getters/integer-getter";
-import { ChevronDown } from "lucide-react";
-import Link from "next/link";
-import { LessonHeaderStats, type LessonHeaderStats as LessonHeaderStatsType } from "./LessonHeaderStats";
+import type { LessonRow } from "@/types/transaction-event";
+import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
-interface TeacherBookingLessonTableProps {
+interface StudentLessonActivityCardProps {
     lesson: LessonRow;
-    isExpanded: boolean;
-    onToggle: () => void;
     currency: string;
     teacherId?: string;
     teacherUsername?: string;
     onEquipmentUpdate?: (eventId: string, equipment: any) => void;
-    clickable?: boolean; // Default true for admin view, false for teacher user view
-    headerStats?: LessonHeaderStatsType | null; // If null, don't show header. If provided, show header with stats.
 }
 
-export function TeacherBookingLessonTable({
+export function StudentLessonActivityCard({
     lesson,
-    isExpanded,
-    onToggle,
     currency,
     teacherId,
     teacherUsername,
     onEquipmentUpdate,
-    clickable = true,
-    headerStats,
-}: TeacherBookingLessonTableProps) {
+}: StudentLessonActivityCardProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
     const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === lesson.equipmentCategory);
     const EquipmentIcon = equipmentConfig?.icon;
 
-    const borderClass = headerStats ? "border-t border-border" : "rounded-lg border border-border";
-    const tableContent = (
-        <div className={`${borderClass} bg-card hover:border-primary/30 transition-colors`}>
+    return (
+        <div className="rounded-lg border border-border overflow-hidden bg-card hover:border-primary/30 transition-colors">
             <div
-                onClick={onToggle}
+                onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
             >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     {EquipmentIcon && (
-                        clickable ? (
-                            <Link 
-                                href={`/bookings/${lesson.bookingId}`}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0 hover:bg-muted/40 transition-colors">
-                                    <EquipmentIcon size={16} className="text-foreground/60" />
-                                </div>
-                            </Link>
-                        ) : (
-                            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0">
-                                <EquipmentIcon size={16} className="text-foreground/60" />
-                            </div>
-                        )
+                        <Link 
+                            href={`/bookings/${lesson.bookingId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0 hover:bg-muted/40 transition-colors"
+                        >
+                            <EquipmentIcon size={16} className="text-foreground/60" />
+                        </Link>
                     )}
                     
                     <div className="flex-1 min-w-0 space-y-1">
@@ -70,7 +56,7 @@ export function TeacherBookingLessonTable({
                         <div className="flex items-center gap-2">
                             <BookingStatusLabel
                                 status={lesson.bookingStatus}
-                                bookingId={clickable ? lesson.bookingId : undefined}
+                                bookingId={lesson.bookingId}
                                 size={12}
                                 startDate={lesson.dateStart}
                                 endDate={lesson.dateEnd}
@@ -89,10 +75,11 @@ export function TeacherBookingLessonTable({
                             {getPPP(lesson.totalEarning)} {currency}
                         </span>
                     </div>
-                    <ChevronDown 
-                        size={16} 
-                        className={`text-muted-foreground/40 transition-transform shrink-0 ${isExpanded ? "rotate-180" : ""}`}
-                    />
+                    {isExpanded ? (
+                        <ChevronDown size={16} className="text-muted-foreground/40 transition-transform shrink-0" />
+                    ) : (
+                        <ChevronRight size={16} className="text-muted-foreground/40 transition-transform shrink-0" />
+                    )}
                 </div>
             </div>
 
@@ -110,19 +97,4 @@ export function TeacherBookingLessonTable({
             )}
         </div>
     );
-
-    // If headerStats is provided, wrap in container with header
-    if (headerStats) {
-        return (
-            <div className="rounded-lg border border-border overflow-hidden">
-                <LessonHeaderStats stats={headerStats} />
-                <div className="bg-card">
-                    {tableContent}
-                </div>
-            </div>
-        );
-    }
-
-    // Otherwise, return table without header
-    return tableContent;
 }

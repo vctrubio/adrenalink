@@ -30,6 +30,9 @@ export function TimelineDateGroup({
     const totalDuration = events.reduce((sum, e) => sum + e.duration, 0);
     const totalSchoolRevenue = events.reduce((sum, e) => sum + e.schoolRevenue, 0);
 
+    const month = date.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    const year = date.getFullYear();
+
     return (
         <div className="relative">
             <div className="flex items-center gap-3 mb-3">
@@ -40,6 +43,10 @@ export function TimelineDateGroup({
                     <span className="text-xl font-black leading-none text-foreground mt-0.5">{date.getDate()}</span>
                 </div>
                 <div className="flex-1 h-px bg-border" />
+                <div className="flex flex-col items-end gap-1 text-right text-muted-foreground">
+                    <span className="text-[10px] font-bold uppercase leading-none">{month}</span>
+                    <span className="text-xs font-medium leading-none">{year}</span>
+                </div>
                 <DateSinceBadge date={date} />
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <FlagIcon size={14} />

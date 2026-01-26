@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Check, ChevronDown } from "lucide-react";
-import type { EventNode } from "@/types/classboard-teacher-queue";
+import type { TransactionEventData } from "@/types/transaction-event";
 import { useTeacherEquipment } from "@/src/hooks/useTeacherEquipment";
 import { useEquipment } from "@/src/hooks/useEquipment";
 import { useTeacherUser } from "@/src/providers/teacher-user-provider";
@@ -13,27 +13,27 @@ import { LESSON_STATUS_CONFIG } from "@/types/status";
 import toast from "react-hot-toast";
 
 interface EventTeacherConfirmationProps {
-    event: EventNode;
+    event: TransactionEventData;
     currency: string;
 }
 
 export function EventTeacherConfirmation({ event, currency }: EventTeacherConfirmationProps) {
     // Only show if status is tbc
-    if (event.eventData.status !== "tbc") {
+    if (event.event.status !== "tbc") {
         return null;
     }
 
     const teacherUser = useTeacherUser();
     const teacherId = teacherUser.data.teacher.id;
-    const capacityEquipment = event.capacityEquipment || 1;
+    const capacityEquipment = event.packageData.capacityEquipment || 1;
 
-    const [modifiedDuration, setModifiedDuration] = useState(event.eventData.duration);
+    const [modifiedDuration, setModifiedDuration] = useState(event.event.duration);
     const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
     const [isConfirming, setIsConfirming] = useState(false);
     const [useSchoolEquipment, setUseSchoolEquipment] = useState(false);
 
-    const { equipment: teacherEquipment, fetchEquipment: fetchTeacherEquipment } = useTeacherEquipment(teacherId, event.categoryEquipment);
-    const { availableEquipment: schoolEquipment, fetchAvailable: fetchSchoolEquipment, isLoading: isLoadingSchool } = useEquipment(event.categoryEquipment);
+    const { equipment: teacherEquipment, fetchEquipment: fetchTeacherEquipment } = useTeacherEquipment(teacherId, event.packageData.categoryEquipment);
+    const { availableEquipment: schoolEquipment, fetchAvailable: fetchSchoolEquipment, isLoading: isLoadingSchool } = useEquipment(event.packageData.categoryEquipment);
 
     // Auto-fetch teacher equipment on mount
     useEffect(() => {
@@ -49,7 +49,7 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
 
     const hours = Math.floor(modifiedDuration / 60);
     const minutes = modifiedDuration % 60;
-    const remainingMinutes = event.packageDuration - modifiedDuration;
+    const remainingMinutes = event.packageData.durationMinutes - modifiedDuration;
 
     const handleHoursChange = (newHours: number) => {
         const h = Math.max(0, newHours);
@@ -84,8 +84,8 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
 
         try {
             // Step 1: Update duration if changed
-            if (modifiedDuration !== event.eventData.duration) {
-                const durationResult = await updateEventDuration(event.id, modifiedDuration);
+            if (modifiedDuration !== event.event.duration) {
+                const durationResult = await updateEventDuration(event.event.id, modifiedDuration);
                 if (!durationResult.success) {
                     toast.error(durationResult.error || "Failed to update duration");
                     setIsConfirming(false);
@@ -94,7 +94,7 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
             }
 
             // Step 2: Assign all selected equipment
-            const assignPromises = selectedEquipmentIds.map((equipmentId) => assignEquipmentToEvent(event.id, equipmentId));
+            const assignPromises = selectedEquipmentIds.map((equipmentId) => assignEquipmentToEvent(event.event.id, equipmentId));
             const results = await Promise.all(assignPromises);
 
             const failedAssignments = results
@@ -116,7 +116,7 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
             }
 
             // Step 3: Update event status to completed
-            const statusResult = await updateEventStatus(event.id, "completed");
+            const statusResult = await updateEventStatus(event.event.id, "completed");
             if (statusResult.success) {
                 toast.success("Event confirmed successfully");
             } else {
@@ -128,11 +128,11 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
         } finally {
             setIsConfirming(false);
         }
-    }, [selectedEquipmentIds, isConfirming, event.id, modifiedDuration, event.eventData.duration, useSchoolEquipment, schoolEquipment, teacherEquipment]);
+    }, [selectedEquipmentIds, isConfirming, event.event.id, modifiedDuration, event.event.duration, useSchoolEquipment, schoolEquipment, teacherEquipment]);
 
     const canSelectMore = selectedEquipmentIds.length < capacityEquipment;
     const currentEquipment = useSchoolEquipment ? schoolEquipment : teacherEquipment;
-    const lessonStatusConfig = LESSON_STATUS_CONFIG[event.lessonStatus as keyof typeof LESSON_STATUS_CONFIG];
+    const lessonStatusConfig = LESSON_STATUS_CONFIG[event.lesson.status as keyof typeof LESSON_STATUS_CONFIG];
 
     return (
         <div className="px-6 py-6 bg-card border-t border-border space-y-6 rounded-b-3xl">
@@ -285,7 +285,7 @@ export function EventTeacherConfirmation({ event, currency }: EventTeacherConfir
                         <span className="text-sm font-semibold text-foreground uppercase">{lessonStatusConfig.label}</span>
                     </div>
                 ) : (
-                    <div className="text-sm font-semibold text-foreground uppercase">{event.lessonStatus}</div>
+                    <div className="text-sm font-semibold text-foreground uppercase">{event.lesson.status}</div>
                 )}
             </div>
 

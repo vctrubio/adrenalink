@@ -4,10 +4,12 @@ import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import type { TeacherData } from "@/backend/data/TeacherData";
-import { type LessonRow } from "@/backend/data/TeacherLessonData";
-import { lessonsToTransactionEvents, transactionEventToTimelineEvent } from "@/getters/transaction-event-getter";
+import {
+    lessonsToTransactionEvents,
+    groupTransactionsByLesson,
+    transactionEventToTimelineEvent,
+} from "@/getters/booking-lesson-event-getter";
 import { ENTITY_DATA } from "@/config/entities";
-import type { TransactionEventData } from "@/types/transaction-event";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
@@ -17,15 +19,11 @@ import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import type { SortConfig, SortOption } from "@/types/sort";
 import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
 import { LESSON_STATUS_CONFIG, type LessonStatus } from "@/types/status";
-import FlagIcon from "@/public/appSvgs/FlagIcon";
-import DurationIcon from "@/public/appSvgs/DurationIcon";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
 import { Calendar, List } from "lucide-react";
-import { TeacherLessonCard, TeacherBookingLessonTable } from "@/src/components/ids";
-import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { getHMDuration } from "@/getters/duration-getter";
-import { StatItemUI } from "@/backend/data/StatsData";
+import { TeacherBookingLessonTable } from "@/src/components/ids";
 import { CommissionsView } from "@/src/components/teacher/CommissionsView";
+import { safeArray } from "@/backend/error-handlers";
 
 type ViewMode = "lessons" | "timeline" | "commissions";
 type StatusFilter = EventStatusFilter | LessonStatus | "fixed" | "percentage" | "all";
@@ -41,15 +39,14 @@ const EVENT_FILTER_OPTIONS = ["All", "planned", "completed", "tbc", "uncompleted
 // Lesson status filter options
 const LESSON_FILTER_OPTIONS = ["All", ...Object.values(LESSON_STATUS_CONFIG).map((config) => config.status)] as const;
 
-// Commission type filter options (with proper capitalization for display)
-const COMMISSION_FILTER_OPTIONS = ["All", "Fixed", "Percentage"] as const;
+// Commission type filter options
+const COMMISSION_FILTER_OPTIONS = ["All", "fixed", "percentage"] as const;
 
 const VIEW_MODE_OPTIONS = [
     { id: "timeline", label: "Timeline", icon: Calendar },
     { id: "lessons", label: "By Lesson", icon: List },
     { id: "commissions", label: "By Commission", icon: HandshakeIcon },
 ] as const;
-
 
 // Sub-component: Lessons View
 export function LessonsView({
@@ -61,7 +58,7 @@ export function LessonsView({
     teacherUsername,
     onEquipmentUpdate,
 }: {
-    lessonRows: LessonRow[];
+    lessonRows: any[];
     expandedLesson: string | null;
     setExpandedLesson: (id: string | null) => void;
     currency: string;
@@ -153,13 +150,10 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
 
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
-    // Use standardized snake_case relation
-    const lessons = teacher.relations?.lesson || [];
-
-    // Single source of truth: Transform lessons to TransactionEventData once
+    // Single source of truth: Use the unified getter
     const transactionEvents = useMemo(() => {
-        return lessonsToTransactionEvents(lessons, currency);
-    }, [lessons, currency]);
+        return lessonsToTransactionEvents(teacher.relations?.lesson || [], currency);
+    }, [teacher.relations?.lesson, currency]);
 
     // Handle equipment assignment and status update, then revalidate
     const handleEquipmentUpdate = useCallback(
@@ -173,15 +167,15 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
     const filteredEvents = useMemo(() => {
         let filtered = transactionEvents;
         if (viewMode === "timeline" && filter !== "all") {
-            filtered = filtered.filter((event) => event.event.status === filter);
+            filtered = filtered.filter((tx) => tx.event.status === filter);
         }
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
-                (event) =>
-                    event.leaderStudentName.toLowerCase().includes(query) ||
-                    event.event.location?.toLowerCase().includes(query) ||
-                    event.teacher.username.toLowerCase().includes(query),
+                (tx) =>
+                    tx.booking.leaderStudentName.toLowerCase().includes(query) ||
+                    tx.event.location?.toLowerCase().includes(query) ||
+                    tx.teacher.username.toLowerCase().includes(query),
             );
         }
         return filtered;
@@ -215,69 +209,38 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
         return sorted;
     }, [filteredEvents, sort]);
 
-    // Build lesson rows from lessons + filtered events
-    const lessonRows: LessonRow[] = useMemo(() => {
-        let rows = lessons
-            .map((lesson: any) => {
-                const lessonEvents = sortedEvents.filter((event) => event.event.lessonId === lesson.id);
+    // Build lesson rows from pre-computed transactions
+    const lessonRows = useMemo(() => {
+        // Map payments for grouping
+        const lessonPaymentsMap: Record<string, number> = {};
+        safeArray(teacher.relations?.lesson).forEach((l) => {
+            lessonPaymentsMap[l.id] = safeArray(l.teacher_lesson_payment).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+        });
 
-                if (lessonEvents.length === 0) return null;
+        let rows = groupTransactionsByLesson(transactionEvents, lessonPaymentsMap);
 
-                const booking = lesson.booking;
-                const commission = lesson.teacher_commission;
-                const totalDuration = lessonEvents.reduce((sum, e) => sum + e.event.duration, 0);
-                const totalHours = totalDuration / 60;
-                const totalEarning = lessonEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
-                const totalRevenue = lessonEvents.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
-                // Calculate actual teacher payments from teacher_lesson_payment
-                const totalPayments = (lesson.teacher_lesson_payment || []).reduce(
-                    (sum: number, p: any) => sum + (p.amount || 0),
-                    0
-                );
-
-                return {
-                    lessonId: lesson.id,
-                    bookingId: booking?.id || "",
-                    leaderName: booking?.leader_student_name || "",
-                    dateStart: booking?.date_start || "",
-                    dateEnd: booking?.date_end || "",
-                    lessonStatus: lesson.status || "",
-                    bookingStatus: booking?.status || "",
-                    commissionType: (commission?.commission_type as "fixed" | "percentage") || "fixed",
-                    cph: commission ? parseFloat(commission.cph) : 0,
-                    commissionDescription: commission?.description || null,
-                    totalDuration,
-                    totalHours,
-                    totalEarning,
-                    totalRevenue,
-                    totalPayments,
-                    eventCount: lessonEvents.length,
-                    events: lessonEvents.map(transactionEventToTimelineEvent),
-                    equipmentCategory: lessonEvents[0]?.packageData.categoryEquipment || "",
-                    studentCapacity: lessonEvents[0]?.packageData.capacityStudents || 0,
-                };
-            })
-            .filter((row): row is LessonRow => row !== null);
-
-        // Apply view-specific filters
+        // Apply filters
         if (viewMode === "lessons" && filter !== "all") {
             rows = rows.filter((row) => row.lessonStatus === filter);
         } else if (viewMode === "commissions" && filter !== "all") {
-            // Convert display label back to lowercase for filtering
-            const commissionType = filter === "Fixed" ? "fixed" : filter === "Percentage" ? "percentage" : filter;
-            rows = rows.filter((row) => row.commissionType === commissionType);
+            rows = rows.filter((row) => row.commissionType === filter);
+        }
+
+        // Apply search query to grouped rows
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            rows = rows.filter((row) => row.leaderName.toLowerCase().includes(query) || row.lessonId.toLowerCase().includes(query));
         }
 
         return rows;
-    }, [lessons, sortedEvents, viewMode, filter]);
+    }, [transactionEvents, teacher.relations?.lesson, viewMode, filter, searchQuery]);
 
     // Adapt TransactionEventData to TimelineEvent for timeline view
     const timelineEvents = useMemo(() => {
         return sortedEvents.map(transactionEventToTimelineEvent);
     }, [sortedEvents]);
 
-    // Check if there are no lessons at all (before filtering)
-    const hasNoLessons = lessons.length === 0;
+    const hasNoLessons = (teacher.relations?.lesson || []).length === 0;
 
     return (
         <div className="space-y-4">
@@ -299,24 +262,9 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 />
                 <FilterDropdown
                     label={filterLabel}
-                    value={
-                        filter === "all"
-                            ? "All"
-                            : viewMode === "commissions" && (filter === "fixed" || filter === "percentage")
-                              ? filter.charAt(0).toUpperCase() + filter.slice(1)
-                              : filter
-                    }
+                    value={filter === "all" ? "All" : filter}
                     options={[...filterOptions]}
-                    onChange={(value) => {
-                        if (value === "All") {
-                            setFilter("all");
-                        } else if (viewMode === "commissions") {
-                            // Convert display label to lowercase for state
-                            setFilter(value.toLowerCase() as StatusFilter);
-                        } else {
-                            setFilter(value as StatusFilter);
-                        }
-                    }}
+                    onChange={(value) => setFilter(value === "All" ? "all" : (value as StatusFilter))}
                     entityColor={teacherEntity.color}
                 />
             </div>
@@ -327,7 +275,7 @@ export function TeacherRightColumn({ teacher }: TeacherRightColumnProps) {
                 <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
                     No lessons found for this teacher
                 </div>
-            ) : lessonRows.length === 0 ? (
+            ) : lessonRows.length === 0 && viewMode !== "timeline" ? (
                 <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
                     No lessons match your search or filter criteria
                 </div>

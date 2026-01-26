@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
-import { motion } from "framer-motion";
-import type { LessonRow } from "@/backend/data/TeacherLessonData";
-import { TeacherBookingLessonTable } from "@/src/components/ids";
-import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { StatItemUI } from "@/backend/data/StatsData";
+import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
+import { TeacherBookingLessonTable } from "@/src/components/ids";
+import type { LessonRow } from "@/types/transaction-event";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 
 interface CommissionsViewProps {
@@ -40,10 +40,10 @@ export function CommissionsView({
             map.get(key)!.push(lesson);
         }
 
-        return Array.from(map.entries()).map(([key, lessons]) => {
+        return Array.from(map.values()).map((lessons) => {
             const firstLesson = lessons[0];
-            const totalHours = lessons.reduce((sum, l) => sum + l.totalHours, 0);
-            const totalEarning = lessons.reduce((sum, l) => sum + l.totalEarning, 0);
+            const totalHours = lessons.reduce((sum, l) => sum + (l.totalHours || 0), 0);
+            const totalEarning = lessons.reduce((sum, l) => sum + (l.totalEarning || 0), 0);
 
             return {
                 type: firstLesson.commissionType as "fixed" | "percentage",

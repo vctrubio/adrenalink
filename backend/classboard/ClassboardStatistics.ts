@@ -123,13 +123,27 @@ export class ClassboardStatistics {
                                 location: event.location,
                                 status: event.status,
                             },
+                            lesson: {
+                                id: event.lessonId,
+                                status: "active", // Default since classboard model might not have lesson status
+                            },
+                            booking: {
+                                id: booking.id,
+                                leaderStudentName,
+                                status: booking.status,
+                                students: bookingStudents.map((bs) => ({
+                                    id: bs.student.id,
+                                    firstName: bs.student.firstName,
+                                    lastName: bs.student.lastName,
+                                    passport: bs.student.passport,
+                                    country: bs.student.country,
+                                    phone: bs.student.phone,
+                                })),
+                            },
                             teacher: {
                                 id: lesson.teacher.id,
                                 username: lesson.teacher.username,
                             },
-                            leaderStudentName,
-                            studentCount,
-                            studentNames,
                             packageData: {
                                 description: schoolPackage.description,
                                 pricePerStudent: schoolPackage.pricePerStudent,
@@ -137,6 +151,12 @@ export class ClassboardStatistics {
                                 categoryEquipment: schoolPackage.categoryEquipment,
                                 capacityEquipment: schoolPackage.capacityEquipment,
                                 capacityStudents: schoolPackage.capacityStudents,
+                            },
+                            commission: {
+                                id: lesson.commission.id,
+                                type: lesson.commission.type as "fixed" | "percentage",
+                                cph: cph,
+                                description: null,
                             },
                             financials: {
                                 teacherEarnings,

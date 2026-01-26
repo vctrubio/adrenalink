@@ -1,5 +1,6 @@
 import type { BookingWithLessonAndPayments, BookingTableStats } from "@/config/tables";
 import type { Booking } from "@/supabase/db/types";
+import type { TransactionEventData, LessonRow } from "@/types/transaction-event";
 
 /**
  * Booking Relations - all related data from joined tables
@@ -23,6 +24,12 @@ export interface BookingData {
     schema: Booking;
     updateForm: BookingUpdateForm;
     relations: BookingRelations;
+    transactions: TransactionEventData[]; // Pre-computed transactions
+    lessonRows: LessonRow[]; // Pre-computed lesson rows
+    // Aggregate stats for easier access in UI
+    totalEventsCount: number;
+    totalUsedMinutes: number;
+    totalDueAmount: number;
 }
 
 /**

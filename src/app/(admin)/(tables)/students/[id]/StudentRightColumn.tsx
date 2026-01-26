@@ -6,10 +6,8 @@ import { useRouter } from "next/navigation";
 import type { StudentData } from "@/backend/data/StudentData";
 import { type EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
 import type { SortConfig, SortOption } from "@/types/sort";
-import { StudentBookingActivityCard } from "../StudentBookingActivityCard";
-import { calculateBookingStats } from "@/backend/data/BookingData";
-import type { LessonWithPayments, BookingStudentPayments } from "@/config/tables";
-import { lessonsToTransactionEvents, transactionEventToTimelineEvent } from "@/getters/transaction-event-getter";
+import { StudentLessonActivityCard } from "../StudentLessonActivityCard";
+import { transactionEventToTimelineEvent } from "@/getters/booking-lesson-event-getter"; // Only need this for timeline conversion
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline } from "@/src/components/timeline";
 import { ToggleBar } from "@/src/components/ui/ToggleBar";
@@ -18,6 +16,7 @@ import { SortDropdown } from "@/src/components/ui/SortDropdown";
 import { FilterDropdown } from "@/src/components/ui/FilterDropdown";
 import { ENTITY_DATA } from "@/config/entities";
 import { Calendar, List } from "lucide-react";
+import { safeArray } from "@/backend/error-handlers";
 
 type ViewMode = "timeline" | "by-bookings";
 
@@ -56,7 +55,9 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
     const formatCurrency = (num: number) => `${num.toFixed(2)} ${currency}`;
 
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student")!;
-    const bookings = student.relations?.bookings || [];
+    // Directly use pre-computed transactions and lessonRows from student.data
+    const allTransactions = student.transactions || [];
+    const allLessonRows = student.lessonRows || [];
 
     const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
         router.refresh();
@@ -74,15 +75,9 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         }
     }, []);
 
-    // Single source of truth: Transform all booking lessons to TransactionEventData
-    const transactionEvents = useMemo(() => {
-        const allLessons = bookings.flatMap((b: any) => b.lessons || []);
-        return lessonsToTransactionEvents(allLessons, currency);
-    }, [bookings, currency]);
-
-    // Filter events by search and status
+    // Filter events by search and status for timeline view
     const filteredEvents = useMemo(() => {
-        let filtered = transactionEvents;
+        let filtered = allTransactions;
         if (filter !== "all") {
             filtered = filtered.filter((event) => event.event.status === filter);
         }
@@ -90,13 +85,13 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (event) =>
-                    event.leaderStudentName.toLowerCase().includes(query) ||
+                    event.booking.leaderStudentName.toLowerCase().includes(query) ||
                     event.event.location?.toLowerCase().includes(query) ||
                     event.teacher.username.toLowerCase().includes(query),
             );
         }
         return filtered;
-    }, [transactionEvents, searchQuery, filter]);
+    }, [allTransactions, searchQuery, filter]);
 
     // Sort events
     const sortedEvents = useMemo(() => {
@@ -131,86 +126,21 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         return sortedEvents.map(transactionEventToTimelineEvent);
     }, [sortedEvents]);
 
-    // Transform bookings to match StudentBookingActivityCard format (for By Bookings view)
-    const transformedBookings = useMemo(() => {
-        return bookings.map((b: any) => {
-            const pkg = b.school_package;
-            if (!pkg) return null;
-
-            // Transform lessons to LessonWithPayments format
-            const lessons: LessonWithPayments[] = (b.lessons || []).map((l: any) => {
-                const events = l.event || l.events || [];
-                const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-
-                return {
-                    id: l.id,
-                    teacherId: l.teacher?.id || "",
-                    teacherUsername: l.teacher?.username || "unknown",
-                    status: l.status,
-                    commission: {
-                        type: (l.teacher_commission?.commission_type as "fixed" | "percentage") || "fixed",
-                        cph: l.teacher_commission?.cph || "0",
-                    },
-                    events: {
-                        totalCount: events.length,
-                        totalDuration: totalDuration,
-                        details: events.map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
-                    },
-                    teacherPayments: 0,
-                };
-            });
-
-            // Transform payments
-            const payments: BookingStudentPayments[] = (b.student_booking_payment || []).map((p: any) => ({
-                student_id: 0,
-                amount: p.amount,
-            }));
-
-            // Calculate stats
-            const bookingData = {
-                package: {
-                    description: pkg.description,
-                    categoryEquipment: pkg.category_equipment,
-                    capacityEquipment: pkg.capacity_equipment,
-                    capacityStudents: pkg.capacity_students,
-                    durationMinutes: pkg.duration_minutes,
-                    pricePerStudent: pkg.price_per_student,
-                    pph: pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0,
-                },
-                lessons,
-                payments,
-            };
-
-            const stats = calculateBookingStats(bookingData as any);
-
-            return {
-                id: b.id,
-                status: b.status,
-                dateStart: b.date_start,
-                dateEnd: b.date_end,
-                packageName: pkg.description,
-                packageDetails: bookingData.package,
-                lessons,
-                stats,
-            };
-        }).filter((b: any) => b !== null);
-    }, [bookings]);
-
-    // Filter and sort bookings for By Bookings view
+    // Filter and sort lessonRows for By Bookings view
     const filteredBookings = useMemo(() => {
-        let result = [...transformedBookings];
+        let result = [...allLessonRows];
 
         // Filter by status
         if (filter !== "all") {
-            result = result.filter((b) => b.status === filter);
+            result = result.filter((b) => b.bookingStatus === filter);
         }
 
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter((b) => {
-                const packageMatch = b.packageName?.toLowerCase().includes(query);
-                return packageMatch;
+                const leaderMatch = b.leaderName?.toLowerCase().includes(query);
+                return leaderMatch;
             });
         }
 
@@ -230,9 +160,9 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         });
 
         return result;
-    }, [transformedBookings, searchQuery, filter, sort]);
+    }, [allLessonRows, searchQuery, filter, sort]);
 
-    if (bookings.length === 0) {
+    if ((student.relations?.bookings || []).length === 0) { // Check original bookings length
         return (
             <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
                 No bookings found for this student
@@ -245,7 +175,7 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
             <div className="flex flex-wrap items-center gap-2">
                 <div className="flex-1 min-w-64">
                     <SearchInput
-                        placeholder={viewMode === "timeline" ? "Search by teacher, location, or leader..." : "Search bookings by package..."}
+                        placeholder={viewMode === "timeline" ? "Search by teacher, location, or leader..." : "Search bookings by leader..."}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         entityColor={studentEntity.color}
@@ -288,8 +218,13 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                         exit={{ opacity: 0, y: -10 }}
                         className="space-y-4"
                     >
-                        {filteredBookings.map((booking) => (
-                            <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
+                        {filteredBookings.map((lesson) => (
+                            <StudentLessonActivityCard
+                                key={lesson.lessonId}
+                                lesson={lesson}
+                                currency={currency}
+                                onEquipmentUpdate={handleEquipmentUpdate}
+                            />
                         ))}
                         {filteredBookings.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-xl border border-border/50">

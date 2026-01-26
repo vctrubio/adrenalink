@@ -242,3 +242,34 @@ export const EQUIPMENT_STATUS_CONFIG: Record<EquipmentStatus, EquipmentStatusCon
         label: "RIP",
     },
 } as const;
+
+// ============ STUDENT PACKAGE REQUEST STATUS CONFIGURATION ============
+export type StudentPackageRequestStatus = "requested" | "accepted" | "rejected";
+
+export interface StudentPackageRequestStatusConfig {
+    status: StudentPackageRequestStatus;
+    label: string;
+    textColor: string;
+    hoverBg: string;
+}
+
+export const STUDENT_PACKAGE_REQUEST_STATUS_CONFIG: Record<StudentPackageRequestStatus, StudentPackageRequestStatusConfig> = {
+    requested: {
+        status: "requested",
+        label: "pending",
+        textColor: "text-blue-500",
+        hoverBg: "hover:bg-blue-500",
+    },
+    accepted: {
+        status: "accepted",
+        label: "purchased",
+        textColor: "text-emerald-500",
+        hoverBg: "hover:bg-emerald-500",
+    },
+    rejected: {
+        status: "rejected",
+        label: "declined",
+        textColor: "text-red-500",
+        hoverBg: "hover:bg-red-500",
+    },
+} as const;

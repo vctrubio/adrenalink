@@ -4,6 +4,7 @@ import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data
 import { Student } from "@/supabase/db/types";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
+import { lessonsToTransactionEvents, groupTransactionsByLesson } from "@/getters/booking-lesson-event-getter";
 
 /**
  * Fetches a student by ID with all relations mapped to StudentData interface.
@@ -48,7 +49,22 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         *,
                         teacher(id, username, first_name, last_name),
                         teacher_commission(cph, commission_type),
-                        event(*)
+                        event(
+                            *,
+                            equipment_event(
+                                equipment(
+                                    id,
+                                    sku,
+                                    brand,
+                                    model,
+                                    color,
+                                    size,
+                                    category,
+                                    status
+                                )
+                            )
+                        ),
+                        teacher_lesson_payment(*)
                     ),
                     student_booking_payment(*)
                 )
@@ -61,7 +77,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             logger.warn("Error fetching student bookings", bookingError);
         }
 
-        // 3. Transform bookings and aggregate ALL payments
+        // 3. Transform bookings into the structure needed for unified getters
         const bookings = safeArray(bookingLinks)
             .map((bl: any) => {
                 const b = bl.booking;
@@ -74,47 +90,25 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                     date_start: b.date_start,
                     date_end: b.date_end,
                     created_at: b.created_at,
-                    school_package: {
-                        id: b.school_package.id,
-                        description: b.school_package.description,
-                        duration_minutes: b.school_package.duration_minutes,
-                        price_per_student: b.school_package.price_per_student,
-                        capacity_students: b.school_package.capacity_students,
-                        capacity_equipment: b.school_package.capacity_equipment,
-                        category_equipment: b.school_package.category_equipment,
-                    },
-                    lessons: safeArray(b.lesson).map((l: any) => {
-                        const events = safeArray(l.event);
-
-                        // Normalize to match buildTeacherLessonData expected structure
-                        // Transform: events -> event (singular), add booking with school_package nested
-                        return {
-                            ...l,
-                            id: l.id,
-                            status: l.status,
-                            teacher: {
-                                id: l.teacher?.id,
-                                username: l.teacher?.username,
-                                first_name: l.teacher?.first_name,
-                            },
-                            // Normalize: events -> event (singular) to match teacher data structure
-                            event: events,
-                            // Add booking object with school_package nested (as expected by buildTeacherLessonData)
-                            booking: {
-                                id: b.id,
-                                leader_student_name: b.leader_student_name,
-                                date_start: b.date_start,
-                                date_end: b.date_end,
-                                status: b.status,
-                                school_package: b.school_package,
-                            },
-                            // teacher_commission is already in the correct structure
-                            teacher_commission: {
-                                commission_type: l.teacher_commission?.commission_type,
-                                cph: l.teacher_commission?.cph,
-                            },
-                        };
-                    }),
+                    school_package: b.school_package,
+                    lessons: safeArray(b.lesson).map((l: any) => ({
+                        ...l,
+                        event: safeArray(l.event).map((evt: any) => ({
+                            ...evt,
+                            equipment_event: safeArray(evt.equipment_event),
+                        })),
+                        teacher: l.teacher,
+                        teacher_commission: l.teacher_commission,
+                        booking: { 
+                            id: b.id,
+                            leader_student_name: b.leader_student_name,
+                            date_start: b.date_start,
+                            date_end: b.date_end,
+                            status: b.status,
+                            school_package: b.school_package,
+                            booking_student: safeArray(b.booking_student).map((bs:any) => ({student: bs.student}))
+                        }
+                    })),
                     student_booking_payment: safeArray(b.student_booking_payment).map((p: any) => ({
                         id: p.id,
                         amount: p.amount,
@@ -173,10 +167,26 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             schoolId: schoolId,
         };
 
+        // Unified processing of all lessons into transactions and lessonRows
+        const allLessons = bookings.flatMap((b: any) => b.lessons || []);
+        const transactions = lessonsToTransactionEvents(allLessons, schoolHeader.currency || "YEN");
+
+        const lessonPaymentsMap: Record<string, number> = {};
+        allLessons.forEach((l: any) => {
+            lessonPaymentsMap[l.id] = safeArray(l.teacher_lesson_payment).reduce(
+                (sum: number, p: any) => sum + (p.amount || 0),
+                0
+            );
+        });
+        const lessonRows = groupTransactionsByLesson(transactions, lessonPaymentsMap);
+
+
         const studentData: StudentData = {
             schema,
             updateForm,
             relations,
+            transactions,
+            lessonRows,
         };
 
         logger.debug("Fetched student details", { studentId: id, schoolId, bookingCount: bookings.length });

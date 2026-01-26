@@ -118,6 +118,8 @@ export function StatItemUI({
         const num = typeof value === "string" ? parseFloat(value) : typeof value === "number" ? value : NaN;
         if (!isNaN(num)) {
             displayValue = getCompactNumber(num);
+        } else {
+            displayValue = "N/A"; // Fallback for NaN numbers
         }
     }
 

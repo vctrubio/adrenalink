@@ -1,19 +1,20 @@
-import type { TransactionEventData } from "@/types/transaction-event";
+import type { TransactionEventData, TransactionEventStudent } from "@/types/transaction-event";
 import type { TimelineEvent } from "@/src/components/timeline/types";
 import { getTimeFromISO } from "@/getters/queue-getter";
 import { calculateLessonRevenue, calculateCommission } from "@/getters/commission-calculator";
 import { safeArray } from "@/backend/error-handlers";
+import { getHMDuration } from "./duration-getter";
 
 /**
- * Transform lessons to TransactionEventData
- * Single source of truth for all event transformations
- * Works for Teacher.lessons, Booking.lessons, and Student.bookings.lessons
+ * Unified resource generator for Booking, Lesson, and Event views.
+ * Transforms raw database relations into rich TransactionEventData objects.
+ * Matches DB schema: Event -> Lesson -> Booking.
  */
 export function lessonsToTransactionEvents(
     lessons: any[],
     currency: string,
 ): TransactionEventData[] {
-    const events: TransactionEventData[] = [];
+    const transactions: TransactionEventData[] = [];
 
     for (const lesson of safeArray(lessons)) {
         const teacher = lesson.teacher;
@@ -21,15 +22,23 @@ export function lessonsToTransactionEvents(
         const booking = lesson.booking;
         const schoolPackage = booking?.school_package;
         
-        // Handle both student relation names (students or booking_student)
+        // Map Students (Full objects)
         const rawStudents = safeArray(booking?.booking_student || booking?.students);
-        const students = rawStudents.map((s: any) => s.student || s);
+        const students: TransactionEventStudent[] = rawStudents.map((s: any) => {
+            const student = s.student || s;
+            return {
+                id: student.id,
+                firstName: student.first_name,
+                lastName: student.last_name,
+                passport: student.passport,
+                country: student.country,
+                phone: student.phone,
+            };
+        });
         
         const lessonEvents = safeArray(lesson.event || lesson.events);
 
-        if (!schoolPackage || !commission) continue;
-
-        const leaderName = booking?.leader_student_name || "";
+        if (!schoolPackage || !commission || !booking) continue;
 
         for (const evt of lessonEvents) {
             const studentRevenue = calculateLessonRevenue(
@@ -49,24 +58,20 @@ export function lessonsToTransactionEvents(
                 schoolPackage.duration_minutes
             );
 
-            const teacherEarnings = commCalc.earned;
-
-            // Map equipments from equipment_event if present
+            // Map equipment_event relations
             const equipments = safeArray(evt.equipment_event).map((ee: any) => ({
                 id: ee.equipment?.id || "",
                 brand: ee.equipment?.brand || "",
                 model: ee.equipment?.model || "",
-                size: ee.equipment?.size || null,
+                size: ee.equipment?.size ? parseFloat(ee.equipment.size) : null,
                 sku: ee.equipment?.sku,
                 color: ee.equipment?.color,
             }));
 
-            events.push({
+            transactions.push({
                 event: {
                     id: evt.id,
                     lessonId: lesson.id,
-                    bookingId: booking?.id,
-                    // Force string format to preserve Wall Clock Time across the network
                     date: typeof evt.date === 'string' 
                         ? evt.date 
                         : new Date(evt.date).toLocaleString('sv-SE').replace(' ', 'T'),
@@ -74,21 +79,20 @@ export function lessonsToTransactionEvents(
                     location: evt.location,
                     status: evt.status,
                 },
+                lesson: {
+                    id: lesson.id,
+                    status: lesson.status,
+                },
+                booking: {
+                    id: booking.id,
+                    leaderStudentName: booking.leader_student_name,
+                    status: booking.status,
+                    students,
+                },
                 teacher: {
                     id: teacher?.id,
-                    username: teacher?.username || "",
+                    username: teacher?.username || "Unknown",
                 },
-                leaderStudentName: leaderName,
-                studentCount: students.length,
-                studentNames: students.map((s: any) => `${s.first_name} ${s.last_name}`),
-                bookingStudents: students.map((s: any) => ({
-                    id: s.id,
-                    firstName: s.first_name,
-                    lastName: s.last_name,
-                    passport: s.passport,
-                    country: s.country,
-                    phone: s.phone,
-                })),
                 packageData: {
                     description: schoolPackage.description || "",
                     pricePerStudent: schoolPackage.price_per_student || 0,
@@ -104,63 +108,103 @@ export function lessonsToTransactionEvents(
                     description: commission.description || null,
                 },
                 financials: {
-                    teacherEarnings,
+                    teacherEarnings: commCalc.earned,
                     studentRevenue,
-                    profit: studentRevenue - teacherEarnings,
+                    profit: studentRevenue - commCalc.earned,
                     currency,
                     commissionType: (commission.commission_type as "fixed" | "percentage") || "fixed",
                     commissionValue: parseFloat(commission.cph || "0"),
                 },
                 equipments: equipments.length > 0 ? equipments : (evt.equipments || []),
-                lessonStatus: lesson.status,
-                bookingStatus: booking?.status,
             });
         }
     }
 
-    return events;
+    return transactions;
 }
 
 /**
- * Adapt TransactionEventData to TimelineEvent format
- * Used when displaying events in timeline view
+ * Group a flat list of TransactionEventData into UI-friendly LessonRows.
+ * Centralizes the summation logic for hours, earnings, and revenue.
+ */
+export function groupTransactionsByLesson(
+    transactions: TransactionEventData[],
+    lessonPaymentsMap: Record<string, number> = {}
+) {
+    const lessonMap = new Map<string, TransactionEventData[]>();
+
+    for (const tx of transactions) {
+        const lessonId = tx.lesson.id;
+        if (!lessonMap.has(lessonId)) {
+            lessonMap.set(lessonId, []);
+        }
+        lessonMap.get(lessonId)!.push(tx);
+    }
+
+    return Array.from(lessonMap.entries()).map(([lessonId, events]) => {
+        const first = events[0];
+        const totalDuration = events.reduce((sum, e) => sum + e.event.duration, 0);
+        const totalEarning = events.reduce((sum, e) => sum + e.financials.teacherEarnings, 0);
+        const totalRevenue = events.reduce((sum, e) => sum + e.financials.studentRevenue, 0);
+        const totalPayments = lessonPaymentsMap[lessonId] || 0;
+
+        // Sort events within lesson by date
+        const sortedEvents = [...events].sort((a, b) => new Date(a.event.date).getTime() - new Date(b.event.date).getTime());
+
+        return {
+            lessonId,
+            bookingId: first.booking.id,
+            leaderName: first.booking.leaderStudentName,
+            dateStart: sortedEvents[0].event.date,
+            dateEnd: sortedEvents[sortedEvents.length - 1].event.date,
+            lessonStatus: first.lesson.status,
+            bookingStatus: first.booking.status,
+            commissionType: first.financials.commissionType,
+            cph: first.financials.commissionValue,
+            commissionDescription: first.commission.description,
+            totalDuration,
+            totalHours: totalDuration / 60,
+            totalEarning,
+            totalRevenue,
+            totalPayments,
+            eventCount: events.length,
+            events: sortedEvents.map(transactionEventToTimelineEvent),
+            equipmentCategory: first.packageData.categoryEquipment,
+            studentCapacity: first.packageData.capacityStudents,
+        };
+    });
+}
+
+/**
+ * Adapt TransactionEventData to TimelineEvent format.
  */
 export function transactionEventToTimelineEvent(event: TransactionEventData): TimelineEvent {
     const date = new Date(event.event.date);
-    const duration = event.event.duration;
-    const hours = duration / 60;
-    const hoursInt = Math.floor(hours);
-    const minutes = Math.round((hours - hoursInt) * 60);
-    const durationLabel = hoursInt > 0 ? `${hoursInt}h${minutes > 0 ? ` ${minutes}m` : ""}` : `${minutes}m`;
 
     return {
         eventId: event.event.id,
-        lessonId: event.event.lessonId || "",
+        lessonId: event.event.lessonId,
         date,
         time: getTimeFromISO(event.event.date),
         dateLabel: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         dayOfWeek: date.toLocaleDateString("en-US", { weekday: "short" }),
-        duration,
-        durationLabel,
+        duration: event.event.duration,
+        durationLabel: getHMDuration(event.event.duration),
         location: event.event.location || "",
         teacherId: event.teacher.id || "",
         teacherName: "",
         teacherUsername: event.teacher.username,
         eventStatus: event.event.status,
-        lessonStatus: event.lessonStatus || "active",
+        lessonStatus: event.lesson.status,
         teacherEarning: event.financials.teacherEarnings,
         schoolRevenue: event.financials.studentRevenue,
         totalRevenue: event.financials.studentRevenue,
         commissionType: event.financials.commissionType,
         commissionCph: event.financials.commissionValue,
-        bookingStudents: event.bookingStudents?.map((s: any) => ({
+        bookingStudents: event.booking.students.map(s => ({
             id: s.id,
-            firstName: s.firstName || s.first_name,
-            lastName: s.lastName || s.last_name,
-        })) || event.studentNames.map((name, idx) => ({
-            id: `student-${idx}`,
-            firstName: name.split(" ")[0] || "",
-            lastName: name.split(" ")[1] || "",
+            firstName: s.firstName,
+            lastName: s.lastName,
         })),
         equipmentCategory: event.packageData.categoryEquipment || null,
         capacityEquipment: event.packageData.capacityEquipment || null,

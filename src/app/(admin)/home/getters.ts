@@ -30,25 +30,7 @@ export function getGroupedEvents(classboardData: ClassboardModel): DateGroup[] {
             };
         }
 
-        groups[dateKey].events.push({
-            id: data.event.id,
-            date: data.event.date,
-            lessonId: data.event.lessonId || "",
-            location: data.event.location,
-            duration: data.event.duration,
-            status: data.event.status,
-            teacherUsername: data.teacher.username,
-            packageName: data.packageData.description,
-            leaderStudentName: data.leaderStudentName,
-            categoryEquipment: data.packageData.categoryEquipment,
-            capacityEquipment: data.packageData.capacityEquipment,
-            capacityStudents: data.packageData.capacityStudents,
-            packageDurationMinutes: data.packageData.durationMinutes,
-            pricePerStudent: data.packageData.pricePerStudent,
-            commissionType: data.financials.commissionType,
-            commissionValue: data.financials.commissionValue,
-            equipments: data.equipments,
-        });
+        groups[dateKey].events.push(data); // Push the full TransactionEventData
     });
 
     return Object.values(groups).sort((a, b) => b.date.localeCompare(a.date));

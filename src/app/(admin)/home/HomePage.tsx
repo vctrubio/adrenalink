@@ -13,31 +13,13 @@ import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./gette
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import { TablesSearchHeader } from "@/src/app/(admin)/(tables)/TablesSearchHeader";
 
-export type ViewMode = "grouped" | "table" | "calendar";
+import type { TransactionEventData } from "@/types/transaction-event";
 
-export interface HomeTransactionEvent {
-    id: string;
-    date: string;
-    lessonId: string;
-    location: string | null;
-    duration: number;
-    status: string;
-    teacherUsername: string;
-    packageName: string;
-    leaderStudentName: string;
-    categoryEquipment: string;
-    capacityEquipment: number;
-    capacityStudents: number;
-    packageDurationMinutes: number;
-    pricePerStudent: number;
-    commissionType: "fixed" | "percentage";
-    commissionValue: number;
-    equipments?: { id: string; brand: string; model: string; size: number | null }[];
-}
+export type ViewMode = "grouped" | "table" | "calendar";
 
 export interface DateGroup {
     date: string;
-    events: HomeTransactionEvent[];
+    events: TransactionEventData[];
 }
 
 export interface HomeStats {

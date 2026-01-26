@@ -91,8 +91,8 @@ export function BookingStatusDropdown({
                 {!iconOnly && (
                     <>
                         <span className="font-bold text-foreground text-xs whitespace-nowrap">{formattedDate}</span>
-                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap uppercase">
-                            {diffDays === 0 ? "Single" : `+${diffDays}`}
+                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
+                            {diffDays === 0 ? "One Day" : `+${diffDays}`}
                         </span>
                     </>
                 )}

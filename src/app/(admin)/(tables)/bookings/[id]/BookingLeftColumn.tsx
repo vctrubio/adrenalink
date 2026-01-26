@@ -8,7 +8,7 @@ import { HoverToEntity } from "@/src/components/ui/HoverToEntity";
 import { DateRangeBadge } from "@/src/components/ui/badge/daterange";
 import { BookingProgressBadge } from "@/src/components/ui/badge/bookingprogress";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
-import { BookingTableGetters } from "@/getters/table-getters";
+// import { BookingTableGetters } from "@/getters/table-getters"; // No longer needed
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
 import { ENTITY_DATA } from "@/config/entities";
@@ -34,13 +34,12 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
 
     const students = booking.relations?.students || [];
     const schoolPackage = booking.relations?.school_package;
-    const lessons = booking.relations?.lesson || [];
 
-    // Check if booking has events
-    const hasEvents = lessons.some((lesson: any) => {
-        const events = lesson.event || [];
-        return events.length > 0;
-    });
+    // Use pre-calculated stats directly from booking data
+    const hasEvents = booking.totalEventsCount > 0;
+    const usedMinutes = booking.totalUsedMinutes;
+    const totalMinutes = schoolPackage?.duration_minutes || 0;
+    const due = booking.totalDueAmount;
 
     const StudentIcon = studentEntity.icon;
     const PackageIcon = packageEntity.icon;
@@ -189,10 +188,6 @@ export function BookingLeftColumn({ booking }: BookingLeftColumnProps) {
             : [{ label: "Payments", value: "No Payments done" }];
 
     // Stats
-    const usedMinutes = BookingTableGetters.getUsedMinutes(booking);
-    const totalMinutes = BookingTableGetters.getTotalMinutes(booking);
-    const due = BookingTableGetters.getDueAmount(booking);
-
     const progressPercentage = totalMinutes > 0 ? (usedMinutes / totalMinutes) * 100 : 0;
     const progressBarBackground = `linear-gradient(to right, ${bookingEntity.color} ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`;
 

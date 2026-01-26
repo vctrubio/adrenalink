@@ -16,7 +16,7 @@ import { useSchoolCredentials } from "@/src/providers/school-credentials-provide
 import { LessonEventDurationBadge } from "@/src/components/ui/badge/lesson-event-duration";
 import { BookingStatusLabel } from "@/src/components/labels/BookingStatusLabel";
 import { TeacherLessonComissionValue } from "@/src/components/ui/TeacherLessonComissionValue";
-import { type LessonRow } from "@/backend/data/TeacherLessonData";
+import type { LessonRow } from "@/types/transaction-event";
 
 export interface TeacherLessonCardEvent {
     eventId: string;

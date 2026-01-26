@@ -94,7 +94,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <div className="hidden xl:block">
                                         <StatItemUI
                                             type="completed"
-                                            value={`${group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/${group.events.length}`}
+                                            value={`${group.events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length}/${group.events.length}`}
                                             className="justify-center"
                                             hideLabel={false}
                                         />
@@ -103,7 +103,7 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <div className="xl:hidden">
                                         <StatItemUI
                                             type="completed"
-                                            value={`${group.events.filter((e) => e.status === "completed" || e.status === "uncompleted").length}/${group.events.length}`}
+                                            value={`${group.events.filter((e) => e.event.status === "completed" || e.event.status === "uncompleted").length}/${group.events.length}`}
                                             className="justify-center"
                                             hideLabel={true}
                                         />
@@ -216,41 +216,41 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                     <div className="border-t border-border divide-y divide-border bg-muted/10">
                                         {group.events.map((event) => (
                                             <motion.div
-                                                key={event.id}
+                                                key={event.event.id}
                                                 className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-accent/5 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
-                                                onClick={() => router.push(`/transaction?id=${event.id}`)}
+                                                onClick={() => router.push(`/transaction?id=${event.event.id}`)}
                                             >
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                                                     <div className="sm:hidden flex items-center justify-between w-full mb-2">
                                                         <div className="flex items-center gap-2">
-                                                            <div style={{ color: EVENT_STATUS_CONFIG[event.status].color }}>
+                                                            <div style={{ color: EVENT_STATUS_CONFIG[event.event.status]?.color || EVENT_STATUS_CONFIG.planned.color }}>
                                                                 <FlagIcon size={16} className="opacity-80" />
                                                             </div>
                                                             <span className="text-sm font-mono text-muted-foreground tabular-nums">
-                                                                {event.date.split("T")[1].substring(0, 5)}
+                                                                {event.event.date.split("T")[1].substring(0, 5)}
                                                             </span>
                                                         </div>
                                                         <EquipmentStudentPackagePriceBadge
-                                                            categoryEquipment={event.categoryEquipment}
-                                                            equipmentCapacity={event.capacityEquipment}
-                                                            studentCapacity={event.capacityStudents}
-                                                            packageDurationHours={event.packageDurationMinutes / 60}
-                                                            pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
+                                                            categoryEquipment={event.packageData.categoryEquipment}
+                                                            equipmentCapacity={event.packageData.capacityEquipment}
+                                                            studentCapacity={event.packageData.capacityStudents}
+                                                            packageDurationHours={event.packageData.durationMinutes / 60}
+                                                            pricePerHour={event.packageData.pricePerStudent / (event.packageData.durationMinutes / 60)}
                                                         />
                                                     </div>
                                                     <div className="hidden sm:block text-sm font-mono text-muted-foreground tabular-nums">
-                                                        {event.date.split("T")[1].substring(0, 5)}
+                                                        {event.event.date.split("T")[1].substring(0, 5)}
                                                     </div>
                                                     <div>
                                                         <div className="mb-1 group-hover/row:text-primary transition-colors flex items-center gap-2">
-                                                            <span>{event.packageName}</span>
+                                                            <span>{event.packageData.description}</span>
                                                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-yellow-student text-foreground">
                                                                 <span className="font-semibold text-foreground">
-                                                                    {event.leaderStudentName}
+                                                                    {event.booking.leaderStudentName}
                                                                 </span>
-                                                                {event.capacityStudents > 1 && (
+                                                                {event.packageData.capacityStudents > 1 && (
                                                                     <span className="text-[10px] font-bold">
-                                                                        +{event.capacityStudents - 1}
+                                                                        +{event.packageData.capacityStudents - 1}
                                                                     </span>
                                                                 )}
                                                             </span>
@@ -258,10 +258,10 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-1.5">
                                                                 <HeadsetIcon size={14} className="text-muted-foreground/70" />
-                                                                <span>{event.teacherUsername}</span>
+                                                                <span>{event.teacher.username}</span>
                                                                 <CommissionTypeValue
-                                                                    value={event.commissionValue}
-                                                                    type={event.commissionType}
+                                                                    value={event.financials.commissionValue}
+                                                                    type={event.financials.commissionType}
                                                                     as="div"
                                                                     className="!p-0 !bg-transparent !border-none ml-1 scale-90 origin-left"
                                                                 />
@@ -269,12 +269,12 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
                                                                 <MapPin size={14} className="text-muted-foreground/70" />
-                                                                <span>{event.location || "No location"}</span>
+                                                                <span>{event.event.location || "No location"}</span>
                                                             </div>
                                                             <span className="opacity-30">•</span>
                                                             <div className="flex items-center gap-1.5">
                                                                 <DurationIcon size={14} className="text-muted-foreground/70" />
-                                                                <span>{getHMDuration(event.duration)}</span>
+                                                                <span>{getHMDuration(event.event.duration)}</span>
                                                             </div>
                                                         </div>
 
@@ -293,14 +293,14 @@ export function HomeGrouped({ groupedEvents, classboardData }: HomeGroupedProps)
                                                     </div>
 
                                                     <EquipmentStudentPackagePriceBadge
-                                                        categoryEquipment={event.categoryEquipment}
-                                                        equipmentCapacity={event.capacityEquipment}
-                                                        studentCapacity={event.capacityStudents}
-                                                        packageDurationHours={event.packageDurationMinutes / 60}
-                                                        pricePerHour={event.pricePerStudent / (event.packageDurationMinutes / 60)}
+                                                        categoryEquipment={event.packageData.categoryEquipment}
+                                                        equipmentCapacity={event.packageData.capacityEquipment}
+                                                        studentCapacity={event.packageData.capacityStudents}
+                                                        packageDurationHours={event.packageData.durationMinutes / 60}
+                                                        pricePerHour={event.packageData.pricePerStudent / (event.packageData.durationMinutes / 60)}
                                                     />
 
-                                                    <EventHomeStatusLabel eventId={event.id} status={event.status} />
+                                                    <EventHomeStatusLabel eventId={event.event.id} status={event.event.status} />
                                                 </div>
                                             </motion.div>
                                         ))}

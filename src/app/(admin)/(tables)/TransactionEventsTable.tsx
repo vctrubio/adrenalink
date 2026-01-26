@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Check, TrendingUp, TrendingDown, Calendar, Clock, Handshake, Receipt, Activity, Plus, User, HelpCircle } from "lucide-react";
+import { Check, TrendingUp, TrendingDown, Plus, Activity } from "lucide-react";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
@@ -56,10 +56,7 @@ function EquipmentFulfillmentCell({
 
     useEffect(() => {
         if (isOpen && availableEquipment.length > 0) {
-            const firstEq = availableEquipment[0];
-            console.log(`[TransactionTable] 🔍 Checking preferred gear for ${data.teacher.username} (${data.teacher.id})`, {
-                gearRelations: firstEq.teacher_equipment?.map((te: any) => te.teacher_id),
-            });
+            console.log(`[TransactionTable] 🔍 Checking preferred gear for ${data.teacher.username}`);
         }
     }, [isOpen, availableEquipment, data.teacher]);
 
@@ -67,20 +64,17 @@ function EquipmentFulfillmentCell({
         return <BrandSizeCategoryList equipments={data.equipments as any} />;
     }
 
-    // Always allow equipment assignment if equipment is N/A (not assigned)
-    // If event is not completed, we'll update status when assigning
-
     const dropdownItems: DropdownItemProps[] = [
         {
             id: "header",
             label: (
                 <div className="flex items-center gap-3 leading-none">
                     <span className="font-bold">{data.teacher.username}</span>
-                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
+                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] Birding-none py-0.5">
                         <FlagIcon size={12} className="opacity-70" />
                         <span className="translate-y-[0.5px]">{data.event.date.split("T")[1].substring(0, 5)}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] leading-none py-0.5">
+                    <div className="flex items-center gap-1 text-muted-foreground text-[10px] Birding-none py-0.5">
                         <DurationIcon size={12} className="opacity-70" />
                         <span className="translate-y-[0.5px]">{getHMDuration(data.event.duration)}</span>
                     </div>
@@ -201,11 +195,9 @@ export function TransactionEventsTable({
                 aValue = new Date(a.event.date).getTime();
                 bValue = new Date(b.event.date).getTime();
             } else if (sort.field === "createdAt") {
-                // Use event date as created date fallback
                 aValue = new Date(a.event.date).getTime();
                 bValue = new Date(b.event.date).getTime();
             } else if (sort.field === "updatedAt") {
-                // Use event date as updated date fallback
                 aValue = new Date(a.event.date).getTime();
                 bValue = new Date(b.event.date).getTime();
             } else {
@@ -241,7 +233,6 @@ export function TransactionEventsTable({
             headerClassName: `${HEADER_CLASSES.blue} text-center`,
             className: "w-[100px] text-center",
             render: (data) => {
-                // Manually parse ISO string parts to avoid timezone shifts
                 const [datePart] = data.event.date.split("T");
                 const [year, month, day] = datePart.split("-");
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -261,7 +252,6 @@ export function TransactionEventsTable({
             headerClassName: HEADER_CLASSES.blue,
             className: "w-[50px]",
             render: (data) => {
-                // Manually extract time from ISO: "2025-01-12T14:00:00Z" -> "14:00"
                 const timeMatch = data.event.date.match(/T(\d{2}:\d{2})/);
                 const formattedTime = timeMatch ? timeMatch[1] : "--:--";
 
@@ -306,7 +296,7 @@ export function TransactionEventsTable({
             headerClassName: HEADER_CLASSES.blue,
             render: (data) => (
                 <span className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
-                    {getLeaderCapacity(data.leaderStudentName, data.studentCount)}
+                    {getLeaderCapacity(data.booking?.leaderStudentName || "N/A", data.booking?.students?.length || 0)}
                 </span>
             ),
         },
@@ -489,7 +479,7 @@ export function TransactionEventsTable({
                 totalDuration: acc.totalDuration + curr.event.duration,
                 eventCount: acc.eventCount + 1,
                 completedCount: acc.completedCount + (curr.event.status === "completed" ? 1 : 0),
-                studentCount: acc.studentCount + curr.studentCount,
+                studentCount: acc.studentCount + (curr.booking?.students?.length || 0),
                 totalCommissions: acc.totalCommissions + curr.financials.teacherEarnings,
                 totalRevenue: acc.totalRevenue + curr.financials.studentRevenue,
                 totalProfit: acc.totalProfit + curr.financials.profit,

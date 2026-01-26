@@ -45,16 +45,36 @@ export function filterBookings(bookings: BookingTableData[], search: string): Bo
     });
 }
 
+import type { TransactionEventData } from "@/types/transaction-event";
+import type { EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
+
 /**
- * Filter transaction events by Student Name, Teacher Username, or Location
+ * Filter TransactionEventData by search query and status
  */
-export function filterTransactionEvents(events: TransactionEventData[], search: string): TransactionEventData[] {
-    return filterBySearch(events, search, (e) => {
-        const studentNames = e.studentNames.join(" ");
-        const teacherName = e.teacher.username;
-        const location = e.event.location || "";
-        return `${studentNames} ${e.leaderStudentName} ${teacherName} ${location}`;
-    });
+export function filterTransactionEvents(
+    events: TransactionEventData[],
+    searchQuery: string,
+    statusFilter: EventStatusFilter,
+): TransactionEventData[] {
+    let filtered = events;
+
+    // Filter by status
+    if (statusFilter !== "all") {
+        filtered = filtered.filter((event) => event.event.status === statusFilter);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(
+            (event) =>
+                event.booking?.leaderStudentName?.toLowerCase().includes(query) ||
+                event.event.location?.toLowerCase().includes(query) ||
+                event.teacher.username.toLowerCase().includes(query),
+        );
+    }
+
+    return filtered;
 }
 
 /**
