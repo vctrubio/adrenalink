@@ -65,6 +65,7 @@ async function customProxy(authObject: any, request: NextRequest) {
         pathname,
         hostname,
     });
+    let schoolId: string | null = null;
     try {
         // Redirect www root to /discover page
         if ((hostname === "www.lvh.me:3000" || hostname === "www.adrenalink.tech") && pathname === "/") {
@@ -79,7 +80,6 @@ async function customProxy(authObject: any, request: NextRequest) {
             printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain);
 
             // Validate school exists (username is indexed via UNIQUE constraint)
-            let schoolId: string | null = null;
             let timezone: string | null = null;
             try {
                 const supabase = getServerConnection();
@@ -170,9 +170,10 @@ async function customProxy(authObject: any, request: NextRequest) {
             hostname,
             user_agent: request.headers.get("user-agent"),
             url: request.url,
-            ip: request.headers.get("x-forwarded-for"),
-            user_cookie: request.cookies.get("user1")?.value ? request.cookies.get("user1")?.value.slice(0, 6) + "*****" : undefined,
-            user_header: request.headers.get("user1"),
+            ip_private: (request as any).ip || request.headers.get("x-forwarded-for"),
+            ip_public: request.headers.get("CF-Connecting-IP"), // Proxied from CloudFlare
+            school_id: schoolId,
+            user_id: authObject?.userId
         });
     }
 }
