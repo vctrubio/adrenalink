@@ -225,9 +225,5 @@ NEXT_PUBLIC_DEFAULT_ROLE=admin
 NEXT_PUBLIC_DEFAULT_USER_ID=dev-user
 NEXT_PUBLIC_DEFAULT_SCHOOL_ID=school_001
 
-# Debugging
-JSONIFY=true             # Enables granular JSON debug output in UI components
-PRINTF=TRUE              # Enables internal backend logging
-DEBUG_DB_QUERIES=true    # Log raw DB queries
-DEBUG_PERFORMANCE=true   # Log performance metrics
-```
+            # Enables granular JSON debug output in UI components
+PRINTF=TRUE              # Enables internal backend 

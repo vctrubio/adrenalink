@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
 import { StatItemUI } from "@/backend/data/StatsData";
-import { getHMDuration } from "@/getters/duration-getter";
 import type { DailyLessonStats } from "@/backend/classboard/ClassboardStatistics";
 import type { TransactionEventData } from "@/types/transaction-event";
 

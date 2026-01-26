@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GroupingType, GroupStats } from "../(admin)/(tables)/MasterTable";
+import { GroupingType, GroupStats } from "./MasterTable";
 import { StatItemUI } from "@/backend/data/StatsData";
 
 interface TableGroupHeaderProps {

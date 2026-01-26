@@ -511,10 +511,7 @@ export function BookingContainer({
             lastName: bs.student.lastName,
         })) || [];
 
-    if (process.env.JSONIFY === "true") {
-        console.log("DEV:JSON: BookingContainer students =", students);
-        console.log("DEV:JSON: BookingContainer bookingStudents =", booking.relations?.bookingStudents);
-    }
+
 
     return (
         <div className="bg-card border border-border rounded-lg overflow-visible">

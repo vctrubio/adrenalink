@@ -1,2 +1,0 @@
-/Users/trtp/kode/clients/titorrito/kite-apps/introverts/v1/adrenalink-beta/src/components/R2ConnectivityCheck.tsx
-/Users/trtp/kode/clients/titorrito/kite-apps/introverts/v1/adrenalink-beta/src/components/cards/EntityActionList.tsx
