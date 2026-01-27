@@ -82,6 +82,7 @@ const CardHeader = ({
                 <Link
                     href={`/bookings/${bookingId}`}
                     className="flex flex-col items-center justify-center bg-muted/50 rounded-lg py-1.5 px-2 min-w-[3rem] border border-border/50 hover:bg-muted/80 transition-colors"
+                    prefetch={false}
                 >
                     <span className="text-xl font-black leading-none text-foreground">{startDate.getDate()}</span>
                     <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-1">
@@ -245,6 +246,7 @@ const ExpandableDetails = ({
                 <Link
                     href={`/bookings/${bookingId}`}
                     className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                    prefetch={false}
                 >
                     <BookingIcon size={16} className="text-muted-foreground" />
                     <DateRangeBadge startDate={dateStart} endDate={dateEnd} />

@@ -36,7 +36,7 @@ function isPrefetch(request: NextRequest): boolean {
     const nextRouterPrefetch = request.headers.get("next-router-prefetch");
     const xMiddlewarePrefetch = request.headers.get("x-middleware-prefetch");
     const accept = request.headers.get("accept");
-    
+
     return (
         purpose === "prefetch" ||
         secPurpose === "prefetch" ||
@@ -116,7 +116,7 @@ async function customProxy(authObject: any, request: NextRequest) {
                 const cached = SCHOOL_CACHE.get(subdomainInfo.subdomain);
                 const now = Date.now();
 
-                if (cached && (now - cached.timestamp < CACHE_TTL)) {
+                if (cached && now - cached.timestamp < CACHE_TTL) {
                     if (!isPrefetchRequest) printf("⚡ [Proxy] Cache hit for subdomain:", subdomainInfo.subdomain);
                     schoolId = cached.id;
                     timezone = cached.timezone;
@@ -143,7 +143,7 @@ async function customProxy(authObject: any, request: NextRequest) {
 
                     schoolId = data.id;
                     timezone = data.timezone;
-                    
+
                     // Update cache
                     SCHOOL_CACHE.set(subdomainInfo.subdomain, { id: schoolId!, timezone, timestamp: now });
                     printf(`✅ [Proxy] School found: ${schoolId}`);
@@ -170,7 +170,7 @@ async function customProxy(authObject: any, request: NextRequest) {
                 const metadata = (sessionClaims?.publicMetadata as any) || {};
                 const schools = metadata.schools || {};
                 const context = schools[schoolId!];
-                
+
                 const role = context?.role;
                 const isAuthorized = !!role;
 
@@ -193,7 +193,7 @@ async function customProxy(authObject: any, request: NextRequest) {
                     const metadata = (sessionClaims?.publicMetadata as any) || {};
                     const schools = metadata.schools || {};
                     const isAuthorized = !!schools[schoolId!];
-                    
+
                     setHeader(rewriteResponse, HEADER_KEYS.USER_ID, userId);
                     setHeader(rewriteResponse, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
                 }
@@ -218,7 +218,7 @@ async function customProxy(authObject: any, request: NextRequest) {
                 ip_private: (request as any).ip || request.headers.get("x-forwarded-for"),
                 ip_public: request.headers.get("CF-Connecting-IP"), // Proxied from CloudFlare
                 school_id: schoolId,
-                user_id: authObject?.userId
+                user_id: authObject?.userId,
             });
         }
     }

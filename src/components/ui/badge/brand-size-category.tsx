@@ -16,7 +16,7 @@ export function BrandSizeCategoryBadge({ id, model, size, className = "", catego
     const Icon = categoryConfig?.icon;
     
     return (
-        <Link href={`/equipments/${id}`} onClick={(e) => e.stopPropagation()}>
+        <Link href={`/equipments/${id}`} onClick={(e) => e.stopPropagation()} prefetch={false}>
             <div className={`flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer ${className}`}>
                 {Icon && <Icon size={12} className="text-purple-600/70" />}
                 <span className="text-purple-700 dark:text-purple-300 font-bold text-[10px] uppercase truncate max-w-[80px]">
@@ -74,7 +74,7 @@ export function BrandSizeCategoryListHorizontal({
     return (
         <div className={`flex flex-wrap items-center gap-2 ${className}`}>
             {equipments.map((eq, i) => (
-                <Link key={i} href={`/equipments/${eq.id}`} onClick={(e) => e.stopPropagation()}>
+                <Link key={i} href={`/equipments/${eq.id}`} onClick={(e) => e.stopPropagation()} prefetch={false}>
                     <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer">
                         <span className="text-purple-700 dark:text-purple-300 font-bold text-[9px] uppercase">{eq.model}</span>
                         {eq.size && <span className="text-purple-600 dark:text-purple-400 font-black text-[9px]">{eq.size}</span>}

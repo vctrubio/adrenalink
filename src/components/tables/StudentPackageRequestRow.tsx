@@ -102,6 +102,7 @@ export function StudentPackageRequestRow({ invitation, onAccept }: StudentPackag
                                 href={`/packages/${school_package.id}`}
                                 className="font-black text-xl text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none block"
                                 title="View Package Details"
+                                prefetch={false}
                             >
                                 {packageDesc}
                             </Link>

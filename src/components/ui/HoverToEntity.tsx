@@ -30,6 +30,7 @@ export const HoverToEntity = ({ entity, id, children, className = "" }: HoverToE
                 e.currentTarget.style.backgroundColor = "transparent";
                 e.currentTarget.style.textDecoration = "none";
             }}
+            prefetch={false}
         >
             {children}
         </Link>

@@ -51,6 +51,7 @@ export function TeacherBookingLessonTable({
                             <Link 
                                 href={`/bookings/${lesson.bookingId}`}
                                 onClick={(e) => e.stopPropagation()}
+                                prefetch={false}
                             >
                                 <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted/20 shrink-0 hover:bg-muted/40 transition-colors">
                                     <EquipmentIcon size={16} className="text-foreground/60" />

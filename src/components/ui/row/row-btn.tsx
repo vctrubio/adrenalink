@@ -28,7 +28,7 @@ export const RowBtn = ({ buttons }: RowBtnProps) => {
             {buttons.map((button, index) => {
                 if (button.href) {
                     return (
-                        <Link key={index} href={button.href} className={getButtonStyles(button.variant)}>
+                        <Link key={index} href={button.href} className={getButtonStyles(button.variant)} prefetch={false}>
                             {button.label}
                         </Link>
                     );
