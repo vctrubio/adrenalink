@@ -83,15 +83,16 @@ async function customProxy(authObject: any, request: NextRequest) {
 
     if (!isPrefetchRequest) {
         console.log(`//////////////////////////////// STARTING: ${pathname} //////////////////////////////`);
+        printf("🚀 [REQUEST START]", {
+            time: new Date().toISOString(),
+            method: request.method,
+            url: request.url,
+            pathname,
+            hostname,
+        });
+    } else {
+        printf(`🚀 [PREFETCH] ${pathname}`);
     }
-
-    printf(isPrefetchRequest ? "🚀 [PREFETCH]" : "🚀 [REQUEST START]", {
-        time: new Date().toISOString(),
-        method: request.method,
-        url: request.url,
-        pathname,
-        hostname,
-    });
     let schoolId: string | null = null;
     try {
         // Redirect www root to /discover page
