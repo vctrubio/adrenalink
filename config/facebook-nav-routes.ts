@@ -40,5 +40,6 @@ export const FACEBOOK_NAV_ROUTES = [
         label: "Help",
         href: "/onboarding?skipStats=true",
         icon: HelpCircle,
+        prefetch: false,
     },
 ];

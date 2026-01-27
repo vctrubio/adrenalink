@@ -31,13 +31,17 @@ export function isPublicPath(pathname: string): boolean {
 
 function isPrefetch(request: NextRequest): boolean {
     const purpose = request.headers.get("purpose");
+    const secPurpose = request.headers.get("sec-purpose");
     const secFetchPurpose = request.headers.get("sec-fetch-purpose");
     const nextRouterPrefetch = request.headers.get("next-router-prefetch");
+    const xMiddlewarePrefetch = request.headers.get("x-middleware-prefetch");
     
     return (
         purpose === "prefetch" ||
+        secPurpose === "prefetch" ||
         secFetchPurpose === "prefetch" ||
-        nextRouterPrefetch === "1"
+        nextRouterPrefetch === "1" ||
+        xMiddlewarePrefetch === "1"
     );
 }
 

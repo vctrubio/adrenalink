@@ -12,6 +12,7 @@ export interface DropdownItemProps {
     onClick?: () => void;
     active?: boolean;
     variant?: "dropdown" | "nav";
+    prefetch?: boolean;
 }
 
 export function DropdownItem({
@@ -72,7 +73,13 @@ export function DropdownItem({
 
     if (item.href) {
         return (
-            <Link href={item.href} onClick={handleClick} className={baseClasses} style={dynamicStyle}>
+            <Link 
+                href={item.href} 
+                onClick={handleClick} 
+                className={baseClasses} 
+                style={dynamicStyle}
+                prefetch={item.prefetch}
+            >
                 {content}
             </Link>
         );

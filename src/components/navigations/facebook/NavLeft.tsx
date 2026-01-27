@@ -154,6 +154,7 @@ export const NavLeft = () => {
                                     href: route.href,
                                     icon: route.icon,
                                     active: isActive,
+                                    prefetch: (route as any).prefetch,
                                 }}
                                 variant="nav"
                             />
