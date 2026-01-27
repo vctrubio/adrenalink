@@ -73,6 +73,11 @@ async function customProxy(authObject: any, request: NextRequest) {
         return NextResponse.next();
     }
 
+    // DEBUG: temporary header logging to identify prefetch signature
+    if (pathname === "/register" || pathname === "/onboarding") {
+        console.log(`🔍 HEADERS for ${pathname}:`, Object.fromEntries(request.headers.entries()));
+    }
+
     const isPrefetchRequest = isPrefetch(request);
 
     if (!isPrefetchRequest) {
