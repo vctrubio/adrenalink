@@ -184,7 +184,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
                 <div className="flex flex-col gap-1 items-start">
-                    <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group">
+                    <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group" prefetch={false}>
                         <HeadsetIcon
                             size={16}
                             className={data.active ? "text-emerald-500" : "text-muted-foreground/50"}

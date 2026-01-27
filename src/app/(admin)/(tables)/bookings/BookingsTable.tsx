@@ -155,6 +155,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                         <Link
                             href={`/bookings/${data.booking.id}`}
                             className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] hover:text-blue-600 transition-colors font-bold"
+                            prefetch={false}
                         >
                             {formattedDate}
                         </Link>
@@ -277,6 +278,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
                             <Link
                                 href={`/bookings/${data.booking.id}`}
                                 className="text-blue-900/60 dark:text-blue-100/60 bg-blue-50/[0.03] dark:bg-blue-900/[0.02] font-bold"
+                                prefetch={false}
                             >
                                 {formattedDate}
                             </Link>
