@@ -35,13 +35,15 @@ function isPrefetch(request: NextRequest): boolean {
     const secFetchPurpose = request.headers.get("sec-fetch-purpose");
     const nextRouterPrefetch = request.headers.get("next-router-prefetch");
     const xMiddlewarePrefetch = request.headers.get("x-middleware-prefetch");
+    const accept = request.headers.get("accept");
     
     return (
         purpose === "prefetch" ||
         secPurpose === "prefetch" ||
         secFetchPurpose === "prefetch" ||
         nextRouterPrefetch === "1" ||
-        xMiddlewarePrefetch === "1"
+        xMiddlewarePrefetch === "1" ||
+        accept === "*/*"
     );
 }
 
@@ -75,11 +77,6 @@ async function customProxy(authObject: any, request: NextRequest) {
     // Early return for public paths (no auth/context needed)
     if (isPublicPath(pathname)) {
         return NextResponse.next();
-    }
-
-    // DEBUG: temporary header logging to identify prefetch signature
-    if (pathname === "/register" || pathname === "/onboarding") {
-        console.log(`🔍 HEADERS for ${pathname}:`, Object.fromEntries(request.headers.entries()));
     }
 
     const isPrefetchRequest = isPrefetch(request);
