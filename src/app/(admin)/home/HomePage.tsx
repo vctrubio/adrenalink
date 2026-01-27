@@ -88,7 +88,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
         [classboardData, credentials.currency],
     );
 
-    console.log("🐛 [HomePage] allTransactionEvents:", allTransactionEvents);
+    console.log("🐛 [HomePage] allTransactionEvents count:", allTransactionEvents.length);
 
     return (
         <TablesProvider>
