@@ -15,6 +15,11 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 // Paths that should SKIP the proxy middleware entirely (no DB lookup, no context)
 export const PUBLIC_PATHS = ["/_next/", "/api/public/", "/discover", /\.(js|css|woff|woff2|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp)$/];
 
+// Simple in-memory cache for school lookups
+// Key: subdomain, Value: { id: string, timezone: string | null, timestamp: number }
+const SCHOOL_CACHE = new Map<string, { id: string; timezone: string | null; timestamp: number }>();
+const CACHE_TTL = 60 * 1000 * 5; // 5 minutes
+
 export function isPublicPath(pathname: string): boolean {
     return PUBLIC_PATHS.some((path) => {
         if (path instanceof RegExp) {
@@ -22,6 +27,18 @@ export function isPublicPath(pathname: string): boolean {
         }
         return pathname.startsWith(path);
     });
+}
+
+function isPrefetch(request: NextRequest): boolean {
+    const purpose = request.headers.get("purpose");
+    const secFetchPurpose = request.headers.get("sec-fetch-purpose");
+    const nextRouterPrefetch = request.headers.get("next-router-prefetch");
+    
+    return (
+        purpose === "prefetch" ||
+        secFetchPurpose === "prefetch" ||
+        nextRouterPrefetch === "1"
+    );
 }
 
 /**
@@ -56,9 +73,13 @@ async function customProxy(authObject: any, request: NextRequest) {
         return NextResponse.next();
     }
 
-    console.log(`//////////////////////////////// STARTING: ${pathname} //////////////////////////////`);
+    const isPrefetchRequest = isPrefetch(request);
 
-    printf("🚀 [REQUEST START]", {
+    if (!isPrefetchRequest) {
+        console.log(`//////////////////////////////// STARTING: ${pathname} //////////////////////////////`);
+    }
+
+    printf(isPrefetchRequest ? "🚀 [PREFETCH]" : "🚀 [REQUEST START]", {
         time: new Date().toISOString(),
         method: request.method,
         url: request.url,
@@ -77,34 +98,49 @@ async function customProxy(authObject: any, request: NextRequest) {
         const subdomainInfo = detectSubdomain(hostname);
 
         if (subdomainInfo) {
-            printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain);
+            if (!isPrefetchRequest) {
+                printf("DEV:DEBUG ✅ SUBDOMAIN DETECTED:", subdomainInfo.subdomain);
+            }
 
             // Validate school exists (username is indexed via UNIQUE constraint)
             let timezone: string | null = null;
             try {
-                const supabase = getServerConnection();
-                printf("🔎 [Proxy] Looking up school for subdomain:", subdomainInfo.subdomain);
+                // Check cache first
+                const cached = SCHOOL_CACHE.get(subdomainInfo.subdomain);
+                const now = Date.now();
 
-                const { data, error } = await supabase
-                    .from("school")
-                    .select("id, timezone")
-                    .eq("username", subdomainInfo.subdomain)
-                    .single();
+                if (cached && (now - cached.timestamp < CACHE_TTL)) {
+                    if (!isPrefetchRequest) printf("⚡ [Proxy] Cache hit for subdomain:", subdomainInfo.subdomain);
+                    schoolId = cached.id;
+                    timezone = cached.timezone;
+                } else {
+                    const supabase = getServerConnection();
+                    if (!isPrefetchRequest) printf("🔎 [Proxy] Looking up school for subdomain:", subdomainInfo.subdomain);
 
-                if (error) {
-                    printf("❌ [Proxy] School lookup DB error:", error);
+                    const { data, error } = await supabase
+                        .from("school")
+                        .select("id, timezone")
+                        .eq("username", subdomainInfo.subdomain)
+                        .single();
+
+                    if (error) {
+                        printf("❌ [Proxy] School lookup DB error:", error);
+                    }
+
+                    if (!data?.id) {
+                        printf(`⚠️ [Proxy] School not found: ${subdomainInfo.subdomain}`);
+                        logger.warn("School not found for subdomain", { subdomain: subdomainInfo.subdomain });
+                        const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
+                        return NextResponse.redirect(discoverUrl);
+                    }
+
+                    schoolId = data.id;
+                    timezone = data.timezone;
+                    
+                    // Update cache
+                    SCHOOL_CACHE.set(subdomainInfo.subdomain, { id: schoolId, timezone, timestamp: now });
+                    printf(`✅ [Proxy] School found: ${schoolId}`);
                 }
-
-                if (!data?.id) {
-                    printf(`⚠️ [Proxy] School not found: ${subdomainInfo.subdomain}`);
-                    logger.warn("School not found for subdomain", { subdomain: subdomainInfo.subdomain });
-                    const discoverUrl = constructDiscoverUrl(request, subdomainInfo.type);
-                    return NextResponse.redirect(discoverUrl);
-                }
-
-                schoolId = data.id;
-                timezone = data.timezone;
-                printf(`✅ [Proxy] School found: ${schoolId}`);
             } catch (error) {
                 printf("💥 [Proxy] School lookup exception:", error);
                 logger.error("School lookup failed", error, { subdomain: subdomainInfo.subdomain });
@@ -134,7 +170,7 @@ async function customProxy(authObject: any, request: NextRequest) {
                 if (role) setHeader(response, HEADER_KEYS.USER_ROLE, role);
                 setHeader(response, HEADER_KEYS.USER_AUTHORIZED, isAuthorized ? "true" : "false");
             } else {
-                printf("DEV:DEBUG ℹ️ NO USER AUTHENTICATED");
+                if (!isPrefetchRequest) printf("DEV:DEBUG ℹ️ NO USER AUTHENTICATED");
             }
 
             // Rewrite subdomain root requests to portal
@@ -162,19 +198,22 @@ async function customProxy(authObject: any, request: NextRequest) {
 
         return NextResponse.next();
     } finally {
-        const date = new Date();
-        const timestamp = `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}:${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}:${date.getMilliseconds().toString().padStart(3, "0")}`;
-        console.log({
-            time: timestamp,
-            method: request.method,
-            hostname,
-            user_agent: request.headers.get("user-agent"),
-            url: request.url,
-            ip_private: (request as any).ip || request.headers.get("x-forwarded-for"),
-            ip_public: request.headers.get("CF-Connecting-IP"), // Proxied from CloudFlare
-            school_id: schoolId,
-            user_id: authObject?.userId
-        });
+        // Skip verbose logging for prefetches
+        if (!isPrefetchRequest) {
+            const date = new Date();
+            const timestamp = `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}:${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}:${date.getMilliseconds().toString().padStart(3, "0")}`;
+            console.log({
+                time: timestamp,
+                method: request.method,
+                hostname,
+                user_agent: request.headers.get("user-agent"),
+                url: request.url,
+                ip_private: (request as any).ip || request.headers.get("x-forwarded-for"),
+                ip_public: request.headers.get("CF-Connecting-IP"), // Proxied from CloudFlare
+                school_id: schoolId,
+                user_id: authObject?.userId
+            });
+        }
     }
 }
 
