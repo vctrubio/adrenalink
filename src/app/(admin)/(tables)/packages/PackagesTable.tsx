@@ -12,6 +12,7 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { filterPackages } from "@/types/searching-entities";
+import { filterByStatus } from "@/src/components/PackageEquipmentFilters";
 import { TableActions } from "../MasterTable";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTablesController } from "../layout";
@@ -26,7 +27,6 @@ const HEADER_CLASSES = {
 
 export function PackagesTable({ packages = [] }: { packages: PackageTableData[] }) {
     const { showActions, status } = useTablesController();
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage")!;
 
     const {
         filteredRows: filteredPackages,
@@ -35,34 +35,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
     } = useTableLogic({
         data: packages,
         filterSearch: filterPackages,
-        filterStatus: (pkg, status) => {
-            if (status === "All") return true;
-            
-            const selectedOptions = status.split(",").filter(s => s);
-            
-            // Check package type filter
-            const packageTypeFilters = selectedOptions.filter(s => s === "Lesson" || s === "Rental");
-            if (packageTypeFilters.length > 0) {
-                const matchesPackageType = packageTypeFilters.some(type => 
-                    (type === "Lesson" && pkg.packageType === "lessons") ||
-                    (type === "Rental" && pkg.packageType === "rental")
-                );
-                if (!matchesPackageType) return false;
-            }
-            
-            // Check equipment category filter
-            const equipmentFilters = selectedOptions.filter(s => ["Kite", "Wing", "Windsurf"].includes(s));
-            if (equipmentFilters.length > 0) {
-                const categoryMap = { "Kite": "kite", "Wing": "wing", "Windsurf": "windsurf" };
-                const matchesEquipment = equipmentFilters.some(cat => 
-                    pkg.categoryEquipment === categoryMap[cat as keyof typeof categoryMap]
-                );
-                if (!matchesEquipment) return false;
-            }
-            
-            // If no specific filters, show all
-            return true;
-        },
+        filterStatus: filterByStatus,
         dateField: "createdAt",
     });
 
@@ -103,16 +76,14 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
         // Type column - only show when viewing "All"
         ...(status === "All"
             ? [
-                  {
-                      header: "Type",
-                      headerClassName: HEADER_CLASSES.orange,
-                      render: (data: PackageTableData) => (
-                          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                              {data.packageType}
-                          </span>
-                      ),
-                  },
-              ]
+                {
+                    header: "Type",
+                    headerClassName: HEADER_CLASSES.orange,
+                    render: (data: PackageTableData) => (
+                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{data.packageType}</span>
+                    ),
+                },
+            ]
             : []),
         {
             header: (
@@ -210,9 +181,7 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                         <Link href={`/packages/${data.id}`}>
-                            <span className="font-bold text-sm hover:text-orange-600 transition-colors">
-                                {data.description}
-                            </span>
+                            <span className="font-bold text-sm hover:text-orange-600 transition-colors">{data.description}</span>
                         </Link>
                     </div>
                     <div className="scale-90 origin-left">

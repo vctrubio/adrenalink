@@ -158,6 +158,7 @@ export class ClassboardStatistics {
                                 categoryEquipment: schoolPackage.categoryEquipment,
                                 capacityEquipment: schoolPackage.capacityEquipment,
                                 capacityStudents: schoolPackage.capacityStudents,
+                                packageType: schoolPackage.packageType,
                             },
                             commission: {
                                 id: lesson.commission.id,

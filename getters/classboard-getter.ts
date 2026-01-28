@@ -28,6 +28,7 @@ export function createClassboardModel(bookingsData: any[]): ClassboardModel {
                     capacityStudents: school_package.capacity_students,
                     capacityEquipment: school_package.capacity_equipment,
                     categoryEquipment: school_package.category_equipment,
+                    packageType: school_package.package_type,
                 },
                 bookingStudents: booking_student.map((bs: any) => ({
                     student: {

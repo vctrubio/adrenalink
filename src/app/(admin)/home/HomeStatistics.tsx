@@ -2,57 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, Calendar, Users, Clock, Zap, Wind, ChevronLeft, ChevronRight, Trophy, Target } from "lucide-react";
+import { TrendingUp, Calendar, Clock, Wind } from "lucide-react";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import type { TransactionEventData } from "@/types/transaction-event";
-import { getHMDuration } from "@/getters/duration-getter";
 import { getCompactNumber, getFormattedMoneyNumber } from "@/getters/integer-getter";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { MonthsPicker, type MonthRange } from "@/src/components/pickers/MonthsPicker";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
-import {
-    format,
-    startOfMonth,
-    endOfMonth,
-    eachDayOfInterval,
-    isSameDay,
-    subMonths,
-    addMonths,
-    startOfWeek,
-    endOfWeek,
-    startOfYear,
-    endOfYear,
-    eachWeekOfInterval,
-    eachMonthOfInterval,
-    parseISO,
-    isWithinInterval,
-} from "date-fns";
-
-type StatsPeriod = "day" | "week" | "month";
-
-interface PeriodData {
-    label: string;
-    date: Date;
-    revenue: number;
-    profit: number;
-    lessons: number;
-    students: number;
-    duration: number;
-    activeDays: number;
-    totalDays: number;
-}
-
-interface EquipmentStat extends React.ComponentType<any> {
-    id: string;
-    name: string;
-    icon: React.ComponentType<any>;
-    color: string;
-    bgColor: string;
-    count: number;
-    percentage: number;
-}
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subMonths, eachMonthOfInterval, parseISO } from "date-fns";
 
 export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
     const [monthRange, setMonthRange] = useState<MonthRange>(() => {
@@ -327,7 +286,7 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                     <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
                         {/* Compact Badge Header - Relative Top Right */}
                         <div className="absolute top-0 right-0 flex items-center gap-3 bg-muted/30 px-6 py-2.5 rounded-bl-[2rem] border-b border-l border-border/50 z-10">
-                            <HelmetIcon size={12} className="text-primary" />
+                            <HelmetIcon size={12} className="text-yellow-500" />
                             <span className="text-[10px] font-black tracking-[0.2em] uppercase text-foreground">Grouping</span>
                         </div>
 
@@ -508,13 +467,12 @@ function DrillDownChart({ title, subtitle, data, maxProfit, onBarClick, selected
                                 initial={{ height: 0 }}
                                 animate={{ height: `${Math.max(strength, 4)}%` }}
                                 transition={{ duration: 0.8, delay: i * 0.05 }}
-                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${
-                                    isSelected
-                                        ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
-                                        : strength > 0
-                                          ? "bg-primary/40 group-hover:bg-primary/60"
-                                          : "bg-muted/30"
-                                }`}
+                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${isSelected
+                                    ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
+                                    : strength > 0
+                                        ? "bg-primary/40 group-hover:bg-primary/60"
+                                        : "bg-muted/30"
+                                    }`}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             </motion.div>

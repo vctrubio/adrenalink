@@ -14,6 +14,7 @@ export interface ClassboardSchoolPackage {
     capacityStudents: number;
     capacityEquipment: number;
     categoryEquipment: string;
+    packageType: string;
 }
 
 export interface ClassboardStudent {

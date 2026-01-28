@@ -16,6 +16,7 @@ export interface TransactionEventPackage {
     categoryEquipment: string;
     capacityEquipment: number;
     capacityStudents: number;
+    packageType: string;
 }
 
 export interface TransactionEventEquipment {

@@ -28,7 +28,8 @@ function buildBookingQuery() {
             price_per_student,
             capacity_students,
             capacity_equipment,
-            category_equipment
+            category_equipment,
+            package_type
         ),
         booking_student(
             student_id,
