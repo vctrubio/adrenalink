@@ -33,3 +33,16 @@ export function getPPP(num: number): string {
     // Otherwise, show 2 decimals
     return num.toFixed(2);
 }
+
+/**
+ * Format number with thousands separator (dot) and decimals (comma)
+ * Example: 1234.56 → "1.234,56"
+ * Optionally appends currency: (1234.56, "USD") → "1.234,56 USD"
+ */
+export function getFormattedMoneyNumber(num: number, currency?: string): string {
+    const formatted = num.toLocaleString("de-DE", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    });
+    return currency ? `${formatted} ${currency}` : formatted;
+}

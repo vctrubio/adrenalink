@@ -14,6 +14,7 @@ import RequestIcon from "@/public/appSvgs/RequestIcon";
 import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import type { StudentData } from "@/backend/data/StudentData";
 import type { LeftColumnCardData } from "@/types/left-column";
+import { getFormattedMoneyNumber } from "@/getters/integer-getter";
 import { studentUpdateSchema, type StudentUpdateForm } from "@/src/validation/student";
 import { updateStudent, deleteStudent } from "@/supabase/server/students";
 
@@ -141,7 +142,11 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
     // Payments Card
     const payments = student.relations?.student_booking_payment || [];
     const totalPaymentsMade = payments.reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
-    const due = Math.round(totalMoneySpent - totalPaymentsMade);
+    const balance = Math.round(totalMoneySpent - totalPaymentsMade);
+    const isOverpaid = balance < 0;
+    const dueStatus = isOverpaid 
+        ? `${getFormattedMoneyNumber(Math.abs(balance), currency)} Overpaid` 
+        : `${getFormattedMoneyNumber(balance, currency)} Due`;
 
     const paymentFields = payments.map((payment: any) => ({
         label: formatDate(payment.created_at),
@@ -150,7 +155,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
 
     const paymentsCardData: LeftColumnCardData = {
         name: "Payments",
-        status: `${due} ${currency} Due`,
+        status: dueStatus,
         avatar: (
             <div className="flex-shrink-0" style={{ color: paymentEntity.color }}>
                 <CreditIcon size={40} />

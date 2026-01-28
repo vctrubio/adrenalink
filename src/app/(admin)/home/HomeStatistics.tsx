@@ -8,7 +8,7 @@ import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
 import HelmetIcon from "@/public/appSvgs/HelmetIcon";
 import type { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
-import { getCompactNumber } from "@/getters/integer-getter";
+import { getCompactNumber, getFormattedMoneyNumber } from "@/getters/integer-getter";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { MonthsPicker, type MonthRange } from "@/src/components/pickers/MonthsPicker";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
@@ -251,7 +251,7 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                             <div className="flex items-center gap-2">
                                 <TrendingUp size={14} className="text-emerald-500" />
                                 <span className="text-xl font-black text-emerald-500 tabular-nums">
-                                    {highlights.totalProfit.toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    {getFormattedMoneyNumber(highlights.totalProfit, currency)}
                                 </span>
                             </div>
                         </div>

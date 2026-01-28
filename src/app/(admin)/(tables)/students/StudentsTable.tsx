@@ -216,14 +216,37 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         {
             header: "Bookings & Progress",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => (
-                <div className="flex flex-col gap-3 min-w-[320px] pr-2">
-                    {data.bookings.map((booking) => (
-                        <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
-                    ))}
-                    {data.bookings.length === 0 && <span className="text-xs text-muted-foreground italic">No bookings</span>}
-                </div>
-            ),
+            render: (data) => {
+                const bookingsToShow = data.bookings.filter(
+                    (b) => b.status === "active" || b.stats.events.revenue > b.stats.payments.student,
+                );
+
+                if (bookingsToShow.length > 0) {
+                    return (
+                        <div className="flex flex-col gap-3 min-w-[320px] pr-2">
+                            {bookingsToShow.map((booking) => (
+                                <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
+                            ))}
+                        </div>
+                    );
+                }
+
+                const completedCount = data.bookings.filter((b) => b.status === "completed").length;
+                if (completedCount > 0) {
+                    return (
+                        <div className="flex items-center gap-1.5 px-1">
+                            <span className="text-base font-black text-blue-600 dark:text-blue-400">
+                                {completedCount}
+                            </span>
+                            <span className="text-sm text-muted-foreground italic">
+                                successfully completed {completedCount === 1 ? "booking" : "bookings"}
+                            </span>
+                        </div>
+                    );
+                }
+
+                return <span className="text-xs text-muted-foreground italic px-1">No bookings</span>;
+            },
         },
         {
             header: "Status",
@@ -298,13 +321,37 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
         {
             label: "Progress",
             headerClassName: HEADER_CLASSES.blue,
-            render: (data) => (
-                <div className="flex flex-col gap-2 min-w-[200px] pr-1">
-                    {data.bookings.map((booking) => (
-                        <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
-                    ))}
-                </div>
-            ),
+            render: (data) => {
+                const bookingsToShow = data.bookings.filter(
+                    (b) => b.status === "active" || b.stats.events.revenue > b.stats.payments.student,
+                );
+
+                if (bookingsToShow.length > 0) {
+                    return (
+                        <div className="flex flex-col gap-2 min-w-[200px] pr-1">
+                            {bookingsToShow.map((booking) => (
+                                <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
+                            ))}
+                        </div>
+                    );
+                }
+
+                const completedCount = data.bookings.filter((b) => b.status === "completed").length;
+                if (completedCount > 0) {
+                    return (
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-base font-black text-blue-600 dark:text-blue-400">
+                                {completedCount}
+                            </span>
+                            <span className="text-sm text-muted-foreground italic">
+                                successfully completed {completedCount === 1 ? "booking" : "bookings"}
+                            </span>
+                        </div>
+                    );
+                }
+
+                return <span className="text-xs text-muted-foreground italic">No bookings</span>;
+            },
         },
         {
             label: "Status",
