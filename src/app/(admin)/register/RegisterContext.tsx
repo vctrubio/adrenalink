@@ -69,12 +69,14 @@ interface RegisterContextValue {
     actions: {
         handlePostCreation: (args: {
             entityId: string;
+            entityType: "student" | "teacher" | "package";
             closeDialog: () => void;
             onSelectId: () => void;
             onRefresh: () => Promise<void>;
             onAddToQueue: () => void;
             setFormData: (data: any) => void;
             defaultForm: any;
+            metadata?: any;
         }) => Promise<void>;
         handleEntityCreation: (args: {
             isFormValid: boolean;
@@ -191,30 +193,35 @@ export function RegisterProvider({
     const handlePostCreation = useCallback(
         async ({
             entityId,
+            entityType,
             closeDialog,
             onSelectId,
             onRefresh,
             onAddToQueue,
             setFormData,
             defaultForm,
+            metadata,
         }: {
             entityId: string;
+            entityType: "student" | "teacher" | "package";
             closeDialog: () => void;
             onSelectId: () => void;
             onRefresh: () => Promise<void>;
             onAddToQueue: () => void;
             setFormData: (data: any) => void;
             defaultForm: any;
+            metadata?: any;
         }) => {
+            // 1. Common tasks: Refresh data and Reset the current specialized form
+            await onRefresh();
+            setFormData(defaultForm);
+
+            // 2. Path-specific logic
             if (pathname === "/register") {
-                await onRefresh();
-                setFormData(defaultForm);
                 closeDialog();
                 onSelectId();
             } else {
                 onAddToQueue();
-                await onRefresh();
-                setFormData(defaultForm);
             }
         },
         [pathname],

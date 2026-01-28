@@ -48,8 +48,22 @@ export default function PackagePage() {
                     is_public: formData.is_public,
                 }),
             onSuccess: async (data) => {
+                const packageMetadata = {
+                    id: data.id,
+                    description: data.description,
+                    durationMinutes: data.duration_minutes,
+                    pricePerStudent: data.price_per_student,
+                    capacityStudents: data.capacity_students,
+                    capacityEquipment: data.capacity_equipment,
+                    categoryEquipment: data.category_equipment,
+                    packageType: data.package_type,
+                    isPublic: data.is_public,
+                };
+
                 await handlePostCreation({
                     entityId: data.id,
+                    entityType: "package",
+                    metadata: packageMetadata,
                     closeDialog: () => {},
                     onSelectId: () => {},
                     onRefresh: async () => {},
@@ -59,17 +73,7 @@ export default function PackagePage() {
                             name: formData.description,
                             timestamp: Date.now(),
                             type: "package",
-                            metadata: {
-                                id: data.id,
-                                description: data.description,
-                                durationMinutes: data.duration_minutes,
-                                pricePerStudent: data.price_per_student,
-                                capacityStudents: data.capacity_students,
-                                capacityEquipment: data.capacity_equipment,
-                                categoryEquipment: data.category_equipment,
-                                packageType: data.package_type,
-                                isPublic: data.is_public,
-                            },
+                            metadata: packageMetadata,
                         });
                     },
                     setFormData,

@@ -234,7 +234,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                 next.delete("students-section");
                 return next;
             });
-            removeFromQueue("students", entityId);
             router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
             const queueItem = queues.teachers.find((item: any) => item.id === entityId);
@@ -259,7 +258,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                     }
                 }
             }
-            removeFromQueue("teachers", entityId);
             router.replace("/register", { scroll: false });
         } else if (entityType === "package") {
             const queueItem = queues.packages.find((item: any) => item.id === entityId);
@@ -276,7 +274,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
                     return next;
                 });
             }
-            removeFromQueue("packages", entityId);
             router.replace("/register", { scroll: false });
         }
     }, [addParam, isRefreshing, selectedStudentIds, currentTeachers, currentPackages, queues, removeFromQueue, router, bookingForm]);

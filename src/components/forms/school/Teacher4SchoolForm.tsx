@@ -91,12 +91,14 @@ const UsernameField = memo(function UsernameField({
     onUsernameChange,
     usernameError,
     usernameIsValid,
+    autoFocus,
     onFieldTouch,
 }: {
     username: string;
     onUsernameChange: (value: string) => void;
     usernameError?: string;
     usernameIsValid?: boolean;
+    autoFocus?: boolean;
     onFieldTouch: () => void;
 }) {
     return (
@@ -106,10 +108,11 @@ const UsernameField = memo(function UsernameField({
                 value={username}
                 onChange={(e) => {
                     onFieldTouch();
-                    onUsernameChange(e.target.value.toLowerCase());
+                    onUsernameChange(e.target.value);
                 }}
-                placeholder="teacher_username"
+                placeholder="Display Name"
                 error={!!usernameError}
+                autoFocus={autoFocus}
             />
             {/* <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, dashes, or underscores only</p> */}
         </FormField>
@@ -414,6 +417,7 @@ export default function TeacherForm({
                 onUsernameChange={(value) => updateField("username", value)}
                 usernameError={getFieldError("username")}
                 usernameIsValid={isFieldValid("username")}
+                autoFocus={true}
                 onFieldTouch={() => handleFieldTouch("username")}
             />
 
@@ -427,7 +431,6 @@ export default function TeacherForm({
                 lastNameError={getFieldError("last_name")}
                 firstNameIsValid={isFieldValid("first_name")}
                 lastNameIsValid={isFieldValid("last_name")}
-                autoFocus={true}
                 onFieldTouch={(field) => handleFieldTouch(field)}
             />
 

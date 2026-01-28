@@ -5,10 +5,12 @@ import { useRegisterActions, useTeacherFormState, useFormRegistration } from "..
 import { TeacherCreateForm, teacherCreateSchema, defaultTeacherForm } from "@/src/validation/teacher";
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/supabase/server/register";
+import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import toast from "react-hot-toast";
 
 export default function TeacherPage() {
     const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
+    const { refetch: refetchTeachers } = useSchoolTeachers();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<TeacherCreateForm>(contextForm || defaultTeacherForm);
@@ -54,8 +56,26 @@ export default function TeacherPage() {
                     })),
                 ),
             onSuccess: async (data) => {
+                const teacherMetadata = {
+                    schema: {
+                        ...data.teacher,
+                        commissions: (data.commissions || []).map((c: any) => ({
+                            id: c.id,
+                            commissionType: c.commission_type,
+                            cph: c.cph,
+                            description: c.description,
+                        })),
+                    },
+                    lessonStats: { totalLessons: 0, completedLessons: 0 },
+                };
+
+                // Trigger teacher context refresh to update lists globally
+                await refetchTeachers();
+
                 await handlePostCreation({
                     entityId: data.teacher.id,
+                    entityType: "teacher",
+                    metadata: teacherMetadata,
                     closeDialog: () => {},
                     onSelectId: () => {},
                     onRefresh: async () => {},
@@ -65,18 +85,7 @@ export default function TeacherPage() {
                             name: data.teacher.username,
                             timestamp: Date.now(),
                             type: "teacher",
-                            metadata: {
-                                schema: {
-                                    ...data.teacher,
-                                    commissions: (data.commissions || []).map((c: any) => ({
-                                        id: c.id,
-                                        commissionType: c.commission_type,
-                                        cph: c.cph,
-                                        description: c.description,
-                                    })),
-                                },
-                                lessonStats: { totalLessons: 0, completedLessons: 0 },
-                            },
+                            metadata: teacherMetadata,
                         });
                     },
                     setFormData,
@@ -87,7 +96,7 @@ export default function TeacherPage() {
             successMessage: `Teacher created: ${formData.first_name} ${formData.last_name}`,
         });
         setLoading(false);
-    }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);
+    }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation, refetchTeachers]);
 
     // Register submit handler in context
     useEffect(() => {

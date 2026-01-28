@@ -52,6 +52,7 @@ export default function StudentPage() {
             onSuccess: async (data) => {
                 await handlePostCreation({
                     entityId: data.student.id,
+                    entityType: "student",
                     closeDialog: () => {},
                     onSelectId: () => {},
                     onRefresh: async () => {},
