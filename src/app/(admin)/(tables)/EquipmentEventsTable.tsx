@@ -5,13 +5,13 @@ import { Clock, ShieldCheck, Check, Activity } from "lucide-react";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { TransactionEventData } from "@/types/transaction-event";
 import { getHMDuration } from "@/getters/duration-getter";
+import { getCompactNumber } from "@/getters/integer-getter";
 import { MasterTable, type GroupingType, type ColumnDef, type MobileColumnDef, type GroupStats } from "./MasterTable";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
 import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/tables/TableGroupHeader";
 import { StatItemUI } from "@/backend/data/StatsData";
 import { filterTransactionEvents } from "@/types/searching-entities";
 import { EquipmentDisplay } from "./equipments/EquipmentsTable";
-import { EVENT_STATUS_CONFIG, type EventStatus } from "@/types/status";
 import { filterByStatus } from "@/src/components/PackageEquipmentFilters";
 import { LeaderStudent } from "@/src/components/LeaderStudent";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
@@ -163,20 +163,14 @@ export function EquipmentEventsTable({
                 ),
             },
             {
-                header: "Status",
-                headerClassName: "px-4 py-3 font-medium text-center",
-                render: (data) => {
-                    const statusConfig = EVENT_STATUS_CONFIG[data.event.status as EventStatus];
-                    return statusConfig ? (
-                        <div
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter"
-                            style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
-                        >
-                            {data.event.status === "completed" && <Check size={10} strokeWidth={4} />}
-                            {statusConfig.label}
-                        </div>
-                    ) : null;
-                },
+                header: "Revenue",
+                headerClassName: HEADER_CLASSES.zinc,
+                className: "text-right font-bold",
+                render: (data) => (
+                    <span className="tabular-nums text-foreground">
+                        {getCompactNumber(data.financials.studentRevenue)}
+                    </span>
+                ),
             },
         ],
         [],
@@ -219,19 +213,12 @@ export function EquipmentEventsTable({
                 ),
             },
             {
-                label: "Status",
-                render: (data) => {
-                    const statusConfig = EVENT_STATUS_CONFIG[data.event.status as EventStatus];
-                    return statusConfig ? (
-                        <div
-                            className="inline-flex items-center justify-center w-6 h-6 rounded-full"
-                            style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color }}
-                            title={statusConfig.label}
-                        >
-                            {data.event.status === "completed" ? <Check size={12} strokeWidth={4} /> : <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusConfig.color }} />}
-                        </div>
-                    ) : null;
-                },
+                label: "Rev.",
+                render: (data) => (
+                    <span className="text-xs font-black tabular-nums">
+                        {getCompactNumber(data.financials.studentRevenue)}
+                    </span>
+                ),
             },
         ],
         [],
