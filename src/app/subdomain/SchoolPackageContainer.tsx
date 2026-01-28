@@ -26,7 +26,7 @@ interface SchoolPackageContainerProps {
  * Game-style Package Card for subdomain view
  * Layout: Header (Title) -> Body (Stats & Capacity) -> Footer (Price Table & Action)
  */
-export function PackageCard({ pkg, currencySymbol, onClick }: PackageCardProps) {
+function PackageCard({ pkg, currencySymbol, onClick }: PackageCardProps) {
     const {
         description,
         price_per_student,
@@ -222,10 +222,10 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
         return groups;
     }, [filteredPackages]);
 
-    // Get sorted categories
+    // Get sorted categories (based on ALL packages to keep UI stable)
     const categories = useMemo(() => {
-        const groupKeys = Object.keys(groupedPackages);
-        return groupKeys.sort((a, b) => {
+        const cats = Array.from(new Set(packages.map(p => p.category_equipment || "Other")));
+        return cats.sort((a, b) => {
             const configA = EQUIPMENT_CATEGORIES.find((c) => c.id === a);
             const configB = EQUIPMENT_CATEGORIES.find((c) => c.id === b);
 
@@ -234,7 +234,7 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
             if (!configB) return -1;
             return 0;
         });
-    }, [groupedPackages]);
+    }, [packages]);
 
     const handleSeedPackages = async () => {
         setIsSeeding(true);
@@ -258,7 +258,7 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
         }
     };
 
-    if (categories.length === 0) {
+    if (packages.length === 0) {
         return (
             <div className="h-full flex flex-col items-center justify-center text-center gap-6">
                 <Image src="/ADR.webp" alt="Adrenalink" width={200} height={200} className="grayscale opacity-20" />
@@ -297,6 +297,7 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
                     const config = EQUIPMENT_CATEGORIES.find((c) => c.id === cat);
                     const sportConfig = SPORTS_CONFIG.find((s) => s.id === cat);
                     const isSelected = isSelectedArray.includes(cat);
+                    const count = filteredPackages.filter(p => (p.category_equipment || "Other") === cat).length;
 
                     return (
                         <button
@@ -309,6 +310,7 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
                                         ? "bg-zinc-900 border-zinc-900 text-white shadow-xl scale-105"
                                         : "bg-white border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-zinc-600"
                                 }
+                                ${count === 0 && !isSelected ? "opacity-40 grayscale" : ""}
                             `}
                         >
                             <div
@@ -330,7 +332,7 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
                             <span
                                 className={`text-xs font-bold px-2 py-0.5 rounded-md ${isSelected ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-400"}`}
                             >
-                                {groupedPackages[cat].length}
+                                {count}
                             </span>
                         </button>
                     );
@@ -362,22 +364,35 @@ export function SchoolPackageContainer({ packages, currencySymbol, schoolId }: S
 
             {/* Scrollable Cards Area */}
             <div className="flex-1 overflow-y-auto px-2 pb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {categories.map((cat) => {
-                        const isSelected = isSelectedArray.includes(cat);
-                        // If nothing is selected, show everything. If something is selected, show only selected categories.
-                        if (isSelectedArray.length > 0 && !isSelected) return null;
+                {filteredPackages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center py-20 gap-4">
+                         <span className="text-2xl font-black uppercase tracking-widest text-zinc-300">
+                            No {packageTypeFilter} found
+                        </span>
+                        <button 
+                            onClick={() => setPackageTypeFilter(null)}
+                            className="text-xs font-bold uppercase tracking-widest text-zinc-400 underline"
+                        >
+                            Clear filters
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {categories.map((cat) => {
+                            const isSelected = isSelectedArray.includes(cat);
+                            if (isSelectedArray.length > 0 && !isSelected) return null;
 
-                        return groupedPackages[cat].map((pkg) => (
-                            <PackageCard 
-                                key={pkg.id} 
-                                pkg={pkg} 
-                                currencySymbol={currencySymbol} 
-                                onClick={() => handlePackageClick(pkg)}
-                            />
-                        ));
-                    })}
-                </div>
+                            return groupedPackages[cat]?.map((pkg) => (
+                                <PackageCard 
+                                    key={pkg.id} 
+                                    pkg={pkg} 
+                                    currencySymbol={currencySymbol} 
+                                    onClick={() => handlePackageClick(pkg)}
+                                />
+                            ));
+                        })}
+                    </div>
+                )}
             </div>
 
             <StudentRequestModal 

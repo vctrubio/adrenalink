@@ -39,6 +39,12 @@ We believe in writing **DRY, reusable, and human-friendly code** that tells a st
 - **Benefit**: When refactoring, you only change one place; no orphaned imports across the codebase
 - **Real cost**: Intermediate constants like `STATUS_COLORS` encourage scattered imports; when one file changes the config structure, others still try importing removed constants
 
+### 6. Single Export per File (Sub-component Pattern)
+
+- **One Public Entry Point**: Only export the main parent component from a file.
+- **Internal Sub-components**: Keep helper or smaller sub-components in the same file but do not export them.
+- **Clean API**: This prevents polluting the project's export namespace and clearly identifies the intended way to use the module.
+
 ## Preferred Code Pattern
 
 ### ✅ GOOD: Clean Structure with Result Pattern

@@ -251,7 +251,7 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                             <div className="flex items-center gap-2">
                                 <TrendingUp size={14} className="text-emerald-500" />
                                 <span className="text-xl font-black text-emerald-500 tabular-nums">
-                                    {getFormattedMoneyNumber(highlights.totalProfit, currency)}
+                                    {getFormattedMoneyNumber(highlights.totalProfit)}
                                 </span>
                             </div>
                         </div>
@@ -508,12 +508,13 @@ function DrillDownChart({ title, subtitle, data, maxProfit, onBarClick, selected
                                 initial={{ height: 0 }}
                                 animate={{ height: `${Math.max(strength, 4)}%` }}
                                 transition={{ duration: 0.8, delay: i * 0.05 }}
-                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${isSelected
-                                    ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
-                                    : strength > 0
-                                        ? "bg-primary/40 group-hover:bg-primary/60"
-                                        : "bg-muted/30"
-                                    }`}
+                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${
+                                    isSelected
+                                        ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
+                                        : strength > 0
+                                          ? "bg-primary/40 group-hover:bg-primary/60"
+                                          : "bg-muted/30"
+                                }`}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             </motion.div>

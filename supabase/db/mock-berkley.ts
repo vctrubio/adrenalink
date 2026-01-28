@@ -127,13 +127,20 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
         // 5. Create Equipment (5 per category) and linking to teachers...
         console.log("4️⃣  Creating equipment (5 per category) and linking to teachers...");
         const categories = ["kite", "wing", "windsurf"];
+        const northModels: Record<string, string[]> = {
+            kite: ["Orbit", "Reach", "Pulse", "Carve", "Code Zero"],
+            wing: ["Nova", "Mode", "Loft", "Nova Light Wind"],
+            windsurf: ["Wave", "X-Over", "Free", "Slalom"]
+        };
+
         const equipmentRecords = [];
         for (const category of categories) {
-            for (let i = 1; i <= 5; i++) {
+            const models = northModels[category] || ["Standard"];
+            for (let i = 0; i < 5; i++) {
                 equipmentRecords.push({
-                    sku: `${category.toUpperCase()}-${i.toString().padStart(3, '0')}`,
-                    brand: faker.helpers.arrayElement(["Duotone", "North", "Naish", "F-One"]),
-                    model: faker.word.noun(),
+                    sku: `${category.toUpperCase()}-${(i + 1).toString().padStart(3, '0')}`,
+                    brand: "North",
+                    model: models[i % models.length],
                     color: faker.color.human(),
                     size: category === "kite" ? faker.number.int({ min: 7, max: 14 }) : faker.number.float({ min: 3.5, max: 6.0, fractionDigits: 1 }),
                     category,
@@ -207,36 +214,46 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                 _selectedStudents.map(s => ({ booking_id: bRes.id, student_id: s.id }))
             );
 
-            // 8. Create 1-3 Lessons per booking
-            const numLessons = faker.number.int({ min: 1, max: 3 });
-            const teacher = faker.helpers.arrayElement(teachers);
-            const commission = teacherCommissions.find(c => c.teacher_id === teacher.id);
+            // 8. Create 1-5 Events per booking, grouped by teacher into Lessons
+            const numEvents = faker.number.int({ min: 1, max: 5 });
             const pkg = packages.find(p => p.id === bRes.school_package_id)!;
-
+            
+            let currentTeacher = faker.helpers.arrayElement(teachers);
+            let currentCommission = teacherCommissions.find(c => c.teacher_id === currentTeacher.id)!;
+            let currentLesson: any = null;
             let lastDate = new Date(bRes.date_start);
 
-            for (let lIdx = 0; lIdx < numLessons; lIdx++) {
-                const { data: lesson } = await supabase.from("lesson").insert({
-                    school_id: schoolId,
-                    teacher_id: teacher.id,
-                    booking_id: bRes.id,
-                    commission_id: commission.id,
-                    status: "completed"
-                }).select().single();
+            for (let eIdx = 0; eIdx < numEvents; eIdx++) {
+                // 3/10 probability of changing teacher for this event
+                if (eIdx > 0 && Math.random() < 0.3) {
+                    currentTeacher = faker.helpers.arrayElement(teachers);
+                    currentCommission = teacherCommissions.find(c => c.teacher_id === currentTeacher.id)!;
+                    currentLesson = null; // Force new lesson creation
+                }
 
-                if (!lesson) continue;
+                if (!currentLesson) {
+                    const { data: lesson } = await supabase.from("lesson").insert({
+                        school_id: schoolId,
+                        teacher_id: currentTeacher.id,
+                        booking_id: bRes.id,
+                        commission_id: currentCommission.id,
+                        status: "completed"
+                    }).select().single();
+                    currentLesson = lesson;
+                }
 
-                // 9. Create 1 Event per lesson (consecutive days)
+                if (!currentLesson) continue;
+
+                // 9. Create Event
                 const eventDate = new Date(bRes.date_start);
-                eventDate.setDate(eventDate.getDate() + lIdx);
-                // Set fixed time 10:00 AM for consistency
-                eventDate.setHours(10 + lIdx, 0, 0, 0); // Stagger times slightly if multiple events in a day? No, consecutive days.
+                eventDate.setDate(eventDate.getDate() + eIdx);
+                eventDate.setHours(10 + eIdx, 0, 0, 0);
                 
                 if (eventDate > lastDate) lastDate = eventDate;
 
                 const { data: event } = await supabase.from("event").insert({
                     school_id: schoolId,
-                    lesson_id: lesson.id,
+                    lesson_id: currentLesson.id,
                     date: eventDate.toISOString(),
                     duration: pkg.duration_minutes,
                     location: "Berkley Shore",
@@ -247,7 +264,7 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
 
                 // Link equipment to event
                 const eligibleEq = equipment.filter(e => e.category === pkg.category_equipment);
-                const assignedEq = faker.helpers.arrayElements(eligibleEq, pkg.capacity_equipment);
+                const assignedEq = faker.helpers.arrayElements(eligibleEq, Math.min(pkg.capacity_equipment, eligibleEq.length));
                 await supabase.from("equipment_event").insert(
                     assignedEq.map(eq => ({ event_id: event.id, equipment_id: eq.id }))
                 );
@@ -256,7 +273,7 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                 await supabase.from("student_lesson_feedback").insert(
                     _selectedStudents.map(s => ({
                         student_id: s.id,
-                        lesson_id: lesson.id,
+                        lesson_id: currentLesson.id,
                         feedback: faker.helpers.arrayElement([
                             "Great lesson!", "Amazing progress today.", "Teacher was very patient.",
                             "Conditions were perfect.", "Hard but fun.", "I love this sport!"
@@ -264,12 +281,11 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                     }))
                 );
 
-                // Create Teacher Payment
-                // Simple calculation: duration * rate (if fixed) or base
-                const rate = parseFloat(commission.cph) || 20;
+                // Create Teacher Payment for this event's portion of the lesson
+                const rate = parseFloat(currentCommission.cph) || 20;
                 const amount = (pkg.duration_minutes / 60) * rate;
                 await supabase.from("teacher_lesson_payment").insert({
-                    lesson_id: lesson.id,
+                    lesson_id: currentLesson.id,
                     amount: Math.round(amount)
                 });
             }
@@ -284,7 +300,7 @@ const seedBerkleyWindsurfAcademyFresh = async () => {
                 _selectedStudents.map(s => ({
                     booking_id: bRes.id,
                     student_id: s.id,
-                    amount: pkg.price_per_student * numLessons
+                    amount: pkg.price_per_student * numEvents
                 }))
             );
         }
