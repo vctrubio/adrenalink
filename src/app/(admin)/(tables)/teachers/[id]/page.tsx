@@ -20,8 +20,8 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
 
     const stats: TableStat[] = [
         {
-            type: "teachers",
-            value: `${teacher.schema.first_name} ${teacher.schema.last_name}`,
+            type: "teacher",
+            value: `${teacher.schema.username}`,
             desc: "Instructor Profile",
         },
         {

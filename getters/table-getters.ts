@@ -3,6 +3,7 @@ import { TeacherData } from "@/backend/data/TeacherData";
 import { BookingData } from "@/backend/data/BookingData";
 import { PackageData } from "@/backend/data/PackageData";
 import { EquipmentData } from "@/backend/data/EquipmentData";
+import { safeArray } from "@/backend/error-handlers";
 
 /**
  * Table Getters
@@ -12,27 +13,27 @@ import { EquipmentData } from "@/backend/data/EquipmentData";
 
 export const EquipmentTableGetters = {
     getEventCount: (equipment: EquipmentData): number => {
-        return equipment.relations.events.length;
+        return safeArray(equipment.relations.events).length;
     },
 
     getRentalCount: (equipment: EquipmentData): number => {
-        return equipment.relations.rentals.length;
+        return safeArray(equipment.relations.rentals).length;
     },
 
     getRepairCount: (equipment: EquipmentData): number => {
-        return equipment.relations.repairs.length;
+        return safeArray(equipment.relations.repairs).length;
     },
 
     getTotalUsageMinutes: (equipment: EquipmentData): number => {
-        return equipment.relations.events.reduce((sum, e) => sum + (e.duration || 0), 0);
+        return safeArray(equipment.relations.events).reduce((sum, e) => sum + (e.duration || 0), 0);
     },
 
     getTotalRentalMinutes: (equipment: EquipmentData): number => {
-        return equipment.relations.rentals.reduce((sum, r) => sum + (r.duration || 0), 0);
+        return safeArray(equipment.relations.rentals).reduce((sum, r) => sum + (r.duration || 0), 0);
     },
 
     getRevenue: (equipment: EquipmentData): number => {
-        return equipment.relations.events.reduce((total, event) => {
+        return safeArray(equipment.relations.events).reduce((total, event) => {
             const pkg = event.lesson?.booking?.school_package;
             if (!pkg || pkg.duration_minutes === 0) return total;
 
@@ -46,15 +47,15 @@ export const EquipmentTableGetters = {
 
 export const PackageTableGetters = {
     getBookingCount: (pkg: PackageData): number => {
-        return pkg.relations.bookings.length;
+        return safeArray(pkg.relations.bookings).length;
     },
 
     getRequestCount: (pkg: PackageData): number => {
-        return pkg.relations.requests.length;
+        return safeArray(pkg.relations.requests).length;
     },
 
     getTotalStudents: (pkg: PackageData): number => {
-        return pkg.relations.bookings.reduce((sum, b) => sum + (b.students?.length || 0), 0);
+        return safeArray(pkg.relations.bookings).reduce((sum, b) => sum + safeArray(b.students).length, 0);
     },
 
     getRevenue: (pkg: PackageData): number => {
@@ -66,8 +67,8 @@ export const PackageTableGetters = {
 
 export const BookingTableGetters = {
     getUsedMinutes: (booking: BookingData): number => {
-        return booking.relations.lessons.reduce((sum, l) => {
-            return sum + (l.events?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0);
+        return safeArray(booking.relations.lessons).reduce((sum, l) => {
+            return sum + safeArray(l.event).reduce((s: number, e: any) => s + (e.duration || 0), 0);
         }, 0);
     },
 
@@ -81,15 +82,15 @@ export const BookingTableGetters = {
 
         const usedMinutes = BookingTableGetters.getUsedMinutes(booking);
         const durationHours = usedMinutes / 60;
-        const studentCount = booking.relations.students.length || 1;
+        const studentCount = safeArray(booking.relations.students).length || 1;
 
         const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
         return pricePerHourPerStudent * durationHours * studentCount;
     },
 
     getCommissions: (booking: BookingData): number => {
-        return booking.relations.lessons.reduce((sum, l) => {
-            const usedMinutes = l.events?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
+        return safeArray(booking.relations.lessons).reduce((sum, l) => {
+            const usedMinutes = safeArray(l.event).reduce((s: number, e: any) => s + (e.duration || 0), 0);
             const durationHours = usedMinutes / 60;
             const cph = parseFloat(l.teacher_commission?.cph || "0");
             const type = l.teacher_commission?.commission_type || "fixed";
@@ -99,7 +100,7 @@ export const BookingTableGetters = {
             // Percentage based on lesson revenue
             const pkg = booking.relations.school_package;
             if (!pkg) return sum;
-            const studentCount = booking.relations.students.length || 1;
+            const studentCount = safeArray(booking.relations.students).length || 1;
             const pricePerHourPerStudent = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
             const lessonRevenue = pricePerHourPerStudent * durationHours * studentCount;
 
@@ -112,7 +113,7 @@ export const BookingTableGetters = {
     },
 
     getPaidAmount: (booking: BookingData): number => {
-        return booking.relations.student_booking_payment.reduce((sum, p) => sum + (p.amount || 0), 0);
+        return safeArray(booking.relations.student_booking_payment).reduce((sum, p) => sum + (p.amount || 0), 0);
     },
 
     getDueAmount: (booking: BookingData): number => {
@@ -122,39 +123,39 @@ export const BookingTableGetters = {
 
 export const StudentTableGetters = {
     getBookingCount: (student: StudentData): number => {
-        return student.relations.bookings.length;
+        return safeArray(student.bookings).length;
     },
 
     getEventCount: (student: StudentData): number => {
-        return student.relations.bookings.reduce((sum, b) => {
-            const lessons = b.lessons || [];
-            const events = lessons.flatMap((l: any) => l.event || l.events || []);
+        return safeArray(student.bookings).reduce((sum, b) => {
+            const lessons = safeArray(b.lessons);
+            const events = lessons.flatMap((l: any) => safeArray(l.events?.details));
             return sum + events.length;
         }, 0);
     },
 
     getTotalDurationMinutes: (student: StudentData): number => {
-        return student.relations.bookings.reduce((sum, b) => {
-            const lessons = b.lessons || [];
-            const events = lessons.flatMap((l: any) => l.event || l.events || []);
+        return safeArray(student.bookings).reduce((sum, b) => {
+            const lessons = safeArray(b.lessons);
+            const events = lessons.flatMap((l: any) => safeArray(l.events?.details));
             return sum + events.reduce((s: number, e: any) => s + (e.duration || 0), 0);
         }, 0);
     },
 
     getTotalPaid: (student: StudentData): number => {
-        return student.relations.student_booking_payment.reduce((sum, p) => sum + (p.amount || 0), 0);
+        return safeArray(student.bookings).reduce((sum, booking) => sum + (booking.stats?.payments?.student || 0), 0);
     },
 
     getExpectedRevenue: (student: StudentData): number => {
-        return student.relations.bookings.reduce((sum, b) => {
-            const pkg = b.school_package;
+        return safeArray(student.bookings).reduce((sum, b) => {
+            const pkg = b.packageDetails;
             if (!pkg) return sum;
 
-            const lessons = b.lessons || [];
-            const events = lessons.flatMap((l: any) => l.event || l.events || []);
+            const lessons = safeArray(b.lessons);
+            const events = lessons.flatMap((l: any) => safeArray(l.events?.details));
             const bookingDurationHours = events.reduce((s: number, e: any) => s + (e.duration || 0), 0) / 60;
 
-            const pricePerHour = pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0;
+            const pricePerHour = pkg.durationMinutes > 0 ? pkg.pricePerStudent / (pkg.durationMinutes / 60) : 0;
             return sum + pricePerHour * bookingDurationHours;
         }, 0);
     },
@@ -168,25 +169,26 @@ export const StudentTableGetters = {
 
 export const TeacherTableGetters = {
     getLessonCount: (teacher: TeacherData): number => {
-        return teacher.relations.lesson.length;
+        return safeArray(teacher.relations.lesson).length;
     },
 
     getEventCount: (teacher: TeacherData): number => {
-        return teacher.relations.lesson.reduce((sum, l) => sum + (l.event?.length || 0), 0);
+        return safeArray(teacher.relations.lesson).reduce((sum, l) => sum + safeArray(l.event).length, 0);
     },
 
     getTotalDurationMinutes: (teacher: TeacherData): number => {
-        return teacher.relations.lesson.reduce((sum, l) => {
-            return sum + (l.event?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0);
+        const result = safeArray(teacher.relations.lesson).reduce((sum, l) => {
+            return sum + safeArray(l.event).reduce((s: number, e: any) => s + (parseFloat(e.duration) || 0), 0);
         }, 0);
+        return isNaN(result) ? 0 : result;
     },
 
     getCommissionEarned: (teacher: TeacherData): number => {
-        return teacher.relations.lesson.reduce((sum, l) => {
+        const result = safeArray(teacher.relations.lesson).reduce((sum, l) => {
             const pkg = l.booking?.school_package;
             if (!pkg) return sum;
 
-            const durationMinutes = l.event?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
+            const durationMinutes = safeArray(l.event).reduce((s: number, e: any) => s + (parseFloat(e.duration) || 0), 0);
             const durationHours = durationMinutes / 60;
 
             const studentCount = pkg.capacity_students || 1;
@@ -204,15 +206,16 @@ export const TeacherTableGetters = {
             }
             return sum + earned;
         }, 0);
+        return isNaN(result) ? 0 : result;
     },
 
     getProfit: (teacher: TeacherData): number => {
         // School Profit from this teacher = Total Revenue Generated - Commissions Earned
-        return teacher.relations.lesson.reduce((sum, l) => {
+        const result = safeArray(teacher.relations.lesson).reduce((sum, l) => {
             const pkg = l.booking?.school_package;
             if (!pkg) return sum;
 
-            const durationMinutes = l.event?.reduce((s: number, e: any) => s + (e.duration || 0), 0) || 0;
+            const durationMinutes = safeArray(l.event).reduce((s: number, e: any) => s + (parseFloat(e.duration) || 0), 0);
             const durationHours = durationMinutes / 60;
 
             const studentCount = pkg.capacity_students || 1;
@@ -231,5 +234,6 @@ export const TeacherTableGetters = {
 
             return sum + (lessonRevenue - earned);
         }, 0);
+        return isNaN(result) ? 0 : result;
     },
 };

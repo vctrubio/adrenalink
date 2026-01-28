@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useCallback, memo, ReactNode, useState } from "react";
+import { useMemo, useCallback, memo, useState } from "react";
 import { z } from "zod";
+import { Receipt } from "lucide-react";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
@@ -232,42 +233,40 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
     return (
         <div className="grid grid-cols-3 gap-4">
             <FormField label="Price / Student" required error={priceError} isValid={priceIsValid}>
-                <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
-                    <FormInput
-                        type="number"
-                        value={formData.price_per_student || ""}
-                        onChange={handlePriceChange}
-                        placeholder="0"
-                        min={0}
-                        className="pl-8"
-                    />
-                </div>
+                <FormInput
+                    type="number"
+                    value={formData.price_per_student || ""}
+                    onChange={handlePriceChange}
+                    placeholder="0"
+                    min={0}
+                />
             </FormField>
 
             <FormField label="Capacity / Student" required error={capacityError} isValid={capacityIsValid}>
-                <div className="relative">
-                    <FormInput
-                        type="number"
-                        value={formData.capacity_students || ""}
-                        onChange={handleCapacityChange}
-                        placeholder="Max students"
-                        min={1}
-                    />
-                </div>
+                <FormInput
+                    type="number"
+                    value={formData.capacity_students || ""}
+                    onChange={handleCapacityChange}
+                    placeholder="Max students"
+                    min={1}
+                />
             </FormField>
 
-            <FormField label="Revenue">
-                <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
-                    <FormInput
-                        type="text"
-                        value={revenue > 0 ? revenue.toFixed(0) : ""}
-                        placeholder="0"
-                        disabled
-                        className="pl-8 bg-muted/50 cursor-not-allowed font-medium text-foreground"
-                    />
-                </div>
+            <FormField
+                label={
+                    <div className="flex items-center gap-1.5">
+                        <span>Revenue</span>
+                        <Receipt size={14} className="text-secondary" />
+                    </div>
+                }
+            >
+                <FormInput
+                    type="text"
+                    value={revenue > 0 ? revenue.toFixed(0) : ""}
+                    placeholder="0"
+                    disabled
+                    className="bg-muted/50 cursor-not-allowed font-medium text-foreground"
+                />
             </FormField>
         </div>
     );
@@ -435,8 +434,6 @@ export default function Package4SchoolForm({
             />
 
             <VisibilityFieldMemo formData={formData} onFormDataChange={onFormDataChange} />
-
-            <PackageRevenueSummary formData={formData} />
         </>
     );
 
@@ -454,31 +451,5 @@ export default function Package4SchoolForm({
         >
             {formContent}
         </MasterSchoolForm>
-    );
-}
-
-function PackageRevenueSummary({ formData }: { formData: SchoolPackageCreateForm }) {
-    const durationHours = formData.duration_minutes / 60;
-    const revenue = formData.price_per_student * formData.capacity_students;
-
-    if (!formData.price_per_student || !formData.capacity_students || !formData.duration_minutes) return null;
-
-    return (
-        <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <span>Revenue Summary</span>
-                <span className="text-foreground">€{revenue.toFixed(0)} Total</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-xs">
-                <div>
-                    <span className="text-muted-foreground">Rate:</span>
-                    <span className="ml-2 font-bold">€{(revenue / (durationHours || 1)).toFixed(0)}/hr</span>
-                </div>
-                <div className="text-right">
-                    <span className="text-muted-foreground">Per Student:</span>
-                    <span className="ml-2 font-bold">€{(formData.price_per_student / (durationHours || 1)).toFixed(0)}/hr</span>
-                </div>
-            </div>
-        </div>
     );
 }

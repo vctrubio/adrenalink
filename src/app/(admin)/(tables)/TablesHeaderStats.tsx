@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { StatItemUI, type StatType } from "@/backend/data/StatsData";
 import { AnimatedCounter } from "@/src/components/ui/AnimatedCounter";
 import { getCompactNumber } from "@/getters/integer-getter";
@@ -36,8 +35,9 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
             {stats.map((stat, index) => {
                 const isMoney = MONEY_TYPES.includes(stat.type);
                 const isDuration = stat.type === "duration";
-                const rawValue = typeof stat.value === "string" ? parseFloat(stat.value) : stat.value;
-                const canAnimate = !isNaN(rawValue as number);
+                const isStringType = ["student", "teacher", "package", "equipment", "bookings"].includes(stat.type); // Types that should display as strings
+                const rawValue = typeof stat.value === "string" && !isStringType ? parseFloat(stat.value) : stat.value;
+                const canAnimate = !isNaN(rawValue as number) && !isStringType;
 
                 return (
                     <div key={index} className="flex items-center relative group/stat">
@@ -54,8 +54,10 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                                                 return Math.round(num).toLocaleString();
                                             }}
                                         />
+                                    ) : isStringType ? (
+                                        stat.value // Display string values directly
                                     ) : (
-                                        isMoney ? getCompactNumber(rawValue as number) : isDuration ? getHMDuration(rawValue as number) : Math.round(rawValue as number).toLocaleString()
+                                    stat.value
                                     )
                                 }
                                 labelOverride={stat.label}

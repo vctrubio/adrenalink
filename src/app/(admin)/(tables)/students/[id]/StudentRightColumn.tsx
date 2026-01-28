@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { StudentData } from "@/backend/data/StudentData";
 import { type EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
 import type { SortConfig, SortOption } from "@/types/sort";
+import { StudentBookingActivityCard } from "../StudentBookingActivityCard";
 import { StudentLessonActivityCard } from "../StudentLessonActivityCard";
 import { transactionEventToTimelineEvent } from "@/getters/booking-lesson-event-getter"; // Only need this for timeline conversion
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
@@ -18,7 +19,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { Calendar, List } from "lucide-react";
 import { safeArray } from "@/backend/error-handlers";
 
-type ViewMode = "timeline" | "by-bookings";
+type ViewMode = "timeline" | "by-lessons";
 
 // Main Component
 interface StudentRightColumnProps {
@@ -40,7 +41,7 @@ const BOOKING_FILTER_OPTIONS = ["All", "active", "completed", "cancelled"] as co
 
 const VIEW_MODE_OPTIONS = [
     { id: "timeline", label: "Timeline", icon: Calendar },
-    { id: "by-bookings", label: "By Bookings", icon: List },
+    { id: "by-lessons", label: "By Lessons", icon: List },
 ] as const;
 
 export function StudentRightColumn({ student }: StudentRightColumnProps) {
@@ -162,14 +163,6 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         return result;
     }, [allLessonRows, searchQuery, filter, sort]);
 
-    if ((student.relations?.bookings || []).length === 0) { // Check original bookings length
-        return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground italic bg-muted/10 rounded-2xl border-2 border-dashed border-border/50">
-                No bookings found for this student
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -210,9 +203,9 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                         onEquipmentUpdate={handleEquipmentUpdate}
                     />
                 )}
-                {viewMode === "by-bookings" && (
-                    <motion.div
-                        key="by-bookings"
+                {viewMode === "by-lessons" && (
+                                    <motion.div
+                                        key="by-lessons"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}

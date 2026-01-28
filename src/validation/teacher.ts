@@ -29,7 +29,7 @@ export const teacherCreateSchema = z.object({
     last_name: z.string().min(1, "Last name is required").max(255),
     username: z
         .string()
-        .min(3, "Username must be at least 3 characters")
+        .min(1, "Username is required")
         .regex(/^[a-z0-9_-]+$/, "Username must be lowercase letters, numbers, dashes, or underscores"),
     passport: z.string().min(1, "Passport is required").max(50),
     country: z.string().min(1, "Country is required").max(100),

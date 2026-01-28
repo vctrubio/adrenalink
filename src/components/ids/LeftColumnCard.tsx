@@ -83,7 +83,7 @@ export function LeftColumnCard({
                                 Add
                             </div>
                         )}
-                        <ToggleAdranalinkIcon isOpen={isOpen} color={accentColor} />
+                        {/* <ToggleAdranalinkIcon isOpen={isOpen} color={accentColor} /> */}
                     </div>
                 </div>
                 {isOpen && (

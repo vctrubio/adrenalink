@@ -22,7 +22,7 @@ const ProgressBar = ({ progress }: { progress: number }) => (
 );
 
 export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
-    const isNameComplete = !!(teacherFormData.firstName && teacherFormData.lastName);
+    const isNameComplete = !!(teacherFormData.first_name && teacherFormData.last_name);
     const isUsernameComplete = !!teacherFormData.username;
     const isPassportComplete = !!teacherFormData.passport;
     const isCountryComplete = !!teacherFormData.country;
@@ -47,25 +47,12 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
         {
             label: (
                 <div className="flex items-center gap-2.5">
-                    <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Full Name</span>
-                    <StatusIcon isComplete={isNameComplete} />
-                </div>
-            ),
-            value: isNameComplete ? (
-                `${teacherFormData.firstName} ${teacherFormData.lastName}`
-            ) : (
-                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
-            ),
-        },
-        {
-            label: (
-                <div className="flex items-center gap-2.5">
                     <span className={isUsernameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Username</span>
                     <StatusIcon isComplete={isUsernameComplete} />
                 </div>
             ),
             value: teacherFormData.username ? (
-                <span className="font-mono text-primary font-black">@{teacherFormData.username}</span>
+                <span className="font-mono text-primary font-black">{teacherFormData.username}</span>
             ) : (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
@@ -73,11 +60,13 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
         {
             label: (
                 <div className="flex items-center gap-2.5">
-                    <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
-                    <StatusIcon isComplete={isPassportComplete} />
+                    <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Full Name</span>
+                    <StatusIcon isComplete={isNameComplete} />
                 </div>
             ),
-            value: teacherFormData.passport || (
+            value: isNameComplete ? (
+                `${teacherFormData.first_name} ${teacherFormData.last_name}`
+            ) : (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },
@@ -100,6 +89,17 @@ export function TeacherSummary({ teacherFormData }: TeacherSummaryProps) {
                 </div>
             ),
             value: teacherFormData.phone || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
+        },
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
+                    <StatusIcon isComplete={isPassportComplete} />
+                </div>
+            ),
+            value: teacherFormData.passport || (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },

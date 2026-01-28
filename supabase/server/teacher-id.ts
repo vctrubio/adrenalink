@@ -130,6 +130,26 @@ export async function getTeacherId(id: string): Promise<{ success: boolean; data
         const updateForm: TeacherUpdateForm = { ...schema };
 
         const teacherData: TeacherData = {
+            id: teacher.id,
+            username: teacher.username,
+            firstName: teacher.first_name,
+            lastName: teacher.last_name,
+            passport: teacher.passport,
+            country: teacher.country,
+            phone: teacher.phone,
+            languages: teacher.languages,
+            active: teacher.active,
+            createdAt: teacher.created_at,
+            lessons: relations.lesson,
+            equipments: relations.teacher_equipment,
+            activityStats: {}, // TODO: calculate activity stats
+            stats: {
+                teacherCount: 1,
+                totalLessons: relations.lesson.length,
+                totalDurationMinutes: 0, // TODO: calculate
+                totalCommissions: 0, // TODO: calculate
+                totalPayments: 0, // TODO: calculate
+            },
             schema,
             updateForm,
             relations,

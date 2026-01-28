@@ -10,6 +10,7 @@ export default async function TeachersMasterTablePage() {
     const teachers = await getTeachersTable();
     const stats_data = getAggregateTeachers(teachers);
 
+    console.log("Teachers stats data:", stats_data);
     const stats: TableStat[] = [
         { type: "teachers", value: stats_data.teacherCount, desc: "Total registered teachers" },
         { type: "lessons", value: stats_data.totalLessons, desc: "Total lessons assigned" },

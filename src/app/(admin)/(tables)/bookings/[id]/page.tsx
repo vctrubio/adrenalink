@@ -4,6 +4,7 @@ import { BookingTableGetters } from "@/getters/table-getters";
 import { EntityIdLayout } from "@/src/components/layouts/EntityIdLayout";
 import { BookingLeftColumn } from "./BookingLeftColumn";
 import { BookingRightColumn } from "./BookingRightColumn";
+import { safeArray } from "@/backend/error-handlers";
 
 import { TableLayout } from "../../TableLayout";
 import type { TableStat } from "../../TablesHeaderStats";
@@ -18,11 +19,14 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
 
     const booking: BookingData = result.data;
     const balance = BookingTableGetters.getBalance(booking);
+    const studentCount = booking.relations.students.length;
+    const leaderName = booking.schema.leader_student_name;
+    const displayLeaderName = studentCount > 1 ? `${leaderName} +${studentCount - 1}` : leaderName;
 
     const stats: TableStat[] = [
         {
             type: "bookings",
-            value: booking.schema.leader_student_name,
+            value: displayLeaderName,
             desc: "Booking Leader",
         },
         {
@@ -33,7 +37,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
         },
         {
             type: "events",
-            value: booking.relations.lessons.reduce((sum, l) => sum + (l.events?.length || 0), 0),
+            value: safeArray(booking.relations.lessons).reduce((sum, l) => sum + safeArray(l.event).length, 0),
             label: "Events",
             desc: "Total lesson events",
         },

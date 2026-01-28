@@ -20,7 +20,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
     const stats: TableStat[] = [
         {
-            type: "students",
+            type: "student",
             value: `${student.schema.first_name} ${student.schema.last_name}`,
             desc: "Student Profile",
         },

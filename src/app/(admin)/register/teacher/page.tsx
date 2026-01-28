@@ -13,6 +13,7 @@ export default function TeacherPage() {
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<TeacherCreateForm>(contextForm || defaultTeacherForm);
     const [loading, setLoading] = useState(false);
+    const [formKey, setFormKey] = useState(0);
 
     // Update context when form data changes
     useEffect(() => {
@@ -79,8 +80,9 @@ export default function TeacherPage() {
                         });
                     },
                     setFormData,
-                    defaultForm: defaultTeacherForm,
+                    defaultForm: { ...defaultTeacherForm, languages: [], commissions: [] },
                 });
+                setFormKey((prev) => prev + 1);
             },
             successMessage: `Teacher created: ${formData.first_name} ${formData.last_name}`,
         });
@@ -96,6 +98,7 @@ export default function TeacherPage() {
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
                 <TeacherForm
+                    key={formKey}
                     formData={formData}
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}

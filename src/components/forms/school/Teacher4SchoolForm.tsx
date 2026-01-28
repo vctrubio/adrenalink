@@ -154,11 +154,11 @@ const CommissionsListField = memo(function CommissionsListField({
     currency,
     commissionColor,
 }: {
-    commissions: { id: string; commissionType: "fixed" | "percentage"; commissionValue: number; commissionDescription: string }[];
+    commissions: { id: string; commission_type: "fixed" | "percentage"; cph: number; description: string }[];
     onAddCommission: (commission: {
-        commissionType: "fixed" | "percentage";
-        commissionValue: number;
-        commissionDescription: string;
+        commission_type: "fixed" | "percentage";
+        cph: number;
+        description: string;
     }) => void;
     onRemoveCommission: (id: string) => void;
     currency: string;
@@ -171,9 +171,9 @@ const CommissionsListField = memo(function CommissionsListField({
     const handleAdd = useCallback(() => {
         if (commissionValue.trim()) {
             onAddCommission({
-                commissionType,
-                commissionValue: parseFloat(commissionValue),
-                commissionDescription,
+                commission_type: commissionType,
+                cph: parseFloat(commissionValue),
+                description: commissionDescription,
             });
             setCommissionValue("");
             setCommissionDescription("");
@@ -198,9 +198,9 @@ const CommissionsListField = memo(function CommissionsListField({
                         {commissions.map((commission) => (
                             <div key={commission.id} className="relative group">
                                 <CommissionTypeValue
-                                    value={commission.commissionValue.toString()}
-                                    type={commission.commissionType}
-                                    description={commission.commissionDescription}
+                                    value={commission.cph.toString()}
+                                    type={commission.commission_type}
+                                    description={commission.description || ""}
                                 />
                                 <button
                                     type="button"

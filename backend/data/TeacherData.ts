@@ -3,9 +3,13 @@ import type { Teacher } from "@/supabase/db/types";
 
 /**
  * Teacher Data - complete teacher record with schema, form, and relations
- * Aliased to TeacherTableData to match Master Table usage
+ * Extends TeacherTableData with additional fields
  */
-export type TeacherData = TeacherTableData;
+export type TeacherData = TeacherTableData & {
+    schema: Teacher;
+    updateForm: TeacherUpdateForm;
+    relations: TeacherRelations;
+};
 
 /**
  * Teacher Relations - all related data from joined tables

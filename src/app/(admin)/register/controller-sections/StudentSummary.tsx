@@ -10,9 +10,10 @@ interface StudentSummaryProps {
 }
 
 export function StudentSummary({ studentFormData }: StudentSummaryProps) {
-    const isNameComplete = !!(studentFormData.firstName && studentFormData.lastName);
+    const isNameComplete = !!(studentFormData.first_name && studentFormData.last_name);
     const isPassportComplete = !!studentFormData.passport;
     const isCountryComplete = !!studentFormData.country;
+    const isPhoneComplete = !!studentFormData.phone;
     const isLanguagesComplete = studentFormData.languages.length > 0;
 
     const StatusIcon = ({ isComplete }: { isComplete: boolean }) =>
@@ -22,24 +23,13 @@ export function StudentSummary({ studentFormData }: StudentSummaryProps) {
         {
             label: (
                 <div className="flex items-center gap-2.5">
-                    <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Name</span>
+                    <span className={isNameComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Full Name</span>
                     <StatusIcon isComplete={isNameComplete} />
                 </div>
             ),
             value: isNameComplete ? (
-                `${studentFormData.firstName} ${studentFormData.lastName}`
+                `${studentFormData.first_name} ${studentFormData.last_name}`
             ) : (
-                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
-            ),
-        },
-        {
-            label: (
-                <div className="flex items-center gap-2.5">
-                    <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
-                    <StatusIcon isComplete={isPassportComplete} />
-                </div>
-            ),
-            value: studentFormData.passport || (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },
@@ -59,6 +49,28 @@ export function StudentSummary({ studentFormData }: StudentSummaryProps) {
         {
             label: (
                 <div className="flex items-center gap-2.5">
+                    <span className={isPhoneComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Phone</span>
+                    <StatusIcon isComplete={isPhoneComplete} />
+                </div>
+            ),
+            value: studentFormData.phone || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
+        },
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
+                    <span className={isPassportComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Passport</span>
+                    <StatusIcon isComplete={isPassportComplete} />
+                </div>
+            ),
+            value: studentFormData.passport || (
+                <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+            ),
+        },
+        {
+            label: (
+                <div className="flex items-center gap-2.5">
                     <span className={isLanguagesComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Languages</span>
                     <StatusIcon isComplete={isLanguagesComplete} />
                 </div>
@@ -71,9 +83,8 @@ export function StudentSummary({ studentFormData }: StudentSummaryProps) {
         },
         {
             label: "Rental Auth",
-            value: studentFormData.canRent ? (
-                <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                    <VerifiedIcon size={16} className="text-blue-500" />
+            value: studentFormData.rental ? (
+                <span className="text-emerald-600 font-bold">
                     Authorized
                 </span>
             ) : (

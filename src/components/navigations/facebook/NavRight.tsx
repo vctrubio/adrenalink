@@ -81,6 +81,11 @@ export const NavRight = () => {
     const [packageFormData, setPackageFormData] = useState<SchoolPackageCreateForm>(defaultPackageForm);
     const [equipmentFormData, setEquipmentFormData] = useState<EquipmentCreateForm>(defaultEquipmentForm);
     const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const credentials = useSchoolCredentials();
 
@@ -268,9 +273,13 @@ export const NavRight = () => {
                 <button
                     onClick={() => setTheme(isDarkMode ? "light" : "dark")}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
-                    title={isDarkMode ? "Switch to Light mode" : "Switch to Dark mode"}
+                    title={isMounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : "Toggle theme"}
                 >
-                    {isDarkMode ? <WindIcon className="h-5 w-5" /> : <NoWindIcon className="h-5 w-5" />}
+                    {isMounted ? (
+                        isDarkMode ? <WindIcon className="h-5 w-5" /> : <NoWindIcon className="h-5 w-5" />
+                    ) : (
+                        <NoWindIcon className="h-5 w-5" />
+                    )}
                 </button>
                 <div className="relative">
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>

@@ -13,6 +13,7 @@ export default function PackagePage() {
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<SchoolPackageCreateForm>(contextForm || defaultPackageForm);
     const [loading, setLoading] = useState(false);
+    const [formKey, setFormKey] = useState(0);
 
     // Update context when form data changes
     useEffect(() => {
@@ -72,8 +73,9 @@ export default function PackagePage() {
                         });
                     },
                     setFormData,
-                    defaultForm: defaultPackageForm,
+                    defaultForm: { ...defaultPackageForm },
                 });
+                setFormKey((prev) => prev + 1);
             },
             successMessage: `Package created: ${formData.description}`,
         });
@@ -89,6 +91,7 @@ export default function PackagePage() {
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
                 <Package4SchoolForm
+                    key={formKey}
                     formData={formData}
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}

@@ -119,27 +119,6 @@ export function handleSupabaseError(
     };
 }
 
-/**
- * Wrap async operation with error handling
- *
- * Usage:
- *   const result = await withErrorHandling(
- *     () => supabase.from("table").select("*"),
- *     "fetch data"
- *   );
- */
-export async function withErrorHandling<T>(
-    fn: () => Promise<T>,
-    context: string,
-    userMessage?: string
-): Promise<ApiActionResponseModel<T>> {
-    try {
-        const data = await fn();
-        return { success: true, data };
-    } catch (error) {
-        return handleSupabaseError(error, context, userMessage);
-    }
-}
 
 /**
  * Safe array access with error handling
@@ -148,19 +127,6 @@ export function safeArray<T>(arr: T[] | null | undefined): T[] {
     return arr || [];
 }
 
-/**
- * Ensure value exists or throw
- */
-export function assertExists<T>(
-    value: T | null | undefined,
-    message: string
-): T {
-    if (value === null || value === undefined) {
-        logger.error(message);
-        throw new Error(message);
-    }
-    return value;
-}
 
 /**
  * Examples:

@@ -4,17 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EntityLeftColumn } from "@/src/components/ids/EntityLeftColumn";
 import { UpdateEntityColumnCard } from "@/src/components/ids/UpdateEntityColumnCard";
-import { LessonEventRevenueBadge } from "@/src/components/ui/badge/lesson-event-revenue";
+import { BookingLessonRevenueBadge } from "@/src/components/ui/badge/booking-lesson-revenue";
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { formatDate } from "@/getters/date-getter";
-import { getFullDuration } from "@/getters/duration-getter";
 import { ENTITY_DATA } from "@/config/entities";
-import { COUNTRIES } from "@/config/countries";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import CreditIcon from "@/public/appSvgs/CreditIcon";
+import RequestIcon from "@/public/appSvgs/RequestIcon";
+import { EquipmentStudentCapacityBadge } from "@/src/components/ui/badge";
 import type { StudentData } from "@/backend/data/StudentData";
 import type { LeftColumnCardData } from "@/types/left-column";
 import { studentUpdateSchema, type StudentUpdateForm } from "@/src/validation/student";
 import { updateStudent, deleteStudent } from "@/supabase/server/students";
+
 
 interface StudentLeftColumnProps {
     student: StudentData;
@@ -30,6 +32,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
     const rentalEntity = ENTITY_DATA.find((e) => e.id === "rental")!;
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
     const paymentEntity = ENTITY_DATA.find((e) => e.id === "payment")!;
+    const studentPackageEntity = ENTITY_DATA.find((e) => e.id === "studentPackage")!;
 
     const StudentIcon = studentEntity.icon;
     const BookingIcon = bookingEntity.icon;
@@ -102,17 +105,34 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         });
     });
 
-    const bookingFields = bookings.map((booking: any) => ({
-        label: booking.school_package?.description || "Unknown Package",
-        value: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
-    }));
+    const bookingFields = bookings.map((booking: any) => {
+        const pkg = booking.school_package;
+        const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === pkg?.category_equipment);
+        const EquipmentIcon = equipmentConfig?.icon;
+
+        return {
+            label: (
+                <div className="flex items-center gap-2">
+                    <span>{pkg?.description || "Unknown Package"}</span>
+                    {EquipmentIcon && (
+                        <EquipmentStudentCapacityBadge
+                            categoryIcon={EquipmentIcon}
+                            equipmentCapacity={pkg?.capacity_equipment || 0}
+                            studentCapacity={pkg?.capacity_students || 0}
+                        />
+                    )}
+                </div>
+            ),
+            value: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+        };
+    });
 
     const bookingsCardData: LeftColumnCardData = {
         name: "Bookings",
         status: (
-            <LessonEventRevenueBadge
+            <BookingLessonRevenueBadge
+                bookingCount={bookings.length}
                 lessonCount={totalLessonCount}
-                duration={getFullDuration(totalEventDuration)}
                 revenue={Math.round(totalMoneySpent)}
             />
         ),
@@ -147,6 +167,46 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         ),
         fields: paymentFields,
         accentColor: paymentEntity.color,
+        isAddable: true,
+    };
+
+    // Student Packages Card (Requests)
+    const requests = student.relations?.student_package || [];
+    const pending = requests.filter((r) => r.status === "requested").length;
+    const completed = requests.filter((r) => r.status === "accepted" || r.status === "rejected").length;
+    const totalRequests = requests.length;
+
+    // Calculate progress percentage (completed / total) - only pending requests are not progressed
+    const progressPercentage = totalRequests > 0 ? (completed / totalRequests) * 100 : 0;
+    const requestProgressBarBackground = `linear-gradient(to right, ${studentPackageEntity.color} ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`;
+
+    // Individual request fields
+    const requestFields = requests.map((r) => {
+        const status = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+        const referralCode = r.referral?.code || "Direct";
+        return {
+            label: `${formatDate(r.created_at)} | ${referralCode}`,
+            value: status,
+        };
+    });
+
+    const requestsCardData: LeftColumnCardData = {
+        name: "Requests",
+        status: (
+            <div className="flex items-center gap-3">
+                <div className="h-2 flex-1 rounded-full overflow-hidden" style={{ background: requestProgressBarBackground }} />
+                <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-semibold text-foreground bg-muted">
+                    {completed}/{totalRequests}
+                </span>
+            </div>
+        ),
+        avatar: (
+            <div className="flex-shrink-0" style={{ color: studentPackageEntity.color }}>
+                <RequestIcon className="w-10 h-10" />
+            </div>
+        ),
+        fields: requestFields.length > 0 ? requestFields : [{ label: "Requests", value: "No requests yet" }],
+        accentColor: studentPackageEntity.color,
         isAddable: true,
     };
 
@@ -278,7 +338,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
                     canDelete ? "Are you sure you want to delete this student?" : "Cannot delete student with active bookings. Deactivating instead."
                 }
             />
-            <EntityLeftColumn cards={[bookingsCardData, paymentsCardData]} />
+            <EntityLeftColumn cards={[requestsCardData, bookingsCardData, paymentsCardData]} />
         </div>
     );
 }

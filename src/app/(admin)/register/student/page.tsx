@@ -13,6 +13,7 @@ export default function StudentPage() {
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
     const [formData, setFormData] = useState<StudentCreateForm>(contextForm || defaultStudentForm);
     const [loading, setLoading] = useState(false);
+    const [formKey, setFormKey] = useState(0);
 
     // Update context when form data changes
     useEffect(() => {
@@ -63,8 +64,9 @@ export default function StudentPage() {
                         });
                     },
                     setFormData,
-                    defaultForm: defaultStudentForm,
+                    defaultForm: { ...defaultStudentForm, languages: [] },
                 });
+                setFormKey((prev) => prev + 1);
             },
             successMessage: `Student created: ${formData.first_name} ${formData.last_name}`,
         });
@@ -80,6 +82,7 @@ export default function StudentPage() {
         <div className="bg-card rounded-lg border border-border">
             <div className="p-6">
                 <StudentForm
+                    key={formKey}
                     formData={formData}
                     onFormDataChange={setFormData}
                     isFormReady={isFormValid}

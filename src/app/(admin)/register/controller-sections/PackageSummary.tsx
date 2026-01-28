@@ -35,10 +35,10 @@ export function PackageSummary({
     title,
 }: PackageSummaryProps) {
     const isDescriptionComplete = !!packageFormData.description;
-    const isTypeComplete = !!packageFormData.packageType;
-    const isCapacityComplete = packageFormData.capacityStudents > 0;
-    const isDurationComplete = packageFormData.durationMinutes > 0;
-    const isPriceComplete = packageFormData.pricePerStudent >= 0;
+    const isTypeComplete = !!packageFormData.package_type;
+    const isCapacityComplete = packageFormData.capacity_students > 0;
+    const isDurationComplete = packageFormData.duration_minutes > 0;
+    const isPriceComplete = packageFormData.price_per_student >= 0;
 
     // Calculate Progress
     let progress = 0;
@@ -65,7 +65,7 @@ export function PackageSummary({
         rental: "Rental",
     };
 
-    const categoryConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === packageFormData.categoryEquipment);
+    const categoryConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === packageFormData.category_equipment);
     const CategoryIcon = categoryConfig?.icon;
 
     const fields = [
@@ -84,20 +84,20 @@ export function PackageSummary({
         },
         ...(!hideType
             ? [
-                  {
-                      label: (
-                          <div className="flex items-center gap-2.5">
-                              <span className={isTypeComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Type</span>
-                              <StatusIcon isComplete={isTypeComplete} />
-                          </div>
-                      ),
-                      value: packageFormData.packageType ? (
-                          <span className="capitalize font-black text-primary">{typeLabels[packageFormData.packageType]}</span>
-                      ) : (
-                          <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
-                      ),
-                  },
-              ]
+                {
+                    label: (
+                        <div className="flex items-center gap-2.5">
+                            <span className={isTypeComplete ? "text-foreground font-medium" : "text-muted-foreground"}>Type</span>
+                            <StatusIcon isComplete={isTypeComplete} />
+                        </div>
+                    ),
+                    value: packageFormData.package_type ? (
+                        <span className="capitalize font-black text-primary">{typeLabels[packageFormData.package_type]}</span>
+                    ) : (
+                        <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
+                    ),
+                },
+            ]
             : []),
         {
             label: (
@@ -110,8 +110,8 @@ export function PackageSummary({
                 isCapacityComplete && CategoryIcon ? (
                     <EquipmentStudentCapacityBadge
                         categoryIcon={CategoryIcon}
-                        equipmentCapacity={packageFormData.capacityEquipment}
-                        studentCapacity={packageFormData.capacityStudents}
+                        equipmentCapacity={packageFormData.capacity_equipment}
+                        studentCapacity={packageFormData.capacity_students}
                     />
                 ) : (
                     <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
@@ -125,7 +125,7 @@ export function PackageSummary({
                 </div>
             ),
             value: isDurationComplete ? (
-                formatDuration(packageFormData.durationMinutes)
+                formatDuration(packageFormData.duration_minutes)
             ) : (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
@@ -138,26 +138,26 @@ export function PackageSummary({
                 </div>
             ),
             value: isPriceComplete ? (
-                <span className="font-mono font-black text-emerald-600">€{packageFormData.pricePerStudent}</span>
+                <span className="font-mono font-black text-emerald-600">{packageFormData.price_per_student}</span>
             ) : (
                 <span className="text-amber-600 font-bold text-[10px] uppercase tracking-wider">Required</span>
             ),
         },
         ...(!hideVisibility
             ? [
-                  {
-                      label: "Visibility",
-                      value: packageFormData.isPublic ? (
-                          <span className="flex items-center gap-1.5 text-blue-600 font-bold">
-                              <Eye size={14} /> Public
-                          </span>
-                      ) : (
-                          <span className="flex items-center gap-1.5 text-muted-foreground font-bold">
-                              <EyeOff size={14} /> Private
-                          </span>
-                      ),
-                  },
-              ]
+                {
+                    label: "Visibility",
+                    value: packageFormData.is_public ? (
+                        <span className="flex items-center gap-1.5 text-blue-600 font-bold">
+                            <Eye size={14} /> Public
+                        </span>
+                    ) : (
+                        <span className="flex items-center gap-1.5 text-muted-foreground font-bold">
+                            <EyeOff size={14} /> Private
+                        </span>
+                    ),
+                },
+            ]
             : []),
     ];
 
