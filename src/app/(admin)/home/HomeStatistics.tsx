@@ -64,87 +64,92 @@ interface EquipmentStat extends React.ComponentType<any> {
 }
 
 export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
-    const [period, setPeriod] = useState<StatsPeriod>("week");
     const [viewDate, setViewDate] = useState(new Date());
+    const [drillMonth, setDrillMonth] = useState<Date | null>(null);
+    const [drillWeek, setDrillWeek] = useState<Date | null>(null);
 
-    // 1. Process data based on period
-    const statsData = useMemo(() => {
-        let interval: { start: Date; end: Date };
-        let groups: Date[];
-
-        if (period === "day") {
-            interval = { start: startOfMonth(viewDate), end: endOfMonth(viewDate) };
-            groups = eachDayOfInterval(interval);
-        } else if (period === "week") {
-            // Show last 12 weeks
-            interval = { start: subWeeks(viewDate, 11), end: endOfWeek(viewDate) };
-            groups = eachWeekOfInterval(interval);
-        } else {
-            // Show current year
-            interval = { start: startOfYear(viewDate), end: endOfYear(viewDate) };
-            groups = eachMonthOfInterval(interval);
-        }
-
+    // 1. Helper to process any interval into stats
+    const getStatsForInterval = (groups: Date[], startFn: (d: Date) => Date, endFn: (d: Date) => Date, labelFn: (d: Date) => string) => {
         return groups.map(date => {
-            let periodStart: Date, periodEnd: Date;
-            let label: string;
-
-            if (period === "day") {
-                periodStart = date;
-                periodEnd = date;
-                label = format(date, "MMM d");
-            } else if (period === "week") {
-                periodStart = startOfWeek(date);
-                periodEnd = endOfWeek(date);
-                label = `W${format(date, "w")}`;
-            } else {
-                periodStart = startOfMonth(date);
-                periodEnd = endOfMonth(date);
-                label = format(date, "MMM");
-            }
-
+            const pStart = startFn(date);
+            const pEnd = endFn(date);
             const periodEvents = events.filter(e => {
                 const eventDate = new Date(e.event.date);
-                return eventDate >= periodStart && eventDate <= periodEnd;
+                return eventDate >= pStart && eventDate <= pEnd;
             });
-
-            const daysInPeriod = eachDayOfInterval({ start: periodStart, end: periodEnd });
-            const activeDays = daysInPeriod.filter(d => 
-                events.some(e => isSameDay(new Date(e.event.date), d))
-            ).length;
+            const daysInPeriod = eachDayOfInterval({ start: pStart, end: pEnd });
+            const activeDays = daysInPeriod.filter(d => events.some(e => isSameDay(new Date(e.event.date), d))).length;
 
             return {
-                label,
+                label: labelFn(date),
                 date,
                 revenue: periodEvents.reduce((sum, e) => sum + e.financials.studentRevenue, 0),
                 profit: periodEvents.reduce((sum, e) => sum + e.financials.profit, 0),
                 commission: periodEvents.reduce((sum, e) => sum + e.financials.teacherEarnings, 0),
                 lessons: periodEvents.length,
-                eventCount: periodEvents.length, // Each TransactionEventData is one event
+                eventCount: periodEvents.length,
                 students: periodEvents.reduce((sum, e) => sum + (e.booking?.students?.length || 0), 0),
                 duration: periodEvents.reduce((sum, e) => sum + e.event.duration, 0),
                 activeDays,
                 totalDays: daysInPeriod.length
             };
         });
-    }, [events, period, viewDate]);
+    };
 
-    // 2. Calculate global highlights for the current view
+    // 2. Process all potential tiers
+    const overviewData = useMemo(() => {
+        const start = startOfMonth(subMonths(viewDate, 11));
+        const end = endOfMonth(viewDate);
+        const groups = eachMonthOfInterval({ start, end });
+        return getStatsForInterval(groups, startOfMonth, endOfMonth, d => format(d, "MMM"));
+    }, [events, viewDate]);
+
+    const weeklyData = useMemo(() => {
+        if (!drillMonth) return [];
+        const start = startOfMonth(drillMonth);
+        const end = endOfMonth(drillMonth);
+        const groups = eachWeekOfInterval({ start, end });
+        return getStatsForInterval(groups, startOfWeek, endOfWeek, d => `W${format(d, "w")}`);
+    }, [events, drillMonth]);
+
+    const dailyData = useMemo(() => {
+        if (!drillWeek) return [];
+        const start = startOfWeek(drillWeek);
+        const end = endOfWeek(drillWeek);
+        const groups = eachDayOfInterval({ start, end });
+        return getStatsForInterval(groups, d => d, d => d, d => format(d, "EEE d"));
+    }, [events, drillWeek]);
+
+    // 3. Determine current selection for summary stats
+    const currentStats = drillWeek ? dailyData : drillMonth ? weeklyData : overviewData;
+    const selectionLabel = drillWeek ? `Week ${format(drillWeek, "w")}, ${format(drillWeek, "yyyy")}` : 
+                          drillMonth ? format(drillMonth, "MMMM yyyy") : 
+                          `Last 12 Months (to ${format(viewDate, "MMM yyyy")})`;
+
+    // 4. Calculate global highlights for the current view
     const highlights = useMemo(() => {
-        if (statsData.length === 0) return null;
+        if (currentStats.length === 0) return null;
         
-        const totalProfit = statsData.reduce((sum, d) => sum + d.profit, 0);
-        const totalRevenue = statsData.reduce((sum, d) => sum + d.revenue, 0);
-        const totalCommission = statsData.reduce((sum, d) => sum + d.commission, 0);
-        const totalLessons = statsData.reduce((sum, d) => sum + d.lessons, 0);
-        const totalEvents = statsData.reduce((sum, d) => sum + d.eventCount, 0);
-        const totalStudents = statsData.reduce((sum, d) => sum + d.students, 0);
-        const totalDuration = statsData.reduce((sum, d) => sum + d.duration, 0);
-        const totalActiveDays = statsData.reduce((sum, d) => sum + d.activeDays, 0);
-        const totalDays = statsData.reduce((sum, d) => sum + d.totalDays, 0);
+        const totalProfit = currentStats.reduce((sum, d) => sum + d.profit, 0);
+        const totalRevenue = currentStats.reduce((sum, d) => sum + d.revenue, 0);
+        const totalCommission = currentStats.reduce((sum, d) => sum + d.commission, 0);
+        const totalLessons = currentStats.reduce((sum, d) => sum + d.lessons, 0);
+        const totalEvents = currentStats.reduce((sum, d) => sum + d.eventCount, 0);
+        const totalStudents = currentStats.reduce((sum, d) => sum + d.students, 0);
+        const totalDuration = currentStats.reduce((sum, d) => sum + d.duration, 0);
+        const totalActiveDays = currentStats.reduce((sum, d) => sum + d.activeDays, 0);
+        const totalDays = currentStats.reduce((sum, d) => sum + d.totalDays, 0);
 
-        // Equipment & Capacity Distribution
-        const equipmentCounts: Record<string, number> = { kite: 0, wing: 0, windsurf: 0 };
+        // Get exact range for gear/capacity
+        const rangeStart = currentStats[0].date;
+        const lastDate = currentStats[currentStats.length - 1].date;
+        const rangeEnd = drillWeek ? lastDate : endOfMonth(lastDate);
+
+        const equipmentCounts: Record<string, { count: number; duration: number }> = { 
+            kite: { count: 0, duration: 0 }, 
+            wing: { count: 0, duration: 0 }, 
+            windsurf: { count: 0, duration: 0 } 
+        };
         const capacityCounts: Record<string, { count: number; duration: number }> = {
             private: { count: 0, duration: 0 },
             semi: { count: 0, duration: 0 },
@@ -152,26 +157,12 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
         };
         let totalEventsWithEquipment = 0;
 
-        let rangeStart: Date, rangeEnd: Date;
-        if (period === "day") {
-            rangeStart = startOfMonth(viewDate);
-            rangeEnd = endOfMonth(viewDate);
-        } else if (period === "week") {
-            rangeStart = subWeeks(viewDate, 11);
-            rangeEnd = endOfWeek(viewDate);
-        } else {
-            rangeStart = startOfYear(viewDate);
-            rangeEnd = endOfYear(viewDate);
-        }
-
         events.forEach(e => {
             const eventDate = new Date(e.event.date);
             if (eventDate >= rangeStart && eventDate <= rangeEnd) {
                 // Capacity Grouping
                 const studentCount = e.booking?.students?.length || 0;
-                let capKey = "private";
-                if (studentCount === 2) capKey = "semi";
-                else if (studentCount >= 3) capKey = "group";
+                let capKey = studentCount === 1 ? "private" : studentCount === 2 ? "semi" : "group";
                 
                 capacityCounts[capKey].count++;
                 capacityCounts[capKey].duration += e.event.duration;
@@ -179,7 +170,8 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                 // Equipment
                 const cat = e.packageData.categoryEquipment?.toLowerCase();
                 if (cat && cat in equipmentCounts) {
-                    equipmentCounts[cat]++;
+                    equipmentCounts[cat].count++;
+                    equipmentCounts[cat].duration += e.event.duration;
                     totalEventsWithEquipment++;
                 }
             }
@@ -193,14 +185,14 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
 
         const equipmentStats = EQUIPMENT_CATEGORIES.map(cat => ({
             ...cat,
-            count: equipmentCounts[cat.id] || 0,
-            percentage: totalEventsWithEquipment > 0 ? ((equipmentCounts[cat.id] || 0) / totalEventsWithEquipment) * 100 : 0
+            ...equipmentCounts[cat.id],
+            percentage: totalEventsWithEquipment > 0 ? (equipmentCounts[cat.id].count / totalEventsWithEquipment) * 100 : 0
         })).sort((a, b) => b.count - a.count);
         
-        const maxProfit = Math.max(...statsData.map(d => d.profit), 1);
-        const bestPeriod = statsData.find(d => d.profit === Math.max(...statsData.map(p => p.profit)));
+        const maxProfit = Math.max(...currentStats.map(d => d.profit), 1);
+        const bestPeriod = currentStats.find(d => d.profit === Math.max(...currentStats.map(p => p.profit)));
 
-        const topPeriods = [...statsData]
+        const topPeriods = [...currentStats]
             .sort((a, b) => b.profit - a.profit)
             .slice(0, 3)
             .filter(p => p.profit > 0);
@@ -222,13 +214,13 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
             activeDays: totalActiveDays,
             totalDays
         };
-    }, [statsData, events, period, viewDate]);
+    }, [currentStats, events, drillWeek, drillMonth]);
 
     const navigate = (direction: "prev" | "next") => {
         const amount = direction === "prev" ? -1 : 1;
-        if (period === "day") setViewDate((prev) => addMonths(prev, amount));
-        else if (period === "week") setViewDate((prev) => addWeeks(prev, amount * 4));
-        else setViewDate((prev) => addMonths(prev, amount * 12));
+        setViewDate(prev => addMonths(prev, amount));
+        setDrillMonth(null);
+        setDrillWeek(null);
     };
 
     if (!highlights) return null;
@@ -238,12 +230,27 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
             {/* Control & Summary Header */}
             <div className="bg-card border border-border p-6 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <StatsControls 
-                        period={period} 
-                        setPeriod={setPeriod} 
-                        viewDate={viewDate} 
-                        navigate={navigate} 
-                    />
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <button onClick={() => navigate("prev")} className="p-2 hover:bg-muted rounded-full transition-colors">
+                                <ChevronLeft size={18} />
+                            </button>
+                            <span className="text-sm font-black uppercase tracking-tighter text-foreground min-w-[150px] text-center">
+                                {format(subMonths(viewDate, 11), "MMM yyyy")} - {format(viewDate, "MMM yyyy")}
+                            </span>
+                            <button onClick={() => navigate("next")} className="p-2 hover:bg-muted rounded-full transition-colors">
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                        {(drillMonth || drillWeek) && (
+                            <button 
+                                onClick={() => { setDrillMonth(null); setDrillWeek(null); }}
+                                className="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-xl border border-primary/20 hover:bg-primary/20 transition-all"
+                            >
+                                Reset View
+                            </button>
+                        )}
+                    </div>
                     
                     <div className="flex items-center gap-8 pr-4">
                         <div className="flex flex-col items-end">
@@ -270,6 +277,12 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                 </div>
 
                 <div className="pt-4 border-t border-border/50">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-primary">
+                            <Target size={14} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{selectionLabel}</span>
+                        </div>
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
                         <StatItemUI type="students" value={highlights.totalStudents} />
                         <StatItemUI type="lessons" value={highlights.totalLessons} />
@@ -292,72 +305,49 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
 
             {/* Visual Analytics Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                {/* Strength Chart */}
-                <div className="xl:col-span-2 bg-card border border-border rounded-[3rem] p-8 shadow-sm overflow-hidden relative">
-                    <div className="flex items-center justify-between mb-10 relative z-10">
-                        <div>
-                            <h3 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
-                                <TrendingUp className="text-primary" size={24} />
-                                Revenue Strength
-                            </h3>
-                            <p className="text-xs text-muted-foreground font-medium">Performance relative to best {period}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-3">
-                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-70">Top Performers</span>
-                            <div className="flex gap-3">
-                                {highlights.topPeriods.map((p, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-2xl border border-border/50 transition-colors hover:bg-muted/50">
-                                        <span className="text-[10px] font-black text-foreground uppercase tracking-tight">{p.label}</span>
-                                        <div className="w-px h-3 bg-border" />
-                                        <span className="text-xs font-black text-emerald-500 tabular-nums">{getCompactNumber(p.profit)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                {/* Strength Charts */}
+                <div className="xl:col-span-2 space-y-8">
+                    {/* Monthly Overview */}
+                    <DrillDownChart 
+                        title="Monthly Overview"
+                        subtitle="Click a month to see weekly breakdown"
+                        data={overviewData}
+                        maxProfit={Math.max(...overviewData.map(d => d.profit), 1)}
+                        onBarClick={(d: Date) => { setDrillMonth(d); setDrillWeek(null); }}
+                        selectedDate={drillMonth}
+                        highlights={highlights}
+                    />
 
-                    <div className="flex items-end justify-between h-[300px] gap-2 sm:gap-4 relative z-10 px-2">
-                        {statsData.map((d, i) => {
-                            const strength = (d.profit / highlights.maxProfit) * 100;
-                            return (
-                                <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 scale-95 group-hover:scale-100">
-                                        <div className="bg-popover border border-border shadow-2xl rounded-2xl p-4 min-w-[180px] space-y-2">
-                                            <p className="text-[10px] font-black text-primary uppercase border-b border-border pb-1 mb-2">{d.label}</p>
-                                            <StatItemUI type="profit" value={d.profit} variant="profit" hideLabel={false} />
-                                            <StatItemUI type="lessons" value={d.lessons} hideLabel={false} />
-                                            <StatItemUI type="students" value={d.students} hideLabel={false} />
-                                            <StatItemUI type="duration" value={d.duration} hideLabel={false} />
-                                            <StatItemUI type="events" labelOverride="Wind" value={`${d.activeDays}/${d.totalDays}d`} hideLabel={false} />
-                                        </div>
-                                    </div>
+                    {/* Weekly Drilldown */}
+                    {drillMonth && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                            <DrillDownChart 
+                                title={`${format(drillMonth, "MMMM yyyy")} Breakdown`}
+                                subtitle="Click a week to see daily breakdown"
+                                data={weeklyData}
+                                maxProfit={Math.max(...weeklyData.map(d => d.profit), 1)}
+                                onBarClick={(d: Date) => setDrillWeek(d)}
+                                selectedDate={drillWeek}
+                                highlights={highlights}
+                                isDrill
+                            />
+                        </motion.div>
+                    )}
 
-                                    {/* Bar */}
-                                    <motion.div 
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${Math.max(strength, 4)}%` }}
-                                        transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOut" }}
-                                        className={`w-full rounded-t-2xl relative overflow-hidden transition-all duration-500 ${
-                                            strength > 80 ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]" :
-                                            strength > 40 ? "bg-primary/60" :
-                                            strength > 0 ? "bg-primary/30" : "bg-muted/30"
-                                        }`}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    </motion.div>
-                                    
-                                    <span className="mt-4 text-[9px] font-black text-muted-foreground uppercase group-hover:text-primary transition-colors tracking-tighter">
-                                        {d.label}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="absolute inset-0 pt-32 pb-16 px-8 flex flex-col justify-between pointer-events-none opacity-20">
-                        {[1, 2, 3, 4].map((i) => <div key={i} className="w-full h-px bg-border border-dashed" />)}
-                    </div>
+                    {/* Daily Drilldown */}
+                    {drillWeek && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                            <DrillDownChart 
+                                title={`Week ${format(drillWeek, "w")} Daily View`}
+                                subtitle="Performance across specific days"
+                                data={dailyData}
+                                maxProfit={Math.max(...dailyData.map(d => d.profit), 1)}
+                                onBarClick={() => {}}
+                                highlights={highlights}
+                                isDrill
+                            />
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Secondary Stats */}
@@ -417,43 +407,70 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
     );
 }
 
-function StatsControls({ 
-    period, 
-    setPeriod, 
-    viewDate, 
-    navigate 
-}: { 
-    period: StatsPeriod; 
-    setPeriod: (p: StatsPeriod) => void; 
-    viewDate: Date; 
-    navigate: (d: "prev" | "next") => void; 
-}) {
+function DrillDownChart({ title, subtitle, data, maxProfit, onBarClick, selectedDate, highlights, isDrill = false }: any) {
     return (
-        <div className="flex items-center gap-4">
-            <div className="flex items-center bg-muted/50 p-1 rounded-2xl border border-border">
-                {(["day", "week", "month"] as const).map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => setPeriod(p)}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p ? "bg-background shadow-lg text-primary scale-105" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                        {p}s
-                    </button>
-                ))}
+        <div className={`bg-card border border-border rounded-[3rem] p-8 shadow-sm overflow-hidden relative ${isDrill ? "border-primary/20 bg-muted/5" : ""}`}>
+            <div className="flex items-center justify-between mb-10 relative z-10">
+                <div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                        <TrendingUp className="text-primary" size={24} />
+                        {title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
+                </div>
+                {!isDrill && (
+                    <div className="flex flex-col items-end gap-3">
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-70">Top Performers</span>
+                        <div className="flex gap-3">
+                            {highlights.topPeriods.map((p: any, idx: number) => (
+                                <div key={idx} className="flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-2xl border border-border/50 transition-colors hover:bg-muted/50">
+                                    <span className="text-[10px] font-black text-foreground uppercase tracking-tight">{p.label}</span>
+                                    <div className="w-px h-3 bg-border" />
+                                    <span className="text-xs font-black text-emerald-500 tabular-nums">{getCompactNumber(p.profit)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-            
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <button onClick={() => navigate("prev")} className="p-2 hover:bg-muted rounded-full transition-colors">
-                    <ChevronLeft size={18} />
-                </button>
-                <span className="text-sm font-black uppercase tracking-tighter text-foreground min-w-[120px] text-center">
-                    {period === "day" ? format(viewDate, "MMMM yyyy") : 
-                     period === "week" ? `${format(subWeeks(viewDate, 11), "MMM d")} - ${format(viewDate, "MMM d, yyyy")}` :
-                     format(viewDate, "yyyy")}
-                </span>
-                <button onClick={() => navigate("next")} className="p-2 hover:bg-muted rounded-full transition-colors">
-                    <ChevronRight size={18} />
-                </button>
+
+            <div className="flex items-end justify-between h-[325px] gap-2 sm:gap-4 relative z-10 px-2">
+                {data.map((d: any, i: number) => {
+                    const strength = (d.profit / maxProfit) * 100;
+                    const isSelected = selectedDate && isSameDay(new Date(d.date), new Date(selectedDate));
+                    return (
+                        <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer" onClick={() => onBarClick(d.date)}>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 scale-95 group-hover:scale-100">
+                                <div className="bg-popover border border-border shadow-2xl rounded-2xl p-4 min-w-[180px] space-y-2">
+                                    <p className="text-[10px] font-black text-primary uppercase border-b border-border pb-1 mb-2">{d.label}</p>
+                                    <StatItemUI type="profit" value={d.profit} variant="profit" hideLabel={false} />
+                                    <StatItemUI type="lessons" value={d.lessons} hideLabel={false} />
+                                    <StatItemUI type="students" value={d.students} hideLabel={false} />
+                                    <StatItemUI type="duration" value={d.duration} hideLabel={false} />
+                                    <StatItemUI type="events" labelOverride="Wind" value={`${d.activeDays}/${d.totalDays}d`} hideLabel={false} />
+                                </div>
+                            </div>
+
+                            <motion.div 
+                                initial={{ height: 0 }}
+                                animate={{ height: `${Math.max(strength, 4)}%` }}
+                                transition={{ duration: 0.8, delay: i * 0.05 }}
+                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${
+                                    isSelected ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110" :
+                                    strength > 0 ? "bg-primary/40 group-hover:bg-primary/60" : "bg-muted/30"
+                                }`}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </motion.div>
+                            <span className={`mt-4 text-[9px] font-black uppercase tracking-tighter transition-colors ${isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
+                                {d.label}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="absolute inset-0 pt-32 pb-16 px-8 flex flex-col justify-between pointer-events-none opacity-10">
+                {[1, 2, 3].map((i) => <div key={i} className="w-full h-px bg-border border-dashed" />)}
             </div>
         </div>
     );
@@ -472,6 +489,7 @@ function EquipmentLeaderboard({ stats }: { stats: any[] }) {
                         <div className="flex items-baseline gap-2">
                             <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{stat.percentage.toFixed(0)}%</span>
                             <span className="text-sm font-black text-foreground tabular-nums">{stat.count}</span>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{Math.floor(stat.duration / 60)}h</span>
                         </div>
                     </div>
                     <div className="relative h-2 bg-muted/30 rounded-full overflow-hidden">

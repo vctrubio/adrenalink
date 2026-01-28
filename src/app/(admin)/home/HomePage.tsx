@@ -43,15 +43,15 @@ const VIEW_CONFIG = {
         subtitle: "With full transaction details",
         icon: List,
     },
-    calendar: {
-        title: "Lesson Activity",
-        subtitle: "Your History at a glance",
-        icon: Grid3X3,
-    },
     stats: {
         title: "Performance Data",
         subtitle: "In-depth analytics and trends",
         icon: BarChart3,
+    },
+    calendar: {
+        title: "Lesson Activity",
+        subtitle: "Your History at a glance",
+        icon: Grid3X3,
     },
 };
 
@@ -73,18 +73,18 @@ function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMo
                 <span>Table</span>
             </button>
             <button
-                onClick={() => setMode("calendar")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "calendar" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-                <Grid3X3 size={14} />
-                <span>Activity</span>
-            </button>
-            <button
                 onClick={() => setMode("stats")}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "stats" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
                 <BarChart3 size={14} />
                 <span>Stats</span>
+            </button>
+            <button
+                onClick={() => setMode("calendar")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "calendar" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+                <Grid3X3 size={14} />
+                <span>Activity</span>
             </button>
         </div>
     );
@@ -121,11 +121,7 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
 
                     {viewMode === "table" && (
                         <div className="space-y-4">
-                            <TablesSearchHeader
-                                entityId="event"
-                                groupBy={groupBy}
-                                onGroupByChange={setGroupBy}
-                            />
+                            <TablesSearchHeader entityId="event" groupBy={groupBy} onGroupByChange={setGroupBy} />
                             <TransactionEventsTable events={allTransactionEvents} groupBy={groupBy} enableTableLogic={true} />
                         </div>
                     )}
