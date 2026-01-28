@@ -7,7 +7,7 @@ import type { StudentData } from "@/backend/data/StudentData";
 import { type EventStatusFilter } from "@/src/components/timeline/TimelineHeader";
 import type { SortConfig, SortOption } from "@/types/sort";
 import { StudentBookingActivityCard } from "../StudentBookingActivityCard";
-import { StudentLessonActivityCard } from "../StudentLessonActivityCard";
+import { TeacherBookingLessonTable } from "@/src/components/ids/TeacherBookingLessonTable";
 import { transactionEventToTimelineEvent } from "@/getters/booking-lesson-event-getter"; // Only need this for timeline conversion
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { Timeline } from "@/src/components/timeline";
@@ -19,7 +19,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { Calendar, List } from "lucide-react";
 import { safeArray } from "@/backend/error-handlers";
 
-type ViewMode = "timeline" | "by-lessons";
+type ViewMode = "timeline" | "by-lessons" | "by-bookings";
 
 // Main Component
 interface StudentRightColumnProps {
@@ -42,11 +42,13 @@ const BOOKING_FILTER_OPTIONS = ["All", "active", "completed", "cancelled"] as co
 const VIEW_MODE_OPTIONS = [
     { id: "timeline", label: "Timeline", icon: Calendar },
     { id: "by-lessons", label: "By Lessons", icon: List },
+    { id: "by-bookings", label: "By Bookings", icon: List },
 ] as const;
 
 export function StudentRightColumn({ student }: StudentRightColumnProps) {
     const router = useRouter();
     const [viewMode, setViewMode] = useState<ViewMode>("timeline");
+    const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sort, setSort] = useState<SortConfig>({ field: "date", direction: "desc" });
     const [filter, setFilter] = useState<EventStatusFilter>("all");
@@ -59,6 +61,7 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
     // Directly use pre-computed transactions and lessonRows from student.data
     const allTransactions = student.transactions || [];
     const allLessonRows = student.lessonRows || [];
+    const allBookings = student.bookings || [];
 
     const handleEquipmentUpdate = useCallback((eventId: string, equipment: any) => {
         router.refresh();
@@ -66,11 +69,12 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
 
     const handleViewModeChange = useCallback((newMode: string) => {
         setViewMode(newMode as ViewMode);
+        setExpandedLesson(null);
         // Reset sort and filter to appropriate defaults for the new view
         if (newMode === "timeline") {
             setSort({ field: "date", direction: "desc" });
             setFilter("all");
-        } else if (newMode === "by-bookings") {
+        } else if (newMode === "by-lessons" || newMode === "by-bookings") {
             setSort({ field: "date_start", direction: "desc" });
             setFilter("all");
         }
@@ -127,20 +131,20 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         return sortedEvents.map(transactionEventToTimelineEvent);
     }, [sortedEvents]);
 
-    // Filter and sort lessonRows for By Bookings view
-    const filteredBookings = useMemo(() => {
+    // Filter and sort lessonRows for By Lessons view
+    const filteredLessonRows = useMemo(() => {
         let result = [...allLessonRows];
 
-        // Filter by status
+        // Filter by status (lesson status)
         if (filter !== "all") {
-            result = result.filter((b) => b.bookingStatus === filter);
+            result = result.filter((l) => l.lessonStatus === filter);
         }
 
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            result = result.filter((b) => {
-                const leaderMatch = b.leaderName?.toLowerCase().includes(query);
+            result = result.filter((l) => {
+                const leaderMatch = l.leaderName?.toLowerCase().includes(query);
                 return leaderMatch;
             });
         }
@@ -163,12 +167,54 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
         return result;
     }, [allLessonRows, searchQuery, filter, sort]);
 
+    // Filter and sort bookings for By Bookings view
+    const filteredBookings = useMemo(() => {
+        let result = [...allBookings];
+
+        // Filter by status (booking status)
+        if (filter !== "all") {
+            result = result.filter((b) => b.status === filter);
+        }
+
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter((b) => {
+                const packageMatch = b.packageName?.toLowerCase().includes(query);
+                return packageMatch;
+            });
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            let valA: number, valB: number;
+
+            if (sort.field === "date_start") {
+                valA = new Date(a.dateStart || 0).getTime();
+                valB = new Date(b.dateStart || 0).getTime();
+            } else {
+                valA = new Date(a.dateStart || 0).getTime();
+                valB = new Date(b.dateStart || 0).getTime();
+            }
+
+            return sort.direction === "desc" ? valB - valA : valA - valB;
+        });
+
+        return result;
+    }, [allBookings, searchQuery, filter, sort]);
+
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
                 <div className="flex-1 min-w-64">
                     <SearchInput
-                        placeholder={viewMode === "timeline" ? "Search by teacher, location, or leader..." : "Search bookings by leader..."}
+                        placeholder={
+                            viewMode === "timeline"
+                                ? "Search by teacher, location, or leader..."
+                                : viewMode === "by-lessons"
+                                  ? "Search lessons by leader..."
+                                  : "Search bookings by package..."
+                        }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         entityColor={studentEntity.color}
@@ -204,20 +250,40 @@ export function StudentRightColumn({ student }: StudentRightColumnProps) {
                     />
                 )}
                 {viewMode === "by-lessons" && (
-                                    <motion.div
-                                        key="by-lessons"
+                    <motion.div
+                        key="by-lessons"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         className="space-y-4"
                     >
-                        {filteredBookings.map((lesson) => (
-                            <StudentLessonActivityCard
+                        {filteredLessonRows.map((lesson) => (
+                            <TeacherBookingLessonTable
                                 key={lesson.lessonId}
                                 lesson={lesson}
+                                isExpanded={expandedLesson === lesson.lessonId}
+                                onToggle={() => setExpandedLesson(expandedLesson === lesson.lessonId ? null : lesson.lessonId)}
                                 currency={currency}
                                 onEquipmentUpdate={handleEquipmentUpdate}
                             />
+                        ))}
+                        {filteredLessonRows.length === 0 && (
+                            <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-xl border border-border/50">
+                                No lessons match your filters
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+                {viewMode === "by-bookings" && (
+                    <motion.div
+                        key="by-bookings"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-4"
+                    >
+                        {filteredBookings.map((booking) => (
+                            <StudentBookingActivityCard key={booking.id} booking={booking} stats={booking.stats} />
                         ))}
                         {filteredBookings.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground bg-muted/5 rounded-xl border border-border/50">

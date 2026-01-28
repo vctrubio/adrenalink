@@ -89,24 +89,15 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         const lessons = booking.lessons || [];
         totalLessonCount += lessons.length;
 
-        const pkg = booking.school_package;
-        const packageDuration = pkg?.duration_minutes || 0;
-        const pricePerStudent = pkg?.price_per_student || 0;
-
-        lessons.forEach((lesson: any) => {
-            const events = lesson.event || lesson.events || [];
-            const lessonDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
-            totalEventDuration += lessonDuration;
-
-            if (packageDuration > 0) {
-                const lessonCost = (pricePerStudent * lessonDuration) / packageDuration;
-                totalMoneySpent += lessonCost;
-            }
-        });
+        // Use pre-computed revenue from stats which is already per-student
+        totalMoneySpent += booking.stats.events.revenue;
+        
+        // Accumulate duration from stats
+        totalEventDuration += (booking.stats.events.duration * 60);
     });
 
     const bookingFields = bookings.map((booking: any) => {
-        const pkg = booking.school_package;
+        const pkg = booking.packageDetails;
         const equipmentConfig = EQUIPMENT_CATEGORIES.find((cat) => cat.id === pkg?.category_equipment);
         const EquipmentIcon = equipmentConfig?.icon;
 
@@ -290,6 +281,12 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
         rental: rental,
     };
 
+    const cards = [
+        ...(totalRequests > 0 ? [requestsCardData] : []),
+        bookingsCardData,
+        paymentsCardData
+    ];
+
     return (
         <div className="space-y-6">
             <UpdateEntityColumnCard
@@ -338,7 +335,7 @@ export function StudentLeftColumn({ student }: StudentLeftColumnProps) {
                     canDelete ? "Are you sure you want to delete this student?" : "Cannot delete student with active bookings. Deactivating instead."
                 }
             />
-            <EntityLeftColumn cards={[requestsCardData, bookingsCardData, paymentsCardData]} />
+            <EntityLeftColumn cards={cards} />
         </div>
     );
 }

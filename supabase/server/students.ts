@@ -110,21 +110,22 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                     amount: p.amount,
                 }));
 
-                const bookingData = {
-                    package: {
-                        description: pkg.description,
-                        categoryEquipment: pkg.category_equipment,
-                        capacityEquipment: pkg.capacity_equipment,
-                        capacityStudents: pkg.capacity_students,
-                        durationMinutes: pkg.duration_minutes,
-                        pricePerStudent: pkg.price_per_student,
-                        pph: pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0,
-                    },
-                    lessons,
-                    payments,
+                const packageData = {
+                    description: pkg.description,
+                    categoryEquipment: pkg.category_equipment,
+                    capacityEquipment: pkg.capacity_equipment,
+                    capacityStudents: pkg.capacity_students,
+                    durationMinutes: pkg.duration_minutes,
+                    pricePerStudent: pkg.price_per_student,
+                    pph: pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0,
                 };
 
-                const bookingStats = calculateBookingStats(bookingData as any);
+                // Calculate stats based on 1 student for the revenue column
+                const bookingStats = calculateBookingStats({
+                    package: { ...packageData, capacityStudents: 1 },
+                    lessons,
+                    payments,
+                } as any);
 
                 return {
                     id: b.id,
@@ -132,7 +133,7 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                     dateStart: b.date_start,
                     dateEnd: b.date_end,
                     packageName: pkg.description,
-                    packageDetails: bookingData.package,
+                    packageDetails: packageData,
                     lessons,
                     stats: bookingStats,
                 };

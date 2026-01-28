@@ -1,6 +1,7 @@
 import { getServerConnection } from "@/supabase/connection";
 import { getSchoolHeader } from "@/types/headers";
-import { StudentData, StudentUpdateForm, StudentRelations } from "@/backend/data/StudentData";
+import { StudentData, StudentUpdateForm, StudentRelations, calculateStudentStats } from "@/backend/data/StudentData";
+import { calculateBookingStats } from "@/backend/data/BookingData";
 import { Student } from "@/supabase/db/types";
 import { handleSupabaseError, safeArray } from "@/backend/error-handlers";
 import { logger } from "@/backend/logger";
@@ -66,7 +67,10 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                         ),
                         teacher_lesson_payment(*)
                     ),
-                    student_booking_payment(*)
+                    student_booking_payment(*),
+                    booking_student(
+                        student(*)
+                    )
                 )
             `,
             )
@@ -77,21 +81,77 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             logger.warn("Error fetching student bookings", bookingError);
         }
 
-        // 3. Transform bookings into the structure needed for unified getters
+        // 3. Transform bookings into the structure needed for unified getters and table cards
         const bookings = safeArray(bookingLinks)
             .map((bl: any) => {
                 const b = bl.booking;
                 if (!b) return null;
 
+                const pkg = b.school_package;
+
+                const lessons = safeArray(b.lesson).map((l: any) => {
+                    const events = safeArray(l.event);
+                    const totalDuration = events.reduce((sum: number, e: any) => sum + (e.duration || 0), 0);
+                    const recordedPayments = safeArray(l.teacher_lesson_payment).reduce(
+                        (sum: number, p: any) => sum + (p.amount || 0),
+                        0
+                    );
+
+                    return {
+                        id: l.id,
+                        teacherId: l.teacher?.id,
+                        teacherUsername: l.teacher?.username || "Unknown",
+                        status: l.status,
+                        commission: {
+                            type: l.teacher_commission?.commission_type as "fixed" | "percentage",
+                            cph: l.teacher_commission?.cph || "0",
+                        },
+                        events: {
+                            totalCount: events.length,
+                            totalDuration: totalDuration,
+                            details: events.map((e: any) => ({ status: e.status, duration: e.duration || 0 })),
+                        },
+                        teacherPayments: recordedPayments,
+                    };
+                });
+
+                const payments = safeArray(b.student_booking_payment).map((p: any) => ({
+                    id: p.id,
+                    student_id: p.student_id,
+                    amount: p.amount,
+                    created_at: p.created_at,
+                }));
+
+                const packageDetails = {
+                    description: pkg.description,
+                    categoryEquipment: pkg.category_equipment,
+                    capacityEquipment: pkg.capacity_equipment,
+                    capacityStudents: pkg.capacity_students,
+                    durationMinutes: pkg.duration_minutes,
+                    pricePerStudent: pkg.price_per_student,
+                    pph: pkg.duration_minutes > 0 ? pkg.price_per_student / (pkg.duration_minutes / 60) : 0,
+                };
+
+                // For statistical calculation in Student ID view, we calculate revenue 
+                // based on a single student's participation (capacityStudents: 1)
+                const bookingStats = calculateBookingStats({
+                    package: { ...packageDetails, capacityStudents: 1 },
+                    lessons,
+                    payments,
+                } as any);
+
                 return {
                     id: b.id,
                     status: b.status,
-                    leader_student_name: b.leader_student_name,
-                    date_start: b.date_start,
-                    date_end: b.date_end,
-                    created_at: b.created_at,
-                    school_package: b.school_package,
-                    lessons: safeArray(b.lesson).map((l: any) => ({
+                    dateStart: b.date_start,
+                    dateEnd: b.date_end,
+                    packageName: pkg.description,
+                    packageDetails,
+                    lessons,
+                    payments,
+                    stats: bookingStats,
+                    // raw data for lessonsToTransactionEvents
+                    _raw_lessons: safeArray(b.lesson).map((l: any) => ({
                         ...l,
                         event: safeArray(l.event).map((evt: any) => ({
                             ...evt,
@@ -108,18 +168,12 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                             school_package: b.school_package,
                             booking_student: safeArray(b.booking_student).map((bs:any) => ({ student: bs.student }))
                         }
-                    })),
-                    student_booking_payment: safeArray(b.student_booking_payment).map((p: any) => ({
-                        id: p.id,
-                        amount: p.amount,
-                        created_at: p.created_at,
-                    })),
+                    }))
                 };
             })
             .filter((b: any) => b !== null);
 
-        // Aggregate ALL payments from all participating bookings
-        const allBookingPayments = bookings.flatMap((b) => b.student_booking_payment);
+        const schoolStudent = student.school_students[0];
 
         // 4. Fetch associated student packages (requests)
         const { data: studentPackages } = await supabase
@@ -130,22 +184,7 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
                 school_package!inner(*)
             `,
             )
-            .in(
-                "school_package_id",
-                bookings.map((b) => b.school_package?.id).filter((id) => !!id),
-            );
-
-        const schoolStudent = student.school_students[0];
-
-        const relations: StudentRelations = {
-            school_students: student.school_students,
-            student_package: safeArray(studentPackages).map((sp: any) => ({
-                ...sp,
-                school_package: sp.school_package,
-            })),
-            bookings: bookings,
-            student_booking_payment: allBookingPayments,
-        };
+            .eq("student_id", id);
 
         const schema: Student = {
             id: student.id,
@@ -159,20 +198,28 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
             updated_at: student.updated_at,
         };
 
-        const updateForm: StudentUpdateForm = {
-            ...schema,
-            description: schoolStudent?.description || null,
-            active: schoolStudent?.active ?? true,
-            rental: schoolStudent?.rental ?? false,
-            schoolId: schoolId,
+        const studentTableData: any = {
+            id: student.id,
+            firstName: student.first_name,
+            lastName: student.last_name,
+            passport: student.passport,
+            country: student.country,
+            phone: student.phone,
+            languages: student.languages,
+            schoolStudentStatus: schoolStudent?.active ? "active" : "inactive",
+            schoolStudentDescription: schoolStudent?.description || null,
+            createdAt: student.created_at,
+            bookings: bookings,
         };
 
+        const stats = calculateStudentStats(studentTableData);
+
         // Unified processing of all lessons into transactions and lessonRows
-        const allLessons = bookings.flatMap((b: any) => b.lessons || []);
-        const transactions = lessonsToTransactionEvents(allLessons, schoolHeader.currency || "YEN");
+        const allRawLessons = bookings.flatMap((b: any) => b._raw_lessons || []);
+        const transactions = lessonsToTransactionEvents(allRawLessons, schoolHeader.currency || "YEN");
 
         const lessonPaymentsMap: Record<string, number> = {};
-        allLessons.forEach((l: any) => {
+        allRawLessons.forEach((l: any) => {
             lessonPaymentsMap[l.id] = safeArray(l.teacher_lesson_payment).reduce(
                 (sum: number, p: any) => sum + (p.amount || 0),
                 0
@@ -180,11 +227,26 @@ export async function getStudentId(id: string): Promise<{ success: boolean; data
         });
         const lessonRows = groupTransactionsByLesson(transactions, lessonPaymentsMap);
 
-
         const studentData: StudentData = {
+            ...studentTableData,
+            stats,
             schema,
-            updateForm,
-            relations,
+            updateForm: {
+                ...schema,
+                description: schoolStudent?.description || null,
+                active: schoolStudent?.active ?? true,
+                rental: schoolStudent?.rental ?? false,
+                schoolId: schoolId,
+            },
+            relations: {
+                school_students: student.school_students,
+                bookings: bookings,
+                student_booking_payment: bookings.flatMap(b => b.payments || []),
+                student_package: safeArray(studentPackages).map((sp: any) => ({
+                    ...sp,
+                    school_package: sp.school_package,
+                })),
+            },
             transactions,
             lessonRows,
         };
