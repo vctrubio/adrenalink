@@ -53,9 +53,9 @@ export default function StudentPage() {
                 await handlePostCreation({
                     entityId: data.student.id,
                     entityType: "student",
-                    closeDialog: () => {},
-                    onSelectId: () => {},
-                    onRefresh: async () => {},
+                    closeDialog: () => { /* no-op on page */ },
+                    onSelectId: () => { /* no-op on page */ },
+                    onRefresh: () => Promise.resolve(),
                     onAddToQueue: () => {
                         addToQueue("students", {
                             id: data.student.id,
@@ -89,6 +89,7 @@ export default function StudentPage() {
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={loading}
+                    showSubmit={true}
                 />
             </div>
         </div>

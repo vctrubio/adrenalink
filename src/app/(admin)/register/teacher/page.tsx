@@ -76,9 +76,9 @@ export default function TeacherPage() {
                     entityId: data.teacher.id,
                     entityType: "teacher",
                     metadata: teacherMetadata,
-                    closeDialog: () => {},
-                    onSelectId: () => {},
-                    onRefresh: async () => {},
+                    closeDialog: () => { /* no-op on page */ },
+                    onSelectId: () => { /* no-op on page */ },
+                    onRefresh: () => Promise.resolve(),
                     onAddToQueue: () => {
                         addToQueue("teachers", {
                             id: data.teacher.id,
@@ -113,6 +113,7 @@ export default function TeacherPage() {
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={loading}
+                    showSubmit={true}
                 />
             </div>
         </div>

@@ -10,7 +10,7 @@ import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-v
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { X } from "lucide-react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import { MasterSchoolForm } from "./MasterSchoolForm";
+import { MasterSchoolForm, useMasterForm } from "./MasterSchoolForm";
 import { teacherCreateSchema, defaultTeacherForm, type TeacherCreateForm } from "@/src/validation/teacher";
 import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
 
@@ -309,7 +309,7 @@ export default function TeacherForm({
     formData,
     onFormDataChange,
     isFormReady = false,
-    showSubmit = false,
+    showSubmit = true,
     onSubmit,
     isLoading = false,
     onClose,
@@ -319,18 +319,6 @@ export default function TeacherForm({
     const credentials = useSchoolCredentials();
     const currency = credentials.currency || "YEN";
 
-    // Debug validation
-    useEffect(() => {
-        if (!isFormReady) {
-            const result = teacherCreateSchema.safeParse(formData);
-            if (!result.success) {
-                console.log("[TeacherForm] Validation Errors:", result.error.flatten().fieldErrors);
-            } else {
-                console.log("[TeacherForm] Schema is valid, but isFormReady is false. Check parent logic.");
-            }
-        }
-    }, [isFormReady, formData]);
-
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
         return formData.username || "New Teacher";
@@ -338,12 +326,12 @@ export default function TeacherForm({
 
     // Track which fields have been touched/interacted with
     const [touchedFields, setTouchedFields] = useState<Set<keyof TeacherCreateForm>>(new Set());
-    // Track if form has been submitted (attempted)
-    const [hasSubmitted, setHasSubmitted] = useState(false);
+    
+    // Get hasSubmitted from MasterSchoolForm context
+    const { hasSubmitted } = useMasterForm();
 
     const handleClear = useCallback(() => {
         setTouchedFields(new Set());
-        setHasSubmitted(false);
         onFormDataChange(defaultTeacherForm);
     }, [onFormDataChange]);
 
@@ -381,25 +369,6 @@ export default function TeacherForm({
     const isFieldValid = (field: keyof TeacherCreateForm): boolean => {
         return getFieldError(field) === undefined && !!formData[field];
     };
-
-    const handleSubmit = useCallback(async () => {
-        setHasSubmitted(true);
-        // Mark all fields as touched when submitting
-        const allFields: (keyof TeacherCreateForm)[] = [
-            "first_name",
-            "last_name",
-            "username",
-            "country",
-            "phone",
-            "passport",
-            "languages",
-        ];
-        setTouchedFields(new Set(allFields));
-
-        if (onSubmit) {
-            await onSubmit();
-        }
-    }, [onSubmit]);
 
     const submitLabel = useMemo(() => {
         const commissionCount = formData.commissions.length;
@@ -495,13 +464,14 @@ export default function TeacherForm({
             color={teacherEntity?.color}
             entityTitle={entityTitle}
             isFormReady={isFormReady}
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit || (() => Promise.resolve())}
             onCancel={() => {
                 handleClear();
-                onClose?.();
+                if (onClose) onClose();
             }}
             onClear={handleClear}
             isLoading={isLoading}
+            showSubmit={showSubmit}
             submitLabel={submitLabel}
         >
             {formContent}

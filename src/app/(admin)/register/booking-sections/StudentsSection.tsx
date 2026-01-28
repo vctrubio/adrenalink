@@ -91,13 +91,6 @@ export function StudentsSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (isDialogOpen) {
-            setFormData(defaultStudentForm);
-        }
-    }, [isDialogOpen]);
-
     const selectedStudentNames = selectedStudentIds
         .map((id) => {
             const s = students.find((s) => s.student.id === id);
@@ -136,6 +129,7 @@ export function StudentsSection({
             onSuccess: async (data) => {
                 await handlePostCreation({
                     entityId: data.student.id,
+                    entityType: "student",
                     closeDialog: () => setIsDialogOpen(false),
                     onSelectId: () => onToggle(data.student.id),
                     onRefresh: refreshData,
@@ -176,7 +170,10 @@ export function StudentsSection({
                     selectedStudentIds.forEach((id) => onToggle(id));
                 }}
                 showAddButton={true}
-                onAddClick={() => setIsDialogOpen(true)}
+                onAddClick={() => {
+                    setFormData(defaultStudentForm);
+                    setIsDialogOpen(true);
+                }}
             >
                 <StudentTable
                     students={students}
@@ -194,6 +191,7 @@ export function StudentsSection({
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={submitLoading}
+                    onClose={() => setIsDialogOpen(false)}
                 />
             </EntityAddDialog>
         </>

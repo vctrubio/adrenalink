@@ -7,7 +7,7 @@ import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 import { ENTITY_DATA } from "@/config/entities";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
-import { MasterSchoolForm } from "./MasterSchoolForm";
+import { MasterSchoolForm, useMasterForm } from "./MasterSchoolForm";
 import { schoolPackageCreateSchema, defaultPackageForm, type SchoolPackageCreateForm } from "@/src/validation/school-package";
 import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
 import FormTextarea from "@/src/components/ui/form/form-textarea";
@@ -304,7 +304,7 @@ export default function Package4SchoolForm({
     formData,
     onFormDataChange,
     isFormReady = false,
-    showSubmit = false,
+    showSubmit = true,
     onSubmit,
     isLoading = false,
     onClose,
@@ -312,7 +312,9 @@ export default function Package4SchoolForm({
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
 
     const [touchedFields, setTouchedFields] = useState<Set<keyof SchoolPackageCreateForm>>(new Set());
-    const [hasSubmitted, setHasSubmitted] = useState(false);
+    
+    // Get hasSubmitted from MasterSchoolForm context
+    const { hasSubmitted } = useMasterForm();
 
     const entityTitle = useMemo(() => {
         return formData.description || "New Package";
@@ -320,7 +322,6 @@ export default function Package4SchoolForm({
 
     const handleClear = useCallback(() => {
         setTouchedFields(new Set());
-        setHasSubmitted(false);
         onFormDataChange(defaultPackageForm);
     }, [onFormDataChange]);
 
@@ -356,21 +357,6 @@ export default function Package4SchoolForm({
         },
         [getFieldError, formData],
     );
-
-    const handleSubmit = useCallback(async () => {
-        setHasSubmitted(true);
-        const allFields: (keyof SchoolPackageCreateForm)[] = [
-            "description",
-            "package_type",
-            "category_equipment",
-            "capacity_equipment",
-            "duration_minutes",
-            "price_per_student",
-            "capacity_students",
-        ];
-        setTouchedFields(new Set(allFields));
-        if (onSubmit) await onSubmit();
-    }, [onSubmit]);
 
     const formContent = (
         <>
@@ -443,11 +429,9 @@ export default function Package4SchoolForm({
             color={packageEntity?.color}
             entityTitle={entityTitle}
             isFormReady={isFormReady}
-            onSubmit={handleSubmit}
-            onCancel={onClose || (() => { })}
+            onSubmit={onSubmit || (() => Promise.resolve())}
+            onCancel={onClose || (() => { /* no-op */ })}
             onClear={handleClear}
-            isLoading={isLoading}
-            submitLabel="Add Package"
         >
             {formContent}
         </MasterSchoolForm>

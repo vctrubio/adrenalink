@@ -64,9 +64,9 @@ export default function PackagePage() {
                     entityId: data.id,
                     entityType: "package",
                     metadata: packageMetadata,
-                    closeDialog: () => {},
-                    onSelectId: () => {},
-                    onRefresh: async () => {},
+                    closeDialog: () => { /* no-op on page */ },
+                    onSelectId: () => { /* no-op on page */ },
+                    onRefresh: () => Promise.resolve(),
                     onAddToQueue: () => {
                         addToQueue("packages", {
                             id: data.id,
@@ -101,6 +101,7 @@ export default function PackagePage() {
                     isFormReady={isFormValid}
                     onSubmit={handleSubmit}
                     isLoading={loading}
+                    showSubmit={true}
                 />
             </div>
         </div>

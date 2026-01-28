@@ -129,8 +129,8 @@ export const NavRight = () => {
                 studentFormData.rental,
                 studentFormData.description || undefined,
             );
-            setStudentFormData(defaultStudentForm);
             setSelectedCreateEntity(null);
+            setStudentFormData(defaultStudentForm);
         } catch (error) {
             console.error("Student creation error:", error);
         } finally {
@@ -157,8 +157,8 @@ export const NavRight = () => {
                     description: c.description || undefined,
                 })),
             );
-            setTeacherFormData(defaultTeacherForm);
             setSelectedCreateEntity(null);
+            setTeacherFormData(defaultTeacherForm);
         } catch (error) {
             console.error("Teacher creation error:", error);
         } finally {
@@ -179,8 +179,8 @@ export const NavRight = () => {
                 package_type: packageFormData.package_type,
                 is_public: packageFormData.is_public,
             });
-            setPackageFormData(defaultPackageForm);
             setSelectedCreateEntity(null);
+            setPackageFormData(defaultPackageForm);
         } catch (error) {
             console.error("Package creation error:", error);
         } finally {
@@ -200,8 +200,8 @@ export const NavRight = () => {
                 size: equipmentFormData.size || undefined,
                 status: equipmentFormData.status || undefined,
             });
-            setEquipmentFormData(defaultEquipmentForm);
             setSelectedCreateEntity(null);
+            setEquipmentFormData(defaultEquipmentForm);
         } catch (error) {
             console.error("Equipment creation error:", error);
         } finally {
@@ -305,6 +305,7 @@ export const NavRight = () => {
                     onSubmit={handleStudentSubmit}
                     isLoading={isLoadingSubmit}
                     onClose={() => setSelectedCreateEntity(null)}
+                    showSubmit={true}
                 />
             </EntityAddDialog>
 
@@ -316,6 +317,7 @@ export const NavRight = () => {
                     onSubmit={handleTeacherSubmit}
                     isLoading={isLoadingSubmit}
                     onClose={() => setSelectedCreateEntity(null)}
+                    showSubmit={true}
                 />
             </EntityAddDialog>
 
@@ -327,6 +329,7 @@ export const NavRight = () => {
                     onSubmit={handlePackageSubmit}
                     isLoading={isLoadingSubmit}
                     onClose={() => setSelectedCreateEntity(null)}
+                    showSubmit={true}
                 />
             </EntityAddDialog>
 
@@ -338,6 +341,7 @@ export const NavRight = () => {
                     onSubmit={handleEquipmentSubmit}
                     isLoading={isLoadingSubmit}
                     onClose={() => setSelectedCreateEntity(null)}
+                    showSubmit={true}
                 />
             </EntityAddDialog>
         </>

@@ -7,7 +7,7 @@ import { CountryFlagPhoneSubForm } from "../CountryFlagPhoneSubForm";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { LANGUAGES } from "@/supabase/db/enums";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
-import { MasterSchoolForm } from "./MasterSchoolForm";
+import { MasterSchoolForm, useMasterForm } from "./MasterSchoolForm";
 import { studentCreateSchema, defaultStudentForm, type StudentCreateForm } from "@/src/validation/student";
 import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
 import FormTextarea from "@/src/components/ui/form/form-textarea";
@@ -187,160 +187,283 @@ const CanRentField = memo(function CanRentField({
 });
 
 // Main component - ONLY RENDERS
+
 export default function StudentForm({
+
     formData,
+
     onFormDataChange,
+
     isFormReady = false,
-    showSubmit = false,
+
+    showSubmit = true,
+
     onSubmit,
+
     isLoading = false,
+
     onClose,
+
 }: StudentFormProps) {
+
     const studentEntity = ENTITY_DATA.find((e) => e.id === "student");
+
     const rentalColor = "#ef4444"; // Red for rental
+
     const activeColor = formData.rental ? rentalColor : studentEntity?.color;
 
+
+
     // Memoize entity title to prevent re-renders on keystroke
+
     const entityTitle = useMemo(() => {
+
         const name = [formData.first_name, formData.last_name].filter(Boolean).join(" ");
+
         return name || "New Student";
+
     }, [formData.first_name, formData.last_name]);
 
+
+
     // Track which fields have been touched/interacted with
+
     const [touchedFields, setTouchedFields] = useState<Set<keyof StudentCreateForm>>(new Set());
-    // Track if form has been submitted (attempted)
-    const [hasSubmitted, setHasSubmitted] = useState(false);
+
+    
+
+    // Get hasSubmitted from MasterSchoolForm context
+
+    const { hasSubmitted } = useMasterForm();
+
+
 
     const handleClear = useCallback(() => {
+
         setTouchedFields(new Set());
-        setHasSubmitted(false);
+
         onFormDataChange(defaultStudentForm);
+
     }, [onFormDataChange]);
 
+
+
     const handleFieldTouch = useCallback((field: keyof StudentCreateForm) => {
+
         setTouchedFields((prev) => new Set(prev).add(field));
+
     }, []);
 
+
+
     const updateField = useCallback(
+
         (field: keyof StudentCreateForm, value: string | string[] | boolean) => {
+
             handleFieldTouch(field);
+
             onFormDataChange((prevData: StudentCreateForm) => {
+
                 return { ...prevData, [field]: value };
+
             });
+
         },
+
         [onFormDataChange, handleFieldTouch],
+
     );
+
+
 
     const getFieldError = (field: keyof StudentCreateForm): string | undefined => {
+
         // Only show error if field has been touched or form has been submitted
+
         if (!touchedFields.has(field) && !hasSubmitted) {
+
             return undefined;
+
         }
+
         
+
         try {
+
             studentCreateSchema.shape[field].parse(formData[field]);
+
             return undefined;
+
         } catch (error) {
+
             if (error instanceof z.ZodError) {
+
                 return error.issues[0]?.message;
+
             }
+
             return undefined;
+
         }
+
     };
+
+
 
     const isFieldValid = (field: keyof StudentCreateForm): boolean => {
+
         return getFieldError(field) === undefined && !!formData[field];
+
     };
 
-    const handleSubmit = useCallback(async () => {
-        setHasSubmitted(true);
-        // Mark all fields as touched when submitting
-        const allFields: (keyof StudentCreateForm)[] = [
-            "first_name",
-            "last_name",
-            "country",
-            "phone",
-            "passport",
-            "languages",
-        ];
-        setTouchedFields(new Set(allFields));
-        
-        if (onSubmit) {
-            await onSubmit();
-        }
-    }, [onSubmit]);
+
 
     const formContent = (
+
         <>
+
             {/* Name Fields */}
+
             <NameFields
+
                 firstName={formData.first_name}
+
                 lastName={formData.last_name}
+
                 onFirstNameChange={(value) => updateField("first_name", value)}
+
                 onLastNameChange={(value) => updateField("last_name", value)}
+
                 firstNameError={getFieldError("first_name")}
+
                 lastNameError={getFieldError("last_name")}
+
                 firstNameIsValid={isFieldValid("first_name")}
+
                 lastNameIsValid={isFieldValid("last_name")}
+
                 autoFocus={true}
+
                 onFieldTouch={(field) => handleFieldTouch(field)}
+
             />
+
+
 
             {/* Country & Phone */}
+
             <CountryFlagPhoneSubForm
+
                 onCountryChange={(country) => updateField("country", country)}
+
                 onPhoneChange={(phone) => updateField("phone", phone)}
+
                 countryValue={formData.country}
+
                 countryError={getFieldError("country")}
+
                 phoneError={getFieldError("phone")}
+
                 countryIsValid={isFieldValid("country")}
+
                 phoneIsValid={isFieldValid("phone")}
+
             />
+
+
 
             {/* Passport */}
+
             <PassportField
+
                 passport={formData.passport}
+
                 onPassportChange={(value) => updateField("passport", value)}
+
                 passportError={getFieldError("passport")}
+
                 passportIsValid={isFieldValid("passport")}
+
                 onFieldTouch={() => handleFieldTouch("passport")}
+
             />
+
+
 
             {/* Languages */}
+
             <LanguagesField
+
                 languages={formData.languages}
+
                 onLanguageChange={(value) => updateField("languages", value)}
+
                 languagesError={getFieldError("languages")}
+
                 onFieldTouch={() => handleFieldTouch("languages")}
+
             />
+
+
 
             {/* Description */}
+
             <DescriptionField
+
                 description={formData.description || ""}
+
                 onDescriptionChange={(value) => updateField("description", value)}
+
             />
+
+
 
             {/* Can Rent */}
+
             <CanRentField 
+
                 canRent={formData.rental} 
+
                 onCanRentChange={(value) => updateField("rental", value)} 
+
             />
+
         </>
+
     );
 
+
+
     return (
+
         <MasterSchoolForm
+
             icon={studentEntity?.icon}
+
             color={formData.rental ? "#ef4444" : studentEntity?.color}
-            entityTitle={entityTitle}
-            isFormReady={isFormReady}
-            onSubmit={handleSubmit}
-            onCancel={onClose || (() => {})}
-            onClear={handleClear}
+
+                        entityTitle={entityTitle}
+
+                                    isFormReady={isFormReady}
+
+                                    onSubmit={onSubmit || (() => Promise.resolve())}
+
+                                    onCancel={onClose || (() => { /* no-op */ })}
+
+                                    onClear={handleClear}
+
             isLoading={isLoading}
+
+            showSubmit={showSubmit}
+
             submitLabel="Add Student"
+
         >
+
             {formContent}
+
         </MasterSchoolForm>
+
     );
+
 }

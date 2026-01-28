@@ -73,13 +73,6 @@ export function PackageSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (isDialogOpen) {
-            setFormData(defaultPackageForm);
-        }
-    }, [isDialogOpen]);
-
     const title = selectedPackage ? selectedPackage.description : "Select Package";
 
     const handleSubmit = useCallback(async () => {
@@ -112,6 +105,7 @@ export function PackageSection({
 
                 await handlePostCreation({
                     entityId: data.id,
+                    entityType: "package",
                     closeDialog: () => setIsDialogOpen(false),
                     onSelectId: () => onSelect(newPackage),
                     onRefresh: refreshData,
@@ -153,7 +147,10 @@ export function PackageSection({
                     onSelect(null as any);
                 }}
                 showAddButton={true}
-                onAddClick={() => setIsDialogOpen(true)}
+                onAddClick={() => {
+                    setFormData(defaultPackageForm);
+                    setIsDialogOpen(true);
+                }}
             >
                 <PackageTable
                     packages={

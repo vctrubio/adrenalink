@@ -5,7 +5,7 @@ import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { MasterSchoolForm } from "./MasterSchoolForm";
+import { MasterSchoolForm, useMasterForm } from "./MasterSchoolForm";
 import { equipmentCreateSchema, defaultEquipmentForm, type EquipmentCreateForm } from "@/src/validation/equipment";
 import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
 import FormIconSelect from "@/src/components/ui/form/form-icon-select";
@@ -214,7 +214,7 @@ export default function Equipment4SchoolForm({
     formData,
     onFormDataChange,
     isFormReady = false,
-    showSubmit = false,
+    showSubmit = true,
     onSubmit,
     isLoading = false,
     onClose,
@@ -231,12 +231,12 @@ export default function Equipment4SchoolForm({
 
     // Track which fields have been touched/interacted with
     const [touchedFields, setTouchedFields] = useState<Set<keyof EquipmentCreateForm>>(new Set());
-    // Track if form has been submitted (attempted)
-    const [hasSubmitted, setHasSubmitted] = useState(false);
+    
+    // Get hasSubmitted from MasterSchoolForm context
+    const { hasSubmitted } = useMasterForm();
 
     const handleClear = useCallback(() => {
         setTouchedFields(new Set());
-        setHasSubmitted(false);
         onFormDataChange(defaultEquipmentForm);
     }, [onFormDataChange]);
 
@@ -274,22 +274,6 @@ export default function Equipment4SchoolForm({
     const isFieldValid = (field: keyof EquipmentCreateForm): boolean => {
         return getFieldError(field) === undefined && !!formData[field];
     };
-
-    const handleSubmit = useCallback(async () => {
-        setHasSubmitted(true);
-        // Mark all fields as touched when submitting
-        const allFields: (keyof EquipmentCreateForm)[] = [
-            "category",
-            "brand",
-            "model",
-            "sku",
-        ];
-        setTouchedFields(new Set(allFields));
-        
-        if (onSubmit) {
-            await onSubmit();
-        }
-    }, [onSubmit]);
 
     const formContent = (
         <>
@@ -338,19 +322,38 @@ export default function Equipment4SchoolForm({
         </>
     );
 
-    return (
-        <MasterSchoolForm
-            icon={equipmentEntity?.icon}
-            color={equipmentEntity?.color}
-            entityTitle={entityTitle}
-            isFormReady={isFormReady}
-            onSubmit={handleSubmit}
-            onCancel={onClose || (() => {})}
-            onClear={handleClear}
-            isLoading={isLoading}
-            submitLabel="Add Equipment"
-        >
-            {formContent}
-        </MasterSchoolForm>
-    );
-}
+        return (
+
+            <MasterSchoolForm
+
+                icon={equipmentEntity?.icon}
+
+                color={equipmentEntity?.color}
+
+                                        entityTitle={entityTitle}
+
+                                        isFormReady={isFormReady}
+
+                                        onSubmit={onSubmit || (() => Promise.resolve())}
+
+                                        onCancel={onClose || (() => { /* no-op */ })}
+
+                                        onClear={handleClear}
+
+                isLoading={isLoading}
+
+                showSubmit={showSubmit}
+
+                submitLabel="Add Equipment"
+
+            >
+
+                {formContent}
+
+            </MasterSchoolForm>
+
+        );
+
+    }
+
+    

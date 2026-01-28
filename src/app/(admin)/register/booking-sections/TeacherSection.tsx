@@ -99,22 +99,6 @@ export function TeacherSection({
         setFormValidity(isFormValid);
     }, [isFormValid, setFormValidity]);
 
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (isDialogOpen) {
-            setFormData({
-                firstName: "",
-                lastName: "",
-                username: "",
-                passport: "",
-                country: "",
-                phone: "",
-                languages: ["English"],
-                commissions: [],
-            });
-        }
-    }, [isDialogOpen]);
-
     const title =
         selectedTeacher && selectedCommission ? (
             <div className="flex items-center gap-2">
@@ -168,6 +152,7 @@ export function TeacherSection({
 
                 await handlePostCreation({
                     entityId: data.teacher.id,
+                    entityType: "teacher",
                     closeDialog: () => setIsDialogOpen(false),
                     onSelectId: () => onSelectTeacher(newTeacher),
                     onRefresh: async () => {
@@ -198,7 +183,7 @@ export function TeacherSection({
             successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
         });
         setSubmitLoading(false);
-    }, [isFormValid, formData, addToQueue, refreshData, handleEntityCreation, handlePostCreation]);
+    }, [isFormValid, formData, addToQueue, refreshData, handleEntityCreation, handlePostCreation, onSelectTeacher, refetchTeachers]);
 
     return (
         <>
@@ -222,7 +207,19 @@ export function TeacherSection({
                 }}
                 onOptional={onClose}
                 showAddButton={true}
-                onAddClick={() => setIsDialogOpen(true)}
+                onAddClick={() => {
+                    setFormData({
+                        firstName: "",
+                        lastName: "",
+                        username: "",
+                        passport: "",
+                        country: "",
+                        phone: "",
+                        languages: ["English"],
+                        commissions: [],
+                    });
+                    setIsDialogOpen(true);
+                }}
             >
                 <TeacherTable
                     teachers={teachers}

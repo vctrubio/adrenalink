@@ -261,9 +261,8 @@ export function RegisterProvider({
             defaultForm: any;
             metadata?: any;
         }) => {
-            // 1. Common tasks: Refresh data and Reset the current specialized form
+            // 1. Common tasks: Refresh data
             await onRefresh();
-            setFormData(defaultForm);
 
             // 2. Path-specific logic
             if (pathname === "/register") {
@@ -272,6 +271,9 @@ export function RegisterProvider({
             } else {
                 onAddToQueue();
             }
+
+            // 3. Reset the form data AFTER closing the dialog (if applicable)
+            setFormData(defaultForm);
         },
         [pathname],
     );
