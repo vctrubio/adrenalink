@@ -251,7 +251,7 @@ export function HomeStatistics({ events }: { events: TransactionEventData[] }) {
                             <div className="flex items-center gap-2">
                                 <TrendingUp size={14} className="text-emerald-500" />
                                 <span className="text-xl font-black text-emerald-500 tabular-nums">
-                                    {highlights.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    {highlights.totalProfit.toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
                         </div>
