@@ -50,38 +50,13 @@ export default function ClassboardHeaderStatsGrid() {
                 {STATS_MAP.slice(0, 3).map((item, index) => {
                     const value = stats[item.key];
                     if (typeof value !== "number") return null;
-                    // Center is at column 1 (middle), row 0.5 (between rows)
-                    const column = index; // 0, 1, 2
-                    const row = 0;
-                    const centerX = 1;
-                    const centerY = 0.5;
-                    const offsetX = (column - centerX) * 120; // Distance from center
-                    const offsetY = (row - centerY) * 80; // Distance from center
-                    
                     return (
-                        <motion.div
+                        <div
                             key={item.key}
-                            initial={{ 
-                                opacity: 0, 
-                                x: -offsetX, 
-                                y: -offsetY, 
-                                scale: 0.4 
-                            }}
-                            animate={{ 
-                                opacity: 1, 
-                                x: 0, 
-                                y: 0, 
-                                scale: 1 
-                            }}
-                            transition={{
-                                duration: 1.0,
-                                ease: [0.16, 1, 0.3, 1],
-                                delay: 0.1, // All stats appear together, synced with date header
-                            }}
                             className="flex items-center justify-center px-1 py-2 sm:px-3 h-full"
                         >
                             <StatItemUI type={item.type} value={value} className="text-xs sm:text-sm" iconColor={false} />
-                        </motion.div>
+                        </div>
                     );
                 })}
             </div>
@@ -112,38 +87,13 @@ export default function ClassboardHeaderStatsGrid() {
                 {STATS_MAP.slice(3, 6).map((item, index) => {
                     const value = stats[item.key];
                     if (typeof value !== "number") return null;
-                    // Center is at column 1 (middle), row 0.5 (between rows)
-                    const column = index; // 0, 1, 2
-                    const row = 1;
-                    const centerX = 1;
-                    const centerY = 0.5;
-                    const offsetX = (column - centerX) * 120; // Distance from center
-                    const offsetY = (row - centerY) * 80; // Distance from center
-                    
                     return (
-                        <motion.div
+                        <div
                             key={item.key}
-                            initial={{ 
-                                opacity: 0, 
-                                x: -offsetX, 
-                                y: -offsetY, 
-                                scale: 0.4 
-                            }}
-                            animate={{ 
-                                opacity: 1, 
-                                x: 0, 
-                                y: 0, 
-                                scale: 1 
-                            }}
-                            transition={{
-                                duration: 1.0,
-                                ease: [0.16, 1, 0.3, 1],
-                                delay: 0.1, // All stats appear together, synced with date header
-                            }}
                             className="flex items-center justify-center px-1 py-2 sm:px-3 h-full"
                         >
                             <StatItemUI type={item.type} value={value} className="text-xs sm:text-sm" iconColor={false} />
-                        </motion.div>
+                        </div>
                     );
                 })}
             </div>
