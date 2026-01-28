@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo, forwardRef, useImperativeHandle } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { DateRangeBadge } from "@/src/components/ui/badge";
 import { useRegisterActions, useBookingForm, useRegisterData, useRegisterQueues, useShouldOpenSections } from "./RegisterContext";
 import { DateSection } from "./booking-sections/DateSection";
@@ -34,7 +35,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     const studentIdParam = searchParams.get("studentId");
     const addParam = searchParams.get("add");
     const { removeFromQueue, refreshData, isRefreshing } = useRegisterActions();
-    const contextData = useRegisterData();
+    const { tables: contextData } = useRegisterData();
     const bookingForm = useBookingForm();
     const queues = useRegisterQueues();
     const { shouldOpenAllSections, setShouldOpenAllSections } = useShouldOpenSections();
@@ -68,14 +69,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         });
         return counts;
     }, [currentPackages]);
-
-    useEffect(() => {
-        console.log("[MasterBookingForm] data changed:", {
-            studentCount: currentStudents?.length || 0,
-            teacherCount: currentTeachers?.length || 0,
-            packageCount: currentPackages?.length || 0,
-        });
-    }, [currentStudents?.length, currentTeachers?.length, currentPackages?.length]);
 
     // Use context state
     const selectedEquipmentCategory = bookingForm.form.selectedEquipmentCategory;
@@ -202,8 +195,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         }
     }, [selectedStudentIds]);
 
-
-
     // Refresh data when add param is detected for the first time
     useEffect(() => {
         if (addParam && refreshInitiatedRef.current !== addParam) {
@@ -212,77 +203,36 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         }
     }, [addParam, refreshData]);
 
-    // Handle ?add=entity:id param to auto-select entities from queue
-    // Wait for data to refresh first
+    // Handle legacy ?add=entity:id param if needed (fallback)
     useEffect(() => {
         if (!addParam || processedParamRef.current === addParam) return;
-        if (isRefreshing) return; // Wait for refresh to complete
+        if (isRefreshing) return; 
 
         processedParamRef.current = addParam;
 
         const parts = addParam.split(":");
         const entityType = parts[0];
         const entityId = parts[1];
-        const extraId = parts[2];
 
+        // Silence navigation-based selections, just process them
         if (entityType === "student") {
             if (!selectedStudentIds.includes(entityId)) {
-                bookingForm.setForm({ selectedStudentIds: [...selectedStudentIds, entityId] });
+                if (selectedPackage && selectedStudentIds.length >= selectedPackage.capacityStudents) {
+                    toast.error(`Maximum ${selectedPackage.capacityStudents} students for this package`);
+                } else {
+                    bookingForm.setForm({ selectedStudentIds: [...selectedStudentIds, entityId] });
+                }
             }
-            setExpandedSections((prev) => {
-                const next = new Set(prev);
-                next.delete("students-section");
-                return next;
-            });
-            router.replace("/register", { scroll: false });
         } else if (entityType === "teacher") {
-            const queueItem = queues.teachers.find((item: any) => item.id === entityId);
-            let teacher = queueItem?.metadata || currentTeachers.find((t) => t.schema.id === entityId);
-
-            if (teacher) {
-                // Robustness: ensure schema property exists (handle legacy queue items)
-                if (!teacher.schema && teacher.id) {
-                    teacher = { schema: teacher, lessonStats: { totalLessons: 0, completedLessons: 0 } };
-                }
-
-                bookingForm.setForm({ selectedTeacher: teacher });
-                if (extraId) {
-                    const commission = teacher.schema.commissions?.find((c: any) => c.id === extraId);
-                    if (commission) {
-                        bookingForm.setForm({ selectedCommission: commission });
-                        setExpandedSections((prev) => {
-                            const next = new Set(prev);
-                            next.delete("teacher-section");
-                            return next;
-                        });
-                    }
-                }
-            }
-            router.replace("/register", { scroll: false });
+            const teacher = currentTeachers.find((t) => t.schema.id === entityId);
+            if (teacher) bookingForm.setForm({ selectedTeacher: teacher });
         } else if (entityType === "package") {
-            const queueItem = queues.packages.find((item: any) => item.id === entityId);
-            const pkg = queueItem?.metadata || currentPackages.find((p) => p.id === entityId);
-            if (pkg) {
-                bookingForm.setForm({
-                    selectedPackage: pkg,
-                    selectedEquipmentCategory: pkg.categoryEquipment,
-                });
-                setExpandedSections((prev) => {
-                    const next = new Set(prev);
-                    next.delete("package-section");
-                    next.delete("equipment-section");
-                    return next;
-                });
-            }
-            router.replace("/register", { scroll: false });
+            const pkg = currentPackages.find((p) => p.id === entityId);
+            if (pkg) bookingForm.setForm({ selectedPackage: pkg, selectedEquipmentCategory: pkg.categoryEquipment });
         }
-    }, [addParam, isRefreshing, selectedStudentIds, currentTeachers, currentPackages, queues, removeFromQueue, router, bookingForm]);
-
-    const selectedStudentsList = currentStudents
-        .map((ss) => ss.student)
-        .filter((student: any) => selectedStudentIds.includes(student.id));
-
-    const selectedStudents = selectedStudentsList;
+        
+        router.replace("/register", { scroll: false });
+    }, [addParam, isRefreshing, selectedStudentIds, currentTeachers, currentPackages, router, bookingForm, selectedPackage]);
 
     const dateRangeTitle = <DateRangeBadge startDate={dateRange.startDate} endDate={dateRange.endDate} />;
 
@@ -306,13 +256,6 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
         });
     }, []);
 
-    // Auto-collapse students section if capacity is met
-    useEffect(() => {
-        if (selectedPackage && selectedStudentIds.length >= selectedPackage.capacityStudents) {
-            closeSection("students-section");
-        }
-    }, [selectedPackage, selectedStudentIds.length, closeSection]);
-
     const openSection = useCallback((sectionId: SectionId) => {
         setExpandedSections((prev) => {
             const newSet = new Set(prev);
@@ -320,6 +263,29 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
             return newSet;
         });
     }, []);
+
+    // Reactive UI Logic: Auto-collapse/expand sections based on selection state
+    useEffect(() => {
+        // 1. If package is selected, close equipment and package sections
+        if (selectedPackage) {
+            closeSection("equipment-section");
+            closeSection("package-section");
+        }
+
+        // 2. Student section management
+        if (selectedPackage) {
+            if (selectedStudentIds.length >= selectedPackage.capacityStudents) {
+                closeSection("students-section");
+            } else {
+                openSection("students-section");
+            }
+        }
+
+        // 3. If teacher AND commission are selected, close teacher section
+        if (selectedTeacher && selectedCommission) {
+            closeSection("teacher-section");
+        }
+    }, [selectedPackage, selectedStudentIds.length, selectedTeacher, selectedCommission, closeSection, openSection]);
 
     const handleEquipmentSelect = (category: string) => {
         bookingForm.setForm({ selectedEquipmentCategory: category });
@@ -364,8 +330,8 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     const handleTeacherSelect = (teacher: any) => {
         bookingForm.setForm({ selectedTeacher: teacher });
         // Auto-select first commission if only one exists
-        if (teacher?.commissions && teacher.commissions.length === 1) {
-            bookingForm.setForm({ selectedCommission: teacher.commissions[0] });
+        if (teacher?.schema?.commissions && teacher.schema.commissions.length === 1) {
+            bookingForm.setForm({ selectedCommission: teacher.schema.commissions[0] });
         } else {
             bookingForm.setForm({ selectedCommission: null });
         }
@@ -383,23 +349,7 @@ const BookingForm = forwardRef<{ resetSections: () => void }, BookingFormProps>(
     };
 
     const handleAddCommission = async (teacherId: string, commissionData: any) => {
-        // TODO: Implement actual API call to save commission
-        // For now, just create a temporary commission object
-        const newCommission = {
-            id: Date.now().toString(),
-            ...commissionData,
-        };
-
-        // Update the teacher's commissions in context
-        const updatedTeacher = {
-            ...selectedTeacher,
-            commissions: [...(selectedTeacher?.commissions || []), newCommission],
-        };
-
-        bookingForm.setForm({ selectedTeacher: updatedTeacher, selectedCommission: newCommission });
-
-        // TODO: Show success message
-        alert("Commission added! (Note: This is temporary - needs backend integration)");
+        alert("Feature coming soon!");
     };
 
     return (

@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import { getRegisterTables, type RegisterTables } from "@/supabase/server/register";
 import { getSchoolCredentials } from "@/supabase/server/admin";
 import { RegisterProvider } from "./RegisterContext";
+import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
+import RegisterController from "./RegisterController";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +44,9 @@ export default async function Layout({ children }: RegisterLayoutProps) {
 
     return (
         <RegisterProvider initialData={registerResult.data} refreshAction={refreshRegisterData} school={credentialsResult}>
-            {children}
+            <RegisterFormLayout controller={<RegisterController />}>
+                {children}
+            </RegisterFormLayout>
         </RegisterProvider>
     );
 }

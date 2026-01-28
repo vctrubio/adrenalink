@@ -59,7 +59,7 @@ const NameFields = memo(function NameFields({
             <FormField label="First Name" required error={firstNameError} isValid={firstNameIsValid}>
                 <FormInput
                     type="text"
-                    value={firstName}
+                    value={firstName || ""}
                     onChange={(e) => {
                         onFieldTouch("first_name");
                         onFirstNameChange(e.target.value);
@@ -72,7 +72,7 @@ const NameFields = memo(function NameFields({
             <FormField label="Last Name" required error={lastNameError} isValid={lastNameIsValid}>
                 <FormInput
                     type="text"
-                    value={lastName}
+                    value={lastName || ""}
                     onChange={(e) => {
                         onFieldTouch("last_name");
                         onLastNameChange(e.target.value);
@@ -105,7 +105,7 @@ const UsernameField = memo(function UsernameField({
         <FormField label="Username" required error={usernameError} isValid={usernameIsValid}>
             <FormInput
                 type="text"
-                value={username}
+                value={username || ""}
                 onChange={(e) => {
                     onFieldTouch();
                     onUsernameChange(e.target.value);
@@ -137,7 +137,7 @@ const PassportField = memo(function PassportField({
         <FormField label="Passport" required error={passportError} isValid={passportIsValid}>
             <FormInput
                 type="text"
-                value={passport}
+                value={passport || ""}
                 onChange={(e) => {
                     onFieldTouch();
                     onPassportChange(e.target.value);

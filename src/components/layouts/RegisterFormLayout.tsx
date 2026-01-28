@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 interface RegisterFormLayoutProps {
     controller: ReactNode;
-    form: ReactNode;
+    children: ReactNode;
 }
 
 const formAnimation = {
@@ -15,7 +15,7 @@ const formAnimation = {
     transition: { duration: 0.15, ease: "easeOut" },
 };
 
-export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps) {
+export function RegisterFormLayout({ controller, children }: RegisterFormLayoutProps) {
     const pathname = usePathname();
 
     return (
@@ -25,7 +25,7 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
                 <div className="p-4 space-y-4">
                     {controller}
                     <motion.div key={pathname} {...formAnimation} className="bg-card rounded-lg border border-border shadow-sm">
-                        <div className="p-6">{form}</div>
+                        <div className="p-6">{children}</div>
                     </motion.div>
                     <div className="h-24" />
                 </div>
@@ -42,7 +42,7 @@ export function RegisterFormLayout({ controller, form }: RegisterFormLayoutProps
                     {/* Form Content - Scrollable */}
                     <div className="flex-1 h-full overflow-y-auto">
                         <motion.div key={pathname} {...formAnimation} className="space-y-6">
-                            {form}
+                            {children}
                         </motion.div>
                     </div>
                 </div>

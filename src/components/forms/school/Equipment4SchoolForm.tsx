@@ -83,7 +83,7 @@ const BrandModelFieldsMemo = memo(function BrandModelFields({
             <FormField label="Brand" required error={brandError} isValid={brandIsValid}>
                 <FormInput
                     type="text"
-                    value={brand}
+                    value={brand || ""}
                     onChange={(e) => {
                         onFieldTouch("brand");
                         onBrandChange(e.target.value);
@@ -95,7 +95,7 @@ const BrandModelFieldsMemo = memo(function BrandModelFields({
             <FormField label="Model" required error={modelError} isValid={modelIsValid}>
                 <FormInput
                     type="text"
-                    value={model}
+                    value={model || ""}
                     onChange={(e) => {
                         onFieldTouch("model");
                         onModelChange(e.target.value);
@@ -169,7 +169,7 @@ const SkuFieldMemo = memo(function SkuField({
         <FormField label="SKU / Serial Number" required error={skuError} isValid={skuIsValid}>
             <FormInput
                 type="text"
-                value={sku}
+                value={sku || ""}
                 onChange={(e) => {
                     onFieldTouch();
                     onSkuChange(e.target.value);

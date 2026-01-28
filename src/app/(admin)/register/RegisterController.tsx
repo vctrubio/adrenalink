@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,7 +11,15 @@ import PackageIcon from "@/public/appSvgs/PackageIcon";
 import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
 import AdranlinkIcon from "@/public/appSvgs/AdranlinkIcon";
 
-import { useBookingForm, useStudentFormState, useTeacherFormState, usePackageFormState } from "./RegisterContext";
+import {
+    useBookingForm,
+    useStudentFormState,
+    useTeacherFormState,
+    usePackageFormState,
+    useRegisterSchool,
+    useRegisterData,
+    useFormRegistration,
+} from "./RegisterContext";
 import RegisterQueue from "./RegisterQueue";
 
 import { StudentSummary } from "./controller-sections/StudentSummary";
@@ -22,50 +30,21 @@ import { ControllerActions } from "./controller-sections/ControllerActions";
 
 type FormType = "booking" | "student" | "package" | "teacher";
 
-interface RegisterControllerProps {
-    school: any;
-    activeForm: FormType;
-    selectedPackage: any;
-    selectedStudents: any[];
-    selectedReferral: any;
-    selectedTeacher: any;
-    selectedCommission: any;
-    dateRange: { startDate: string; endDate: string };
-    onReset: () => void;
-    loading: boolean;
-    isMobile?: boolean;
-    error?: string | null;
-    leaderStudentId?: string;
-    onLeaderStudentChange?: (studentId: string) => void;
-    submitHandler?: () => Promise<void>;
-    isFormValid?: boolean;
-    referrals?: any[];
-}
-
-export default function RegisterController({
-    school,
-    activeForm,
-    selectedPackage,
-    selectedStudents,
-    selectedReferral,
-    selectedTeacher,
-    selectedCommission,
-    dateRange,
-    onReset,
-    loading,
-    isMobile = false,
-    error = null,
-    leaderStudentId = "",
-    onLeaderStudentChange,
-    submitHandler,
-    isFormValid = false,
-    referrals,
-}: RegisterControllerProps) {
+export default function RegisterController() {
     const router = useRouter();
+    const pathname = usePathname();
+    const school = useRegisterSchool();
+    const { tables: data } = useRegisterData();
     const bookingForm = useBookingForm();
+    const { submitHandler, isFormValid: isBookingValid } = useFormRegistration();
 
-    // Use school from props
-    const displaySchool = school;
+    const activeForm: FormType = useMemo(() => {
+        if (pathname === "/register") return "booking";
+        if (pathname === "/register/student") return "student";
+        if (pathname === "/register/teacher") return "teacher";
+        if (pathname === "/register/package") return "package";
+        return "booking";
+    }, [pathname]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -74,13 +53,9 @@ export default function RegisterController({
     const { form: teacherFormData } = useTeacherFormState();
     const { form: packageFormData } = usePackageFormState();
 
-    const handleLeaderStudentChange = (studentId: string) => {
-        if (onLeaderStudentChange) {
-            onLeaderStudentChange(studentId);
-        } else {
-            bookingForm.setForm({ leaderStudentId: studentId });
-        }
-    };
+    const selectedStudents = useMemo(() =>
+        data.students.filter((s) => bookingForm.form.selectedStudentIds.includes(s.student?.id)).map((s) => s.student),
+    [data.students, bookingForm.form.selectedStudentIds]);
 
     const handleActionSubmit = async () => {
         if (submitHandler) {
@@ -100,7 +75,7 @@ export default function RegisterController({
         { id: "teacher", label: "Teacher", icon: HeadsetIcon, path: "/register/teacher" },
     ];
 
-    const isActionLoading = loading || isSubmitting;
+    const isActionLoading = isSubmitting;
 
     return (
         <div className="flex flex-col gap-6">
@@ -114,15 +89,15 @@ export default function RegisterController({
                             </div>
                             <div className="flex flex-col gap-1">
                                 <h2 className="text-3xl font-black tracking-tighter text-foreground uppercase leading-none">
-                                    {displaySchool.name}
+                                    {school.name}
                                 </h2>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                                        @{displaySchool.username}
+                                        @{school.username}
                                     </span>
                                     <div className="w-1 h-1 rounded-full bg-border" />
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                                        {displaySchool.currency || "EUR"}
+                                        {school.currency || "EUR"}
                                     </span>
                                 </div>
                             </div>
@@ -178,12 +153,11 @@ export default function RegisterController({
                                         <StudentSummary studentFormData={studentFormData} />
                                         <ControllerActions
                                             onSubmit={handleActionSubmit}
-                                            onReset={onReset}
+                                            onReset={() => bookingForm.reset()}
                                             loading={isActionLoading}
-                                            canSubmit={isFormValid}
+                                            canSubmit={isBookingValid}
                                             submitLabel="Register Student"
                                             resetLabel="Clear Form"
-                                            error={error}
                                         />
                                     </>
                                 )}
@@ -193,12 +167,11 @@ export default function RegisterController({
                                         <TeacherSummary teacherFormData={teacherFormData} />
                                         <ControllerActions
                                             onSubmit={handleActionSubmit}
-                                            onReset={onReset}
+                                            onReset={() => bookingForm.reset()}
                                             loading={isActionLoading}
-                                            canSubmit={isFormValid}
+                                            canSubmit={isBookingValid}
                                             submitLabel="Register Teacher"
                                             resetLabel="Clear Form"
-                                            error={error}
                                         />
                                     </>
                                 )}
@@ -208,12 +181,11 @@ export default function RegisterController({
                                         <PackageSummary packageFormData={packageFormData} />
                                         <ControllerActions
                                             onSubmit={handleActionSubmit}
-                                            onReset={onReset}
+                                            onReset={() => bookingForm.reset()}
                                             loading={isActionLoading}
-                                            canSubmit={isFormValid}
+                                            canSubmit={isBookingValid}
                                             submitLabel="Create Package"
                                             resetLabel="Clear Form"
-                                            error={error}
                                         />
                                     </>
                                 )}
@@ -221,27 +193,26 @@ export default function RegisterController({
                                 {activeForm === "booking" && (
                                     <div className="space-y-8">
                                         <BookingSummary
-                                            dateRange={dateRange}
-                                            selectedPackage={selectedPackage}
+                                            dateRange={bookingForm.form.dateRange}
+                                            selectedPackage={bookingForm.form.selectedPackage}
                                             selectedStudents={selectedStudents}
-                                            selectedReferral={selectedReferral}
-                                            selectedTeacher={selectedTeacher}
-                                            selectedCommission={selectedCommission}
-                                            hasReferrals={referrals && referrals.length > 0}
-                                            leaderStudentId={leaderStudentId}
-                                            onLeaderStudentChange={handleLeaderStudentChange}
+                                            selectedReferral={bookingForm.form.selectedReferral}
+                                            selectedTeacher={bookingForm.form.selectedTeacher}
+                                            selectedCommission={bookingForm.form.selectedCommission}
+                                            hasReferrals={data.referrals && data.referrals.length > 0}
+                                            leaderStudentId={bookingForm.form.leaderStudentId}
+                                            onLeaderStudentChange={(id) => bookingForm.setForm({ leaderStudentId: id })}
                                         />
 
                                         <ControllerActions
                                             onSubmit={handleActionSubmit}
-                                            onReset={onReset}
+                                            onReset={() => bookingForm.reset()}
                                             loading={isActionLoading}
-                                            canSubmit={isFormValid}
+                                            canSubmit={isBookingValid}
                                             submitLabel={
-                                                selectedTeacher && selectedCommission ? "Register Lesson" : "Register Booking"
+                                                bookingForm.form.selectedTeacher && bookingForm.form.selectedCommission ? "Register Lesson" : "Register Booking"
                                             }
                                             resetLabel="Reset All"
-                                            error={error}
                                         />
                                     </div>
                                 )}

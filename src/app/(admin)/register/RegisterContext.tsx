@@ -8,8 +8,6 @@ import type { StudentFormData } from "@/src/components/forms/school/Student4Scho
 import type { TeacherFormData } from "@/src/components/forms/school/Teacher4SchoolForm";
 import type { PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
 import { masterBookingAdd } from "@/supabase/server/register";
-import { RegisterFormLayout } from "@/src/components/layouts/RegisterFormLayout";
-import RegisterController from "@/src/app/(admin)/register/RegisterController";
 import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 
 interface QueueItem {
@@ -47,6 +45,7 @@ interface RegisterContextValue {
         queues: EntityQueues;
         addToQueue: (type: keyof EntityQueues, item: QueueItem) => void;
         removeFromQueue: (type: keyof EntityQueues, id: string) => void;
+        clearQueue: () => void;
     };
     forms: {
         booking: {
@@ -78,6 +77,7 @@ interface RegisterContextValue {
             defaultForm: any;
             metadata?: any;
         }) => Promise<void>;
+        selectFromQueue: (item: QueueItem) => void;
         handleEntityCreation: (args: {
             isFormValid: boolean;
             entityName: string;
@@ -180,6 +180,15 @@ export function RegisterProvider({
         setQueues((prev) => ({ ...prev, [type]: prev[type].filter((item) => item.id !== id) }));
     }, []);
 
+    const clearQueue = useCallback(() => {
+        setQueues({
+            students: [],
+            teachers: [],
+            packages: [],
+            bookings: [],
+        });
+    }, []);
+
     const setBookingForm = useCallback((updates: Partial<BookingFormState>) => {
         setBookingFormState((prev) => ({ ...prev, ...updates }));
     }, []);
@@ -189,6 +198,46 @@ export function RegisterProvider({
     const registerSubmitHandler = useCallback((handler: () => Promise<void>) => {
         setSubmitHandlerState(() => handler);
     }, []);
+
+    const selectFromQueue = useCallback(
+        (item: QueueItem) => {
+            if (item.type === "student") {
+                if (bookingForm.selectedStudentIds.includes(item.id)) {
+                    toast.error("Student already selected");
+                    return;
+                }
+                if (
+                    bookingForm.selectedPackage &&
+                    bookingForm.selectedStudentIds.length >= bookingForm.selectedPackage.capacityStudents
+                ) {
+                    toast.error(`Maximum ${bookingForm.selectedPackage.capacityStudents} students for this package`);
+                    return;
+                }
+                setBookingFormState((prev) => ({ ...prev, selectedStudentIds: [...prev.selectedStudentIds, item.id] }));
+            } else if (item.type === "teacher") {
+                if (bookingForm.selectedTeacher?.schema?.id === item.id) {
+                    toast.error("Teacher already selected");
+                    return;
+                }
+                setBookingFormState((prev) => ({
+                    ...prev,
+                    selectedTeacher: item.metadata,
+                    selectedCommission: item.metadata?.schema?.commissions?.[0] || null,
+                }));
+            } else if (item.type === "package") {
+                if (bookingForm.selectedPackage?.id === item.id) {
+                    toast.error("Package already selected");
+                    return;
+                }
+                setBookingFormState((prev) => ({
+                    ...prev,
+                    selectedPackage: item.metadata,
+                    selectedEquipmentCategory: item.metadata?.categoryEquipment,
+                }));
+            }
+        },
+        [bookingForm],
+    );
 
     const handlePostCreation = useCallback(
         async ({
@@ -357,7 +406,8 @@ export function RegisterProvider({
         queues,
         addToQueue,
         removeFromQueue,
-    }), [data, refreshData, isRefreshing, queues, addToQueue, removeFromQueue]);
+        clearQueue,
+    }), [data, refreshData, isRefreshing, queues, addToQueue, removeFromQueue, clearQueue]);
 
     const formsValue = useMemo(() => ({
         booking: {
@@ -381,7 +431,8 @@ export function RegisterProvider({
     const actionsValue = useMemo(() => ({
         handlePostCreation,
         handleEntityCreation,
-    }), [handlePostCreation, handleEntityCreation]);
+        selectFromQueue,
+    }), [handlePostCreation, handleEntityCreation, selectFromQueue]);
 
     const uiValue = useMemo(() => ({
         shouldOpenAllSections,
@@ -398,36 +449,15 @@ export function RegisterProvider({
 
     return (
         <RegisterContext.Provider value={contextValue}>
-            <RegisterFormLayout
-                controller={
-                    <RegisterController
-                        school={school}
-                        activeForm={activeForm}
-                        selectedPackage={bookingForm.selectedPackage}
-                        selectedStudents={selectedStudents}
-                        selectedReferral={bookingForm.selectedReferral}
-                        selectedTeacher={bookingForm.selectedTeacher}
-                        selectedCommission={bookingForm.selectedCommission}
-                        dateRange={bookingForm.dateRange}
-                        onReset={resetBookingForm}
-                        loading={loading}
-                        leaderStudentId={bookingForm.leaderStudentId}
-                        error={error}
-                        submitHandler={submitHandler}
-                        isFormValid={activeForm === "booking" ? canCreateBooking : isFormValid}
-                        referrals={data.referrals}
-                    />
-                }
-                form={children}
-            />
+            {children}
         </RegisterContext.Provider>
     );
 }
 
-export function useRegisterData(): RegisterTables {
+export function useRegisterData() {
     const context = useContext(RegisterContext);
     if (!context) throw new Error("useRegisterData must be used within RegisterProvider");
-    return context.data.tables;
+    return context.data;
 }
 
 export function useRegisterActions() {
@@ -436,6 +466,8 @@ export function useRegisterActions() {
     return {
         addToQueue: context.data.addToQueue,
         removeFromQueue: context.data.removeFromQueue,
+        clearQueue: context.data.clearQueue,
+        selectFromQueue: context.actions.selectFromQueue,
         refreshData: context.data.refresh,
         isRefreshing: context.data.isRefreshing,
         handlePostCreation: context.actions.handlePostCreation,
