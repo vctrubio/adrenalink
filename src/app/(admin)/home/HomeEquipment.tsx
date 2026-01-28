@@ -21,6 +21,7 @@ import { MonthsPicker, type MonthRange } from "@/src/components/pickers/MonthsPi
 import { SportEquipmentDurationBadge } from "@/src/components/ui/badge/sport-equipment-duration";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { PackageEquipmentFilters, filterByStatus } from "@/src/components/PackageEquipmentFilters";
+import { EquipmentEventsTable } from "@/src/app/(admin)/(tables)/EquipmentEventsTable";
 import {
     format,
     startOfMonth,
@@ -353,6 +354,20 @@ export function HomeEquipment({ events }: { events: TransactionEventData[] }) {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Detailed Equipment Usage Table */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-4 border-b border-border pb-4">
+                    <div className="flex items-center gap-3">
+                        <Activity className="text-primary" size={20} />
+                        <h3 className="text-lg font-black uppercase tracking-widest text-foreground">
+                            Usage Log
+                        </h3>
+                    </div>
+                </div>
+                
+                <EquipmentEventsTable events={events} />
             </div>
         </div>
     );
