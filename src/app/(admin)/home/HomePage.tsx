@@ -9,14 +9,16 @@ import { HomeViewHeader } from "./HomeViewHeader";
 import { HomeGrouped } from "./HomeGrouped";
 import { TransactionEventsTable } from "@/src/app/(admin)/(tables)/TransactionEventsTable";
 import { HomeActivity } from "./HomeActivity";
+import { HomeStatistics } from "./HomeStatistics";
 import { getHomeStats, getGroupedEvents, getAllTransactionEvents } from "./getters";
 import { TablesProvider } from "@/src/app/(admin)/(tables)/layout";
 import { TablesSearchHeader } from "@/src/app/(admin)/(tables)/TablesSearchHeader";
 import type { GroupingType } from "@/src/app/(admin)/(tables)/MasterTable";
 
 import type { TransactionEventData } from "@/types/transaction-event";
+import { BarChart3 } from "lucide-react";
 
-export type ViewMode = "grouped" | "table" | "calendar";
+export type ViewMode = "grouped" | "table" | "calendar" | "stats";
 
 export interface DateGroup {
     date: string;
@@ -46,6 +48,11 @@ const VIEW_CONFIG = {
         subtitle: "Your History at a glance",
         icon: Grid3X3,
     },
+    stats: {
+        title: "Performance Data",
+        subtitle: "In-depth analytics and trends",
+        icon: BarChart3,
+    },
 };
 
 function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMode) => void }) {
@@ -71,6 +78,13 @@ function HomeViewToggle({ mode, setMode }: { mode: ViewMode; setMode: (m: ViewMo
             >
                 <Grid3X3 size={14} />
                 <span>Activity</span>
+            </button>
+            <button
+                onClick={() => setMode("stats")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === "stats" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+                <BarChart3 size={14} />
+                <span>Stats</span>
             </button>
         </div>
     );
@@ -116,7 +130,9 @@ export function HomePage({ classboardData }: { classboardData: ClassboardModel }
                         </div>
                     )}
 
-                    {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} classboardData={classboardData} />}
+                    {viewMode === "calendar" && <HomeActivity events={allTransactionEvents} />}
+
+                    {viewMode === "stats" && <HomeStatistics events={allTransactionEvents} />}
                 </div>
             </div>
         </TablesProvider>
