@@ -11,6 +11,7 @@ import { getPPP } from "@/getters/integer-getter";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { LessonHeaderStats, type LessonHeaderStats as LessonHeaderStatsType } from "./LessonHeaderStats";
+import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 interface TeacherBookingLessonTableProps {
     lesson: LessonRow;
@@ -66,7 +67,12 @@ export function TeacherBookingLessonTable({
                     
                     <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex items-center gap-2">
-                            {getLeaderCapacity(lesson.leaderName, lesson.studentCapacity)}
+                            <LeaderStudent 
+                                leaderStudentName={lesson.leaderName}
+                                bookingId={lesson.bookingId}
+                                bookingStudents={lesson.bookingStudents}
+                                variant="minimal"
+                            />
                         </div>
                         <div className="flex items-center gap-2">
                             <BookingStatusLabel

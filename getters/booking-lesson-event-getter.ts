@@ -169,6 +169,14 @@ export function groupTransactionsByLesson(
             totalPayments,
             eventCount: events.length,
             events: sortedEvents.map(transactionEventToTimelineEvent),
+            bookingStudents: first.booking.students.map(s => ({
+                id: s.id,
+                firstName: s.firstName,
+                lastName: s.lastName,
+                passport: s.passport,
+                country: s.country,
+                phone: s.phone,
+            })),
             equipmentCategory: first.packageData.categoryEquipment,
             studentCapacity: first.packageData.capacityStudents,
         };

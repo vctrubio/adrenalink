@@ -112,7 +112,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                         iconColor="text-emerald-500"
                         viewingAs={{
                             label: teacher.username,
-                            link: `/teachers/${teacher.id}`, // Use teacher.id for link
+                            link: `/teacher/${teacher.id}`, // Use singular /teacher/
                         }}
                     >
                         <EventTeacherCard
@@ -146,7 +146,7 @@ export default async function TransactionExamplePage({ searchParams }: Transacti
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                                         Viewing as:{" "}
                                         <a
-                                            href={`/students/${s.id}`}
+                                            href={`/student/${s.id}`} // Use singular /student/
                                             className="text-foreground hover:underline decoration-1 underline-offset-4 decoration-primary/30 transition-all font-black"
                                         >
                                             {`${s.firstName} ${s.lastName}`}

@@ -20,6 +20,7 @@ import { TableGroupHeader, TableMobileGroupHeader } from "@/src/components/table
 import { StatItemUI } from "@/backend/data/StatsData";
 import { useTablesController } from "@/src/app/(admin)/(tables)/layout";
 import { EquipmentFulfillmentCell } from "@/src/components/tables/EquipmentFulfillmentCell"; // Import the extracted component
+import { LeaderStudent } from "@/src/components/LeaderStudent";
 
 // Header className groups for consistent styling across columns
 const HEADER_CLASSES = {
@@ -46,11 +47,24 @@ export function TransactionEventsTable({
 }) {
     const [events, setEvents] = useState(initialEvents);
     const { sort } = useTablesController();
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
     // Sync state when props change
     useEffect(() => {
         setEvents(initialEvents);
     }, [initialEvents]);
+
+    const toggleGroup = useCallback((title: string) => {
+        setCollapsedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(title)) {
+                next.delete(title);
+            } else {
+                next.add(title);
+            }
+            return next;
+        });
+    }, []);
 
     const handleEquipmentUpdate = (eventId: string, equipment: TransactionEventEquipment) => {
         setEvents((prev) =>
@@ -195,9 +209,14 @@ export function TransactionEventsTable({
                 header: "Students",
                 headerClassName: HEADER_CLASSES.blue,
                 render: (data) => (
-                    <span className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
-                        {getLeaderCapacity(data.booking?.leaderStudentName || "N/A", data.booking?.students?.length || 0)}
-                    </span>
+                    <div className="bg-blue-50/[0.03] dark:bg-blue-900/[0.02]">
+                        <LeaderStudent
+                            leaderStudentName={data.booking?.leaderStudentName || "N/A"}
+                            bookingId={data.booking?.id || ""}
+                            bookingStudents={data.booking?.students || []}
+                            variant="minimal"
+                        />
+                    </div>
                 ),
             },
             {
@@ -520,23 +539,33 @@ export function TransactionEventsTable({
                         </thead>
                         {sortedGroupEntries.map(([title, groupRows]) => {
                             const stats = calculateStats(groupRows);
+                            const isCollapsed = collapsedGroups.has(title);
                             return (
                                 <tbody key={title} className="divide-y divide-border">
-                                    {groupBy !== "all" && <TableGroupHeader title={title} stats={stats} groupBy={groupBy}>
-                                        <GroupHeaderStats stats={stats} />
-                                    </TableGroupHeader>}
-                                    {groupRows.map((row, idx) => (
-                                        <tr
-                                            key={idx}
-                                            className="hover:bg-muted/5 transition-colors border-b border-border/40 last:border-0 group/row"
+                                    {groupBy !== "all" && (
+                                        <TableGroupHeader
+                                            title={title}
+                                            stats={stats}
+                                            groupBy={groupBy}
+                                            isCollapsed={isCollapsed}
+                                            onToggle={() => toggleGroup(title)}
                                         >
-                                            {desktopColumns.map((col, colIdx) => (
-                                                <td key={colIdx} className={`px-2 py-3 whitespace-nowrap ${col.className || ""}`}>
-                                                    {col.render(row)}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
+                                            <GroupHeaderStats stats={stats} />
+                                        </TableGroupHeader>
+                                    )}
+                                    {!isCollapsed &&
+                                        groupRows.map((row, idx) => (
+                                            <tr
+                                                key={idx}
+                                                className="hover:bg-muted/5 transition-colors border-b border-border/40 last:border-0 group/row"
+                                            >
+                                                {desktopColumns.map((col, colIdx) => (
+                                                    <td key={colIdx} className={`px-2 py-3 whitespace-nowrap ${col.className || ""}`}>
+                                                        {col.render(row)}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
                                 </tbody>
                             );
                         })}
@@ -555,20 +584,30 @@ export function TransactionEventsTable({
                         </thead>
                         {sortedGroupEntries.map(([title, groupRows]) => {
                             const stats = calculateStats(groupRows);
+                            const isCollapsed = collapsedGroups.has(title);
                             return (
                                 <tbody key={title} className="divide-y divide-border">
-                                    {groupBy !== "all" && <TableMobileGroupHeader title={title} stats={stats} groupBy={groupBy}>
-                                        <GroupHeaderStats stats={stats} hideLabel />
-                                    </TableMobileGroupHeader>}
-                                    {groupRows.map((row, idx) => (
-                                        <tr key={idx} className="hover:bg-muted/5 transition-colors cursor-pointer border-b border-border/40">
-                                            {mobileColumns.map((col, colIdx) => (
-                                                <td key={colIdx} className="px-3 py-3 align-middle">
-                                                    {col.render(row)}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
+                                    {groupBy !== "all" && (
+                                        <TableMobileGroupHeader
+                                            title={title}
+                                            stats={stats}
+                                            groupBy={groupBy}
+                                            isCollapsed={isCollapsed}
+                                            onToggle={() => toggleGroup(title)}
+                                        >
+                                            <GroupHeaderStats stats={stats} hideLabel />
+                                        </TableMobileGroupHeader>
+                                    )}
+                                    {!isCollapsed &&
+                                        groupRows.map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-muted/5 transition-colors cursor-pointer border-b border-border/40">
+                                                {mobileColumns.map((col, colIdx) => (
+                                                    <td key={colIdx} className="px-3 py-3 align-middle">
+                                                        {col.render(row)}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
                                 </tbody>
                             );
                         })}

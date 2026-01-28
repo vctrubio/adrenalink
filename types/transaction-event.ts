@@ -105,6 +105,7 @@ export interface LessonRow {
     totalPayments: number;
     eventCount: number;
     events: TimelineEvent[];
+    bookingStudents: TransactionEventStudent[];
     equipmentCategory: string;
     studentCapacity: number;
 }

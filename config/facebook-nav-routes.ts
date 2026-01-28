@@ -35,11 +35,11 @@ export const FACEBOOK_NAV_ROUTES = [
         href: "/invitations",
         icon: SendIcon,
     },
-    {
-        id: "help",
-        label: "Help",
-        href: "/onboarding?skipStats=true",
-        icon: HelpCircle,
-        prefetch: false,
-    },
+    // {
+    //     id: "help",
+    //     label: "Help",
+    //     href: "/onboarding?skipStats=true",
+    //     icon: HelpCircle,
+    //     prefetch: false,
+    // },
 ];
