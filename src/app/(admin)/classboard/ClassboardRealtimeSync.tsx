@@ -5,7 +5,6 @@ import type { ClassboardModel } from "@/backend/classboard/ClassboardModel";
 import { useAdminClassboardEventListener, useAdminClassboardBookingListener } from "@/supabase/subscribe";
 import { getSQLClassboardDataForBooking } from "@/supabase/server/classboard";
 import { useClassboardContext } from "@/src/providers/classboard-provider";
-import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import toast from "react-hot-toast";
 
 interface ClassboardRealtimeSyncProps {
@@ -18,12 +17,8 @@ interface ClassboardRealtimeSyncProps {
  */
 export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeSyncProps) {
     const { setClassboardModel, classboardModel, globalFlag } = useClassboardContext();
-    const credentials = useSchoolCredentials();
     const modelRef = useRef(classboardModel);
     modelRef.current = classboardModel; // Keep ref updated
-
-    // Get timezone from credentials - try multiple field names
-    const schoolTimezone = credentials?.zone || credentials?.timezone || null;
 
     // Monitor connectivity status
     useEffect(() => {
@@ -297,7 +292,7 @@ export default function ClassboardRealtimeSync({ children }: ClassboardRealtimeS
                 globalFlag.clearEventMutation(eventId);
             }
         },
-        [globalFlag, schoolTimezone, setClassboardModel],
+        [globalFlag, setClassboardModel],
     );
 
     useAdminClassboardEventListener({
