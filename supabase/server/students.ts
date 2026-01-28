@@ -66,6 +66,7 @@ export async function getStudentsTable(): Promise<StudentTableData[]> {
                 )
             `,
             )
+            .order("created_at", { ascending: false })
             .eq("school_id", schoolId);
 
         if (error) {

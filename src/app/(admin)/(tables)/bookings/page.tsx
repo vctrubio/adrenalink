@@ -29,7 +29,7 @@ export default async function BookingsMasterTablePage() {
 
     return (
         <TableLayout stats={stats}>
-            <BookingsTable bookings={bookings} />
+            <BookingsTable bookings={bookings} showActions={false}/>
         </TableLayout>
     );
 }

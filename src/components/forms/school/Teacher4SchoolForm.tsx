@@ -10,20 +10,19 @@ import { CommissionTypeValue } from "@/src/components/ui/badge/commission-type-v
 import { useSchoolCredentials } from "@/src/providers/school-credentials-provider";
 import { X } from "lucide-react";
 import HandshakeIcon from "@/public/appSvgs/HandshakeIcon";
-import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
-import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
-import { teacherFormSchema, defaultTeacherForm, type TeacherFormData } from "@/types/form-entities";
+import { teacherCreateSchema, defaultTeacherForm, type TeacherCreateForm } from "@/src/validation/teacher";
+import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
 
 // Export the language options from the enum
 export const LANGUAGE_OPTIONS = Object.values(LANGUAGES);
 
 // Re-export for backward compatibility
-export { teacherFormSchema, type TeacherFormData };
+export { teacherCreateSchema as teacherFormSchema, type TeacherCreateForm as TeacherFormData };
 
 interface TeacherFormProps {
-    formData: TeacherFormData;
-    onFormDataChange: (data: TeacherFormData) => void;
+    formData: TeacherCreateForm;
+    onFormDataChange: (data: TeacherCreateForm) => void;
     isFormReady?: boolean;
     showSubmit?: boolean;
     onSubmit?: () => void;
@@ -53,7 +52,7 @@ const NameFields = memo(function NameFields({
     firstNameIsValid?: boolean;
     lastNameIsValid?: boolean;
     autoFocus?: boolean;
-    onFieldTouch: (field: "firstName" | "lastName") => void;
+    onFieldTouch: (field: "first_name" | "last_name") => void;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,7 +61,7 @@ const NameFields = memo(function NameFields({
                     type="text"
                     value={firstName}
                     onChange={(e) => {
-                        onFieldTouch("firstName");
+                        onFieldTouch("first_name");
                         onFirstNameChange(e.target.value);
                     }}
                     placeholder="Enter first name"
@@ -75,7 +74,7 @@ const NameFields = memo(function NameFields({
                     type="text"
                     value={lastName}
                     onChange={(e) => {
-                        onFieldTouch("lastName");
+                        onFieldTouch("last_name");
                         onLastNameChange(e.target.value);
                     }}
                     placeholder="Enter last name"
@@ -112,7 +111,7 @@ const UsernameField = memo(function UsernameField({
                 placeholder="teacher_username"
                 error={!!usernameError}
             />
-            <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, dashes, or underscores only</p>
+            {/* <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, dashes, or underscores only</p> */}
         </FormField>
     );
 });
@@ -224,11 +223,10 @@ const CommissionsListField = memo(function CommissionsListField({
                                 key={type}
                                 type="button"
                                 onClick={() => setCommissionType(type)}
-                                className={`text-sm font-medium pb-1 transition-colors ${
-                                    commissionType === type
-                                        ? "text-foreground border-b-2 border-foreground"
-                                        : "text-muted-foreground hover:text-foreground border-b border-transparent"
-                                }`}
+                                className={`text-sm font-medium pb-1 transition-colors ${commissionType === type
+                                    ? "text-foreground border-b-2 border-foreground"
+                                    : "text-muted-foreground hover:text-foreground border-b border-transparent"
+                                    }`}
                             >
                                 {type === "fixed" ? `Fixed (${currency}/hr)` : "Percentage (%)"}
                             </button>
@@ -276,126 +274,29 @@ const CommissionsListField = memo(function CommissionsListField({
 // Sub-component: Languages Selection
 const LanguagesField = memo(function LanguagesField({
     languages,
-    onLanguageToggle,
-    onCustomLanguageAdd,
+    onLanguageChange,
     languagesError,
     onFieldTouch,
 }: {
     languages: string[];
-    onLanguageToggle: (language: string) => void;
-    onCustomLanguageAdd: (language: string) => void;
+    onLanguageChange: (languages: string[]) => void;
     languagesError?: string;
     onFieldTouch: () => void;
 }) {
-    const [customLanguage, setCustomLanguage] = useState("");
-    const [showOtherInput, setShowOtherInput] = useState(false);
-
-    const handleAddCustomLanguage = useCallback(() => {
-        if (customLanguage.trim()) {
-            onCustomLanguageAdd(customLanguage.trim());
-            setCustomLanguage("");
-            setShowOtherInput(false);
-        }
-    }, [customLanguage, onCustomLanguageAdd]);
-
-    const handleRemoveLanguage = useCallback(
-        (language: string) => {
-            onLanguageToggle(language);
-        },
-        [onLanguageToggle],
-    );
-
-    const { standardLanguages, customLanguages } = useMemo(
-        () => ({
-            standardLanguages: languages.filter((lang) => LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number])),
-            customLanguages: languages.filter((lang) => !LANGUAGE_OPTIONS.includes(lang as (typeof LANGUAGE_OPTIONS)[number])),
-        }),
-        [languages],
-    );
-
     return (
         <FormField label="Languages" required error={languagesError} isValid={languages.length > 0}>
-            <div className="space-y-3">
-                {/* Standard language buttons */}
-                <div className="flex flex-wrap gap-2">
-                    {LANGUAGE_OPTIONS.map((language) => (
-                        <button
-                            key={language}
-                            type="button"
-                            onClick={() => {
-                                onFieldTouch();
-                                onLanguageToggle(language);
-                            }}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                                standardLanguages.includes(language)
-                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                                    : "bg-background text-foreground border-input hover:border-green-300/50"
-                            }`}
-                        >
-                            {language}
-                        </button>
-                    ))}
-
-                    {/* Other button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowOtherInput(!showOtherInput)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                            showOtherInput
-                                ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                                : "bg-background text-foreground border-input hover:border-green-300/50"
-                        }`}
-                    >
-                        Other +
-                    </button>
-                </div>
-
-                {/* Other language input */}
-                {showOtherInput && (
-                    <div className="flex gap-2">
-                        <FormInput
-                            type="text"
-                            value={customLanguage}
-                            onChange={(e) => setCustomLanguage(e.target.value)}
-                            placeholder="Enter language name"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleAddCustomLanguage();
-                                }
-                            }}
-                        />
-                        <button
-                            type="button"
-                            onClick={handleAddCustomLanguage}
-                            className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                            Add
-                        </button>
-                    </div>
-                )}
-
-                {/* Custom languages display */}
-                {customLanguages.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                        {customLanguages.map((language) => (
-                            <div
-                                key={language}
-                                className={`px-4 py-2 text-sm font-medium rounded-md border-2 border-green-300 dark:border-green-700 ${FORM_SUMMARY_COLORS.required.bg} text-foreground flex items-center gap-2`}
-                            >
-                                {language}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveLanguage(language)}
-                                    className="text-xs hover:text-destructive"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            <FormMultiSelect
+                options={LANGUAGE_OPTIONS}
+                value={languages}
+                onChange={(val) => {
+                    onFieldTouch();
+                    onLanguageChange(val as string[]);
+                }}
+                multi={true}
+                allowCustom={true}
+                customLabel="Other"
+                placeholder="Enter language name"
+            />
         </FormField>
     );
 });
@@ -418,7 +319,7 @@ export default function TeacherForm({
     // Debug validation
     useEffect(() => {
         if (!isFormReady) {
-            const result = teacherFormSchema.safeParse(formData);
+            const result = teacherCreateSchema.safeParse(formData);
             if (!result.success) {
                 console.log("[TeacherForm] Validation Errors:", result.error.flatten().fieldErrors);
             } else {
@@ -429,12 +330,11 @@ export default function TeacherForm({
 
     // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
-        const name = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
-        return name || "New Teacher";
-    }, [formData.firstName, formData.lastName]);
+        return formData.username || "New Teacher";
+    }, [formData.username]);
 
     // Track which fields have been touched/interacted with
-    const [touchedFields, setTouchedFields] = useState<Set<keyof TeacherFormData>>(new Set());
+    const [touchedFields, setTouchedFields] = useState<Set<keyof TeacherCreateForm>>(new Set());
     // Track if form has been submitted (attempted)
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -444,55 +344,28 @@ export default function TeacherForm({
         onFormDataChange(defaultTeacherForm);
     }, [onFormDataChange]);
 
-    const handleFieldTouch = useCallback((field: keyof TeacherFormData) => {
+    const handleFieldTouch = useCallback((field: keyof TeacherCreateForm) => {
         setTouchedFields((prev) => new Set(prev).add(field));
     }, []);
 
-    const handleLanguageToggle = useCallback(
-        (language: string) => {
-            handleFieldTouch("languages");
-            onFormDataChange((prevData: TeacherFormData) => {
-                const newLanguages = prevData.languages.includes(language)
-                    ? prevData.languages.filter((l) => l !== language)
-                    : [...prevData.languages, language];
-                return { ...prevData, languages: newLanguages };
-            });
-        },
-        [onFormDataChange, handleFieldTouch],
-    );
-
-    const handleCustomLanguageAdd = useCallback(
-        (language: string) => {
-            handleFieldTouch("languages");
-            onFormDataChange((prevData: TeacherFormData) => {
-                if (!prevData.languages.includes(language)) {
-                    const newLanguages = [...prevData.languages, language];
-                    return { ...prevData, languages: newLanguages };
-                }
-                return prevData;
-            });
-        },
-        [onFormDataChange, handleFieldTouch],
-    );
-
     const updateField = useCallback(
-        (field: keyof TeacherFormData, value: string | string[]) => {
+        (field: keyof TeacherCreateForm, value: any) => {
             handleFieldTouch(field);
-            onFormDataChange((prevData: TeacherFormData) => {
+            onFormDataChange((prevData: TeacherCreateForm) => {
                 return { ...prevData, [field]: value };
             });
         },
         [onFormDataChange, handleFieldTouch],
     );
 
-    const getFieldError = (field: keyof TeacherFormData): string | undefined => {
+    const getFieldError = (field: keyof TeacherCreateForm): string | undefined => {
         // Only show error if field has been touched or form has been submitted
         if (!touchedFields.has(field) && !hasSubmitted) {
             return undefined;
         }
-        
+
         try {
-            teacherFormSchema.shape[field].parse(formData[field]);
+            teacherCreateSchema.shape[field].parse(formData[field]);
             return undefined;
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -502,16 +375,16 @@ export default function TeacherForm({
         }
     };
 
-    const isFieldValid = (field: keyof TeacherFormData): boolean => {
+    const isFieldValid = (field: keyof TeacherCreateForm): boolean => {
         return getFieldError(field) === undefined && !!formData[field];
     };
 
     const handleSubmit = useCallback(async () => {
         setHasSubmitted(true);
         // Mark all fields as touched when submitting
-        const allFields: (keyof TeacherFormData)[] = [
-            "firstName",
-            "lastName",
+        const allFields: (keyof TeacherCreateForm)[] = [
+            "first_name",
+            "last_name",
             "username",
             "country",
             "phone",
@@ -519,7 +392,7 @@ export default function TeacherForm({
             "languages",
         ];
         setTouchedFields(new Set(allFields));
-        
+
         if (onSubmit) {
             await onSubmit();
         }
@@ -535,20 +408,6 @@ export default function TeacherForm({
 
     const formContent = (
         <>
-            {/* Name Fields */}
-            <NameFields
-                firstName={formData.firstName}
-                lastName={formData.lastName}
-                onFirstNameChange={(value) => updateField("firstName", value)}
-                onLastNameChange={(value) => updateField("lastName", value)}
-                firstNameError={getFieldError("firstName")}
-                lastNameError={getFieldError("lastName")}
-                firstNameIsValid={isFieldValid("firstName")}
-                lastNameIsValid={isFieldValid("lastName")}
-                autoFocus={true}
-                onFieldTouch={(field) => handleFieldTouch(field)}
-            />
-
             {/* Username */}
             <UsernameField
                 username={formData.username}
@@ -556,6 +415,20 @@ export default function TeacherForm({
                 usernameError={getFieldError("username")}
                 usernameIsValid={isFieldValid("username")}
                 onFieldTouch={() => handleFieldTouch("username")}
+            />
+
+            {/* Name Fields */}
+            <NameFields
+                firstName={formData.first_name}
+                lastName={formData.last_name}
+                onFirstNameChange={(value) => updateField("first_name", value)}
+                onLastNameChange={(value) => updateField("last_name", value)}
+                firstNameError={getFieldError("first_name")}
+                lastNameError={getFieldError("last_name")}
+                firstNameIsValid={isFieldValid("first_name")}
+                lastNameIsValid={isFieldValid("last_name")}
+                autoFocus={true}
+                onFieldTouch={(field) => handleFieldTouch(field)}
             />
 
             {/* Country & Phone */}
@@ -581,8 +454,7 @@ export default function TeacherForm({
             {/* Languages */}
             <LanguagesField
                 languages={formData.languages}
-                onLanguageToggle={handleLanguageToggle}
-                onCustomLanguageAdd={handleCustomLanguageAdd}
+                onLanguageChange={(value) => updateField("languages", value)}
                 languagesError={getFieldError("languages")}
                 onFieldTouch={() => handleFieldTouch("languages")}
             />

@@ -65,6 +65,9 @@
     --color-purple-equipment-foreground: rgb(var(--purple-equipment-foreground));
     --color-blue-booking: rgb(var(--blue-booking));
     --color-blue-booking-foreground: rgb(var(--blue-booking-foreground));
+
+    --color-selection: rgb(var(--selection));
+    --color-selection-border: rgb(var(--selection-border));
 }
 
 @layer base {
@@ -122,6 +125,8 @@
         --purple-equipment-foreground: 88 28 135; /* Dark purple text */
         --blue-booking: 59 130 246 / 0.15; /* #3b82f6 with opacity */
         --blue-booking-foreground: 30 58 138; /* Dark blue text */
+        --selection: 226 232 240; /* Zinc 200 - more contrast */
+        --selection-border: 161 161 170; /* Zinc 400 border */
     }
 
     .dark {
@@ -178,5 +183,7 @@
         --purple-equipment-foreground: 255 255 255; /* White text */
         --blue-booking: 37 99 235 / 0.2; /* #2563eb with opacity */
         --blue-booking-foreground: 255 255 255; /* White text */
+        --selection: 63 63 70; /* Zinc 700 */
+        --selection-border: 113 113 122; /* Zinc 500 border */
     }
 }

@@ -19,7 +19,7 @@ export default async function PackagesMasterTablePage() {
 
     return (
         <TableLayout stats={stats}>
-            <PackagesTable packages={packages} showActions={true} />
+            <PackagesTable packages={packages} />
         </TableLayout>
     );
 }

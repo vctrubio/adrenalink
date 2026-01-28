@@ -20,7 +20,7 @@ export default async function TeachersMasterTablePage() {
 
     return (
         <TableLayout stats={stats}>
-            <TeachersTable teachers={teachers} showActions={true} />
+            <TeachersTable teachers={teachers} />
         </TableLayout>
     );
 }

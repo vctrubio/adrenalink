@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, useStudentFormState, useFormRegistration } from "../RegisterContext";
-import StudentForm, { StudentFormData, studentFormSchema } from "@/src/components/forms/school/Student4SchoolForm";
-import { defaultStudentForm } from "@/types/form-entities";
+import { StudentCreateForm, studentCreateSchema, defaultStudentForm } from "@/src/validation/student";
+import StudentForm from "@/src/components/forms/school/Student4SchoolForm";
 import { createAndLinkStudent } from "@/supabase/server/register";
 import toast from "react-hot-toast";
 
@@ -11,7 +11,7 @@ export default function StudentPage() {
     const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useStudentFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
-    const [formData, setFormData] = useState<StudentFormData>(contextForm || defaultStudentForm);
+    const [formData, setFormData] = useState<StudentCreateForm>(contextForm || defaultStudentForm);
     const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
@@ -20,7 +20,7 @@ export default function StudentPage() {
     }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
-        const result = studentFormSchema.safeParse(formData);
+        const result = studentCreateSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
@@ -38,14 +38,14 @@ export default function StudentPage() {
             createFn: () =>
                 createAndLinkStudent(
                     {
-                        first_name: formData.firstName,
-                        last_name: formData.lastName,
+                        first_name: formData.first_name,
+                        last_name: formData.last_name,
                         passport: formData.passport,
                         country: formData.country,
                         phone: formData.phone,
                         languages: formData.languages,
                     },
-                    formData.canRent,
+                    formData.rental,
                     formData.description || undefined,
                 ),
             onSuccess: async (data) => {
@@ -57,7 +57,7 @@ export default function StudentPage() {
                     onAddToQueue: () => {
                         addToQueue("students", {
                             id: data.student.id,
-                            name: `${formData.firstName} ${formData.lastName}`,
+                            name: `${formData.first_name} ${formData.last_name}`,
                             timestamp: Date.now(),
                             type: "student",
                         });
@@ -66,7 +66,7 @@ export default function StudentPage() {
                     defaultForm: defaultStudentForm,
                 });
             },
-            successMessage: `Student created: ${formData.firstName} ${formData.lastName}`,
+            successMessage: `Student created: ${formData.first_name} ${formData.last_name}`,
         });
         setLoading(false);
     }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);

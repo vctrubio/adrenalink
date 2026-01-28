@@ -5,16 +5,17 @@ import { z } from "zod";
 import { ENTITY_DATA } from "@/config/entities";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { MasterSchoolForm } from "./MasterSchoolForm";
-import { equipmentFormSchema, defaultEquipmentForm, type EquipmentFormData } from "@/types/form-entities";
+import { equipmentCreateSchema, defaultEquipmentForm, type EquipmentCreateForm } from "@/src/validation/equipment";
+import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
+import FormIconSelect from "@/src/components/ui/form/form-icon-select";
 
 // Re-export for backward compatibility
-export { equipmentFormSchema, type EquipmentFormData };
+export { equipmentCreateSchema as equipmentFormSchema, type EquipmentCreateForm as EquipmentFormData };
 
 interface Equipment4SchoolFormProps {
-    formData: EquipmentFormData;
-    onFormDataChange: (data: EquipmentFormData) => void;
+    formData: EquipmentCreateForm;
+    onFormDataChange: (data: EquipmentCreateForm) => void;
     isFormReady?: boolean;
     showSubmit?: boolean;
     onSubmit?: () => void;
@@ -31,130 +32,152 @@ const CategoryFieldMemo = memo(function CategoryField({
     onFieldTouch,
 }: {
     category: string;
-    onCategoryChange: (value: string) => void;
+    onCategoryChange: (value: any) => void;
     error?: string;
     isValid?: boolean;
     onFieldTouch: () => void;
 }) {
+    const handleChange = useCallback(
+        (value: string) => {
+            onFieldTouch();
+            onCategoryChange(value);
+        },
+        [onFieldTouch, onCategoryChange],
+    );
+
     return (
         <FormField label="Category" required error={error} isValid={isValid}>
-            <div className="grid grid-cols-3 gap-4">
-                {EQUIPMENT_CATEGORIES.map((cat) => {
-                    const CategoryIcon = cat.icon;
-                    return (
-                        <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => {
-                                onFieldTouch();
-                                onCategoryChange(cat.id);
-                            }}
-                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${
-                                category === cat.id
-                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700`
-                                    : "border-border bg-background hover:border-green-300/50"
-                            }`}
-                        >
-                            <div
-                                className="w-12 h-12 flex items-center justify-center"
-                                style={{ color: category === cat.id ? cat.color : "#94a3b8" }}
-                            >
-                                <CategoryIcon className="w-12 h-12" />
-                            </div>
-                            <div className="font-medium text-sm">{cat.name}</div>
-                        </button>
-                    );
-                })}
-            </div>
+            <FormIconSelect
+                options={EQUIPMENT_CATEGORIES}
+                value={category}
+                onChange={handleChange}
+            />
         </FormField>
     );
 });
 
-// Sub-component: Model and Size Fields
-const ModelSizeFieldsMemo = memo(function ModelSizeFields({
+// Sub-component: Brand and Model Fields
+const BrandModelFieldsMemo = memo(function BrandModelFields({
+    brand,
     model,
-    size,
+    onBrandChange,
     onModelChange,
-    onSizeChange,
+    brandError,
     modelError,
+    brandIsValid,
     modelIsValid,
     onFieldTouch,
 }: {
+    brand: string;
     model: string;
-    size: number | undefined;
+    onBrandChange: (value: string) => void;
     onModelChange: (value: string) => void;
-    onSizeChange: (value: number | undefined) => void;
+    brandError?: string;
     modelError?: string;
+    brandIsValid?: boolean;
     modelIsValid?: boolean;
-    onFieldTouch: () => void;
+    onFieldTouch: (field: "brand" | "model") => void;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Brand" required error={brandError} isValid={brandIsValid}>
+                <FormInput
+                    type="text"
+                    value={brand}
+                    onChange={(e) => {
+                        onFieldTouch("brand");
+                        onBrandChange(e.target.value);
+                    }}
+                    placeholder="e.g., North, Duotone"
+                    error={!!brandError}
+                />
+            </FormField>
             <FormField label="Model" required error={modelError} isValid={modelIsValid}>
                 <FormInput
                     type="text"
                     value={model}
                     onChange={(e) => {
-                        onFieldTouch();
+                        onFieldTouch("model");
                         onModelChange(e.target.value);
                     }}
                     placeholder="Enter model"
                     error={!!modelError}
                 />
             </FormField>
-            <FormField label="Size">
+        </div>
+    );
+});
+
+// Sub-component: Size and Color Fields
+const SizeColorFieldsMemo = memo(function SizeColorFields({
+    size,
+    color,
+    onSizeChange,
+    onColorChange,
+    onFieldTouch,
+}: {
+    size: number | undefined;
+    color: string | undefined;
+    onSizeChange: (value: number | undefined) => void;
+    onColorChange: (value: string) => void;
+    onFieldTouch: (field: "size" | "color") => void;
+}) {
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Size (m²)">
                 <FormInput
                     type="number"
                     value={size ?? ""}
-                    onChange={(e) => onSizeChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) => {
+                        onFieldTouch("size");
+                        onSizeChange(e.target.value ? parseFloat(e.target.value) : undefined);
+                    }}
                     placeholder="e.g., 14, 17, 19"
+                    step="0.1"
+                />
+            </FormField>
+            <FormField label="Color">
+                <FormInput
+                    type="text"
+                    value={color || ""}
+                    onChange={(e) => {
+                        onFieldTouch("color");
+                        onColorChange(e.target.value);
+                    }}
+                    placeholder="e.g., Blue, Red, Black"
                 />
             </FormField>
         </div>
     );
 });
 
-// Sub-component: Color and SKU Fields
-const ColorSkuFieldsMemo = memo(function ColorSkuFields({
-    color,
+// Sub-component: SKU Field
+const SkuFieldMemo = memo(function SkuField({
     sku,
-    onColorChange,
     onSkuChange,
     skuError,
     skuIsValid,
     onFieldTouch,
 }: {
-    color: string | undefined;
     sku: string;
-    onColorChange: (value: string) => void;
     onSkuChange: (value: string) => void;
     skuError?: string;
     skuIsValid?: boolean;
     onFieldTouch: () => void;
 }) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Color">
-                <FormInput
-                    type="text"
-                    value={color || ""}
-                    onChange={(e) => onColorChange(e.target.value)}
-                    placeholder="e.g., Blue, Red, Black"
-                />
-            </FormField>
-            <FormField label="SKU" required error={skuError} isValid={skuIsValid}>
-                <FormInput
-                    type="text"
-                    value={sku}
-                    onChange={(e) => {
-                        onFieldTouch();
-                        onSkuChange(e.target.value);
-                    }}
-                    placeholder="Enter SKU"
-                    error={!!skuError}
-                />
-            </FormField>
-        </div>
+        <FormField label="SKU / Serial Number" required error={skuError} isValid={skuIsValid}>
+            <FormInput
+                type="text"
+                value={sku}
+                onChange={(e) => {
+                    onFieldTouch();
+                    onSkuChange(e.target.value);
+                }}
+                placeholder="Enter SKU"
+                error={!!skuError}
+            />
+        </FormField>
     );
 });
 
@@ -164,29 +187,23 @@ const StatusFieldMemo = memo(function StatusField({
     onStatusChange,
 }: {
     status: string | undefined;
-    onStatusChange: (value: string | undefined) => void;
+    onStatusChange: (value: any) => void;
 }) {
-    const statusOptions = ["rental", "public", "selling", "sold", "inrepair", "rip"] as const;
+    const statusOptions = ["rental", "public", "selling", "sold", "inrepair", "rip"];
     return (
         <FormField label="Status">
             <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">Default: public</p>
-                <div className="flex flex-wrap gap-2">
-                    {statusOptions.map((opt) => (
-                        <button
-                            key={opt}
-                            type="button"
-                            onClick={() => onStatusChange(opt)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md border-2 transition-all ${
-                                status === opt
-                                    ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700 text-foreground`
-                                    : "bg-background text-foreground border-input hover:border-green-300/50"
-                            }`}
-                        >
-                            {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                        </button>
-                    ))}
-                </div>
+                <FormMultiSelect
+                    options={statusOptions.map((opt) => ({
+                        value: opt,
+                        label: opt.charAt(0).toUpperCase() + opt.slice(1),
+                    }))}
+                    value={status}
+                    onChange={(val) => onStatusChange(val)}
+                    multi={false}
+                    allowCustom={false}
+                />
             </div>
         </FormField>
     );
@@ -208,12 +225,12 @@ export default function Equipment4SchoolForm({
     const entityTitle = useMemo(() => {
         const cat = EQUIPMENT_CATEGORIES.find((c) => c.id === formData.category);
         const catName = cat?.name || "Equipment";
-        const details = [formData.model, formData.size].filter(Boolean).join(" ");
+        const details = [formData.brand, formData.model, formData.size].filter(Boolean).join(" ");
         return details ? `${catName} - ${details}` : `New ${catName}`;
-    }, [formData.category, formData.model, formData.size]);
+    }, [formData.category, formData.brand, formData.model, formData.size]);
 
     // Track which fields have been touched/interacted with
-    const [touchedFields, setTouchedFields] = useState<Set<keyof EquipmentFormData>>(new Set());
+    const [touchedFields, setTouchedFields] = useState<Set<keyof EquipmentCreateForm>>(new Set());
     // Track if form has been submitted (attempted)
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -223,28 +240,28 @@ export default function Equipment4SchoolForm({
         onFormDataChange(defaultEquipmentForm);
     }, [onFormDataChange]);
 
-    const handleFieldTouch = useCallback((field: keyof EquipmentFormData) => {
+    const handleFieldTouch = useCallback((field: keyof EquipmentCreateForm) => {
         setTouchedFields((prev) => new Set(prev).add(field));
     }, []);
 
     const updateField = useCallback(
-        (field: keyof EquipmentFormData, value: any) => {
+        (field: keyof EquipmentCreateForm, value: any) => {
             handleFieldTouch(field);
-            onFormDataChange((prevData: EquipmentFormData) => {
+            onFormDataChange((prevData: EquipmentCreateForm) => {
                 return { ...prevData, [field]: value };
             });
         },
         [onFormDataChange, handleFieldTouch],
     );
 
-    const getFieldError = (field: keyof EquipmentFormData): string | undefined => {
+    const getFieldError = (field: keyof EquipmentCreateForm): string | undefined => {
         // Only show error if field has been touched or form has been submitted
         if (!touchedFields.has(field) && !hasSubmitted) {
             return undefined;
         }
         
         try {
-            equipmentFormSchema.shape[field].parse(formData[field]);
+            equipmentCreateSchema.shape[field].parse(formData[field]);
             return undefined;
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -254,15 +271,16 @@ export default function Equipment4SchoolForm({
         }
     };
 
-    const isFieldValid = (field: keyof EquipmentFormData): boolean => {
+    const isFieldValid = (field: keyof EquipmentCreateForm): boolean => {
         return getFieldError(field) === undefined && !!formData[field];
     };
 
     const handleSubmit = useCallback(async () => {
         setHasSubmitted(true);
         // Mark all fields as touched when submitting
-        const allFields: (keyof EquipmentFormData)[] = [
+        const allFields: (keyof EquipmentCreateForm)[] = [
             "category",
+            "brand",
             "model",
             "sku",
         ];
@@ -284,22 +302,31 @@ export default function Equipment4SchoolForm({
                 onFieldTouch={() => handleFieldTouch("category")}
             />
 
-            {/* Model and Size */}
-            <ModelSizeFieldsMemo
+            {/* Brand and Model */}
+            <BrandModelFieldsMemo
+                brand={formData.brand}
                 model={formData.model}
-                size={formData.size}
+                onBrandChange={(value) => updateField("brand", value)}
                 onModelChange={(value) => updateField("model", value)}
-                onSizeChange={(value) => updateField("size", value)}
+                brandError={getFieldError("brand")}
                 modelError={getFieldError("model")}
+                brandIsValid={isFieldValid("brand")}
                 modelIsValid={isFieldValid("model")}
-                onFieldTouch={() => handleFieldTouch("model")}
+                onFieldTouch={(field) => handleFieldTouch(field)}
             />
 
-            {/* Color and SKU */}
-            <ColorSkuFieldsMemo
+            {/* Size and Color */}
+            <SizeColorFieldsMemo
+                size={formData.size}
                 color={formData.color}
-                sku={formData.sku}
+                onSizeChange={(value) => updateField("size", value)}
                 onColorChange={(value) => updateField("color", value)}
+                onFieldTouch={(field) => handleFieldTouch(field)}
+            />
+
+            {/* SKU */}
+            <SkuFieldMemo
+                sku={formData.sku}
                 onSkuChange={(value) => updateField("sku", value)}
                 skuError={getFieldError("sku")}
                 skuIsValid={isFieldValid("sku")}
@@ -308,17 +335,6 @@ export default function Equipment4SchoolForm({
 
             {/* Status */}
             <StatusFieldMemo status={formData.status} onStatusChange={(value) => updateField("status", value)} />
-
-            {/* TODO: Equipment-Teacher Relation
-             * After equipment is created, we need to:
-             * 1. Create a relationship linking this equipment to teachers
-             * 2. Define how many units of this equipment are available per teacher
-             * 3. Track equipment usage/assignments to teachers
-             * This relationship should allow:
-             * - Teachers to have multiple equipment items
-             * - Equipment to be assigned to multiple teachers
-             * - Tracking of equipment availability and assignment history
-             */}
         </>
     );
 

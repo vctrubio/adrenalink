@@ -36,7 +36,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
     const { showActions } = useTablesController();
     const teacherEntity = ENTITY_DATA.find((e) => e.id === "teacher")!;
 
-    const { filteredRows: filteredTeachers, masterTableGroupBy } = useTableLogic({
+    const { filteredRows: filteredTeachers } = useTableLogic({
         data: teachers,
         filterSearch: filterTeachers,
         filterStatus: (teacher, status) => {
@@ -45,68 +45,6 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             return true; // "All"
         },
     });
-
-    // Transform rows based on grouping (Activity-based grouping)
-    const displayRows = useMemo(() => {
-        if (masterTableGroupBy === "all") return filteredTeachers;
-
-        const activityRows: (TeacherTableData & { period: string; periodStats: any })[] = [];
-
-        filteredTeachers.forEach((teacher) => {
-            const periods: Record<
-                string,
-                { lessons: any[]; duration: number; commission: number; payments: number; categoryStats: any }
-            > = {};
-
-            teacher.lessons.forEach((lesson) => {
-                const date = lesson.dateCreated || (teacher as any).createdAt;
-                if (!date) return;
-
-                const periodKey = getPeriodKey(date, masterTableGroupBy);
-                if (!periods[periodKey]) {
-                    periods[periodKey] = { lessons: [], duration: 0, commission: 0, payments: 0, categoryStats: {} };
-                }
-
-                periods[periodKey].lessons.push(lesson);
-                periods[periodKey].duration += lesson.events.totalDuration;
-                periods[periodKey].commission += parseFloat(lesson.commission.cph) * (lesson.events.totalDuration / 60);
-
-                const cat = lesson.category;
-                if (!periods[periodKey].categoryStats[cat]) {
-                    periods[periodKey].categoryStats[cat] = { count: 0, duration: 0 };
-                }
-                periods[periodKey].categoryStats[cat].count += 1;
-                periods[periodKey].categoryStats[cat].duration += lesson.events.totalDuration;
-            });
-
-            Object.entries(periods).forEach(([period, stats]) => {
-                activityRows.push({
-                    ...teacher,
-                    period,
-                    stats: {
-                        ...teacher.stats,
-                        totalLessons: stats.lessons.length,
-                        totalDurationMinutes: stats.duration,
-                        totalCommissions: stats.commission,
-                        totalPayments: 0,
-                    },
-                    activityStats: Object.fromEntries(
-                        Object.entries(stats.categoryStats).map(([cat, s]: [string, any]) => [
-                            cat,
-                            { count: s.count, durationMinutes: s.duration },
-                        ]),
-                    ),
-                } as any);
-            });
-        });
-
-        return activityRows;
-    }, [filteredTeachers, masterTableGroupBy]);
-
-    const getGroupKey = (row: any, groupBy: GroupingType) => {
-        if (groupBy === "all") return "";
-        return row.period || "";
-    };
 
     const calculateStats = (groupRows: any[]): GroupStats => {
         return groupRows.reduce(
@@ -184,7 +122,7 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
             headerClassName: HEADER_CLASSES.green,
             render: (data) => (
                 <div className="flex flex-col gap-1 items-start">
-                    <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group" prefetch={false}>
+                    <Link href={`${teacherEntity.link}/${data.id}`} className="flex items-center gap-2 group">
                         <HeadsetIcon
                             size={16}
                             className={data.active ? "text-emerald-500" : "text-muted-foreground/50"}
@@ -363,11 +301,10 @@ export function TeachersTable({ teachers = [] }: { teachers: TeacherTableData[] 
 
     return (
         <MasterTable
-            rows={displayRows}
+            rows={filteredTeachers}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
-            groupBy={masterTableGroupBy}
-            getGroupKey={getGroupKey}
+            groupBy="all"
             calculateStats={calculateStats}
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}

@@ -15,7 +15,8 @@ import { useSchoolTeachers } from "@/src/hooks/useSchoolTeachers";
 import type { TeacherProvider } from "@/supabase/server/teachers";
 import { PackageSummary } from "@/src/app/(admin)/register/controller-sections/PackageSummary";
 import { StudentSummary } from "@/src/app/(admin)/register/controller-sections/StudentSummary";
-import type { PackageFormData, StudentFormData } from "@/types/form-entities";
+import { StudentCreateForm } from "@/src/validation/student";
+import { SchoolPackageCreateForm } from "@/src/validation/school-package";
 import { MemoTeacherTable } from "@/src/components/tables/TeacherTable";
 import { MemoStudentTable } from "@/src/components/tables/StudentTable";
 import { formatDate } from "@/getters/date-getter";
@@ -43,10 +44,10 @@ function ModalHeader({ startDate, endDate }: { startDate: string; endDate: strin
     );
 }
 
-function PackageSection({ packageFormData }: { packageFormData: PackageFormData }) {
+function PackageSection({ packageFormData }: { packageFormData: SchoolPackageCreateForm }) {
     return (
         <PackageSummary
-            packageFormData={packageFormData}
+            packageFormData={packageFormData as any}
             hideProgressBar={true}
             hideType={true}
             hideVisibility={true}
@@ -58,9 +59,9 @@ function PackageSection({ packageFormData }: { packageFormData: PackageFormData 
 interface StudentsSectionProps {
     totalSelectedStudents: number;
     capacity: number;
-    requestingStudentFormData: StudentFormData | null;
+    requestingStudentFormData: StudentCreateForm | null;
     selectedStudentIds: string[];
-    selectedStudentsData: Record<string, { student: any; studentFormData: StudentFormData }>;
+    selectedStudentsData: Record<string, { student: any; studentFormData: StudentCreateForm }>;
     otherPackageRequests: StudentPackageRequest[];
     onRemoveStudent: (studentId: string, requestId?: string) => void;
 }
@@ -85,7 +86,7 @@ function StudentsSection({
             <div className="space-y-3">
                 {requestingStudentFormData && (
                     <div className="relative">
-                        <StudentSummary studentFormData={requestingStudentFormData} />
+                        <StudentSummary studentFormData={requestingStudentFormData as any} />
                     </div>
                 )}
                 
@@ -103,7 +104,7 @@ function StudentsSection({
                         
                         return (
                             <div key={uniqueKey} className="relative mb-3">
-                                <StudentSummary studentFormData={studentInfo.studentFormData} />
+                                <StudentSummary studentFormData={studentInfo.studentFormData as any} />
                                 <button
                                     type="button"
                                     onClick={() => onRemoveStudent(studentId, requestId)}
@@ -187,7 +188,7 @@ interface SelectAdditionalStudentsSectionProps {
     allStudentsStatsMap: Record<string, any>;
     capacity: number;
     requestingStudentId: string | null;
-    selectedStudentsData: Record<string, { student: any; studentFormData: StudentFormData }>;
+    selectedStudentsData: Record<string, { student: any; studentFormData: StudentCreateForm }>;
     otherPackageRequests: StudentPackageRequest[];
     onToggleStudent: (studentId: string) => void;
     onRemoveStudent: (studentId: string, requestId?: string) => void;
@@ -256,7 +257,7 @@ function SelectAdditionalStudentsSection({
                             
                             return (
                                 <div key={uniqueKey} className="relative mb-3">
-                                    <StudentSummary studentFormData={studentInfo.studentFormData} />
+                                    <StudentSummary studentFormData={studentInfo.studentFormData as any} />
                                     <button
                                         type="button"
                                         onClick={() => onRemoveStudent(studentId, requestId)}
@@ -412,7 +413,7 @@ export function StudentPackageConfirmation({
     
     const [requestingStudentId, setRequestingStudentId] = useState<string | null>(null);
     const [requestingStudentData, setRequestingStudentData] = useState<any>(null);
-    const [requestingStudentFormData, setRequestingStudentFormData] = useState<StudentFormData | null>(null);
+    const [requestingStudentFormData, setRequestingStudentFormData] = useState<StudentCreateForm | null>(null);
     const [leaderStudentName, setLeaderStudentName] = useState("");
 
     const [otherPackageRequests, setOtherPackageRequests] = useState<StudentPackageRequest[]>([]);
@@ -424,7 +425,7 @@ export function StudentPackageConfirmation({
     const [isStudentSelectionExpanded, setIsStudentSelectionExpanded] = useState(true);
 
     const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-    const [selectedStudentsData, setSelectedStudentsData] = useState<Record<string, { student: any; studentFormData: StudentFormData }>>({});
+    const [selectedStudentsData, setSelectedStudentsData] = useState<Record<string, { student: any; studentFormData: StudentCreateForm }>>({});
 
     const [selectedTeacher, setSelectedTeacher] = useState<TeacherProvider | null>(null);
     const [selectedCommission, setSelectedCommission] = useState<any | null>(null);
@@ -440,15 +441,15 @@ export function StudentPackageConfirmation({
             ? (school_package.package_type as "rental" | "lessons")
             : "lessons";
     
-    const packageFormData: PackageFormData = {
-        categoryEquipment: (school_package.category_equipment as "kite" | "wing" | "windsurf") || "kite",
-        capacityEquipment: school_package.capacity_equipment || 1,
-        capacityStudents: capacity,
-        durationMinutes: school_package.duration_minutes || 0,
-        pricePerStudent: school_package.price_per_student || 0,
-        packageType: validPackageType,
+    const packageFormData: SchoolPackageCreateForm = {
+        category_equipment: (school_package.category_equipment as "kite" | "wing" | "windsurf") || "kite",
+        capacity_equipment: school_package.capacity_equipment || 1,
+        capacity_students: capacity,
+        duration_minutes: school_package.duration_minutes || 0,
+        price_per_student: school_package.price_per_student || 0,
+        package_type: validPackageType,
         description: school_package.description || "",
-        isPublic: school_package.is_public ?? false,
+        is_public: school_package.is_public ?? false,
     };
 
     useEffect(() => {
@@ -478,14 +479,16 @@ export function StudentPackageConfirmation({
                     setRequestingStudentId(studentId);
                     setRequestingStudentData(studentData);
                     
-                    const studentFormData: StudentFormData = {
-                        firstName: student.first_name,
-                        lastName: student.last_name,
+                    const studentFormData: StudentCreateForm = {
+                        first_name: student.first_name,
+                        last_name: student.last_name,
                         passport: student.passport || "",
                         country: student.country || "",
                         phone: student.phone || "",
                         languages: student.languages || [],
-                        canRent: studentData.rental || false,
+                        rental: studentData.rental || false,
+                        description: studentData.description || "",
+                        email: student.email || "",
                     };
                     
                     setRequestingStudentFormData(studentFormData);
@@ -569,14 +572,16 @@ export function StudentPackageConfirmation({
             const studentData = request.student_data;
             const student = studentData.student;
             
-            const studentFormData: StudentFormData = {
-                firstName: student.first_name,
-                lastName: student.last_name,
+            const studentFormData: StudentCreateForm = {
+                first_name: student.first_name,
+                last_name: student.last_name,
                 passport: student.passport || "",
                 country: student.country || "",
                 phone: student.phone || "",
                 languages: student.languages || [],
-                canRent: studentData.rental || false,
+                rental: studentData.rental || false,
+                description: studentData.description || "",
+                email: student.email || "",
             };
 
             setSelectedStudentsData((prev) => ({
@@ -621,14 +626,16 @@ export function StudentPackageConfirmation({
             const student = allStudents.find((s: any) => s.student.id === studentId);
             if (!student) return;
 
-            const studentFormData: StudentFormData = {
-                firstName: student.student.firstName,
-                lastName: student.student.lastName,
+            const studentFormData: StudentCreateForm = {
+                first_name: student.student.first_name,
+                last_name: student.student.last_name,
                 passport: student.student.passport,
                 country: student.student.country,
-                phone: "",
+                phone: student.student.phone || "",
                 languages: student.student.languages || [],
-                canRent: student.rental || false,
+                rental: student.rental || false,
+                description: student.description || "",
+                email: student.student.email || "",
             };
 
             setSelectedStudentsData((prev) => ({
@@ -636,11 +643,11 @@ export function StudentPackageConfirmation({
                 [studentId]: {
                     student: {
                         id: student.student.id,
-                        first_name: student.student.firstName,
-                        last_name: student.student.lastName,
+                        first_name: student.student.first_name,
+                        last_name: student.student.last_name,
                         passport: student.student.passport,
                         country: student.student.country,
-                        phone: "",
+                        phone: student.student.phone || "",
                         languages: student.student.languages || [],
                     },
                     studentFormData,

@@ -13,20 +13,10 @@ import Student4SchoolForm from "@/src/components/forms/school/Student4SchoolForm
 import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
 import Equipment4SchoolForm from "@/src/components/forms/school/Equipment4SchoolForm";
-import {
-    studentFormSchema,
-    defaultStudentForm,
-    teacherFormSchema,
-    defaultTeacherForm,
-    packageFormSchema,
-    defaultPackageForm,
-    equipmentFormSchema,
-    defaultEquipmentForm,
-    type StudentFormData,
-    type TeacherFormData,
-    type PackageFormData,
-    type EquipmentFormData,
-} from "@/types/form-entities";
+import { studentCreateSchema, defaultStudentForm, StudentCreateForm } from "@/src/validation/student";
+import { teacherCreateSchema, defaultTeacherForm, TeacherCreateForm } from "@/src/validation/teacher";
+import { schoolPackageCreateSchema, defaultPackageForm, SchoolPackageCreateForm } from "@/src/validation/school-package";
+import { equipmentCreateSchema, defaultEquipmentForm, EquipmentCreateForm } from "@/src/validation/equipment";
 import { createAndLinkStudent, createAndLinkTeacher, createSchoolPackage, createSchoolEquipment } from "@/supabase/server/register";
 
 const CREATE_ENTITIES = ["student", "teacher", "schoolPackage", "equipment"];
@@ -86,21 +76,16 @@ export const NavRight = () => {
     const [selectedCreateEntity, setSelectedCreateEntity] = useState<"student" | "teacher" | "schoolPackage" | "equipment" | null>(
         null,
     );
-    const [studentFormData, setStudentFormData] = useState<StudentFormData>(defaultStudentForm);
-    const [teacherFormData, setTeacherFormData] = useState<TeacherFormData>(defaultTeacherForm);
-    const [packageFormData, setPackageFormData] = useState<PackageFormData>(defaultPackageForm);
-    const [equipmentFormData, setEquipmentFormData] = useState<EquipmentFormData>(defaultEquipmentForm);
+    const [studentFormData, setStudentFormData] = useState<StudentCreateForm>(defaultStudentForm);
+    const [teacherFormData, setTeacherFormData] = useState<TeacherCreateForm>(defaultTeacherForm);
+    const [packageFormData, setPackageFormData] = useState<SchoolPackageCreateForm>(defaultPackageForm);
+    const [equipmentFormData, setEquipmentFormData] = useState<EquipmentCreateForm>(defaultEquipmentForm);
     const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
-    const [mounted, setMounted] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const credentials = useSchoolCredentials();
 
     const createButtonRef = useRef<HTMLButtonElement>(null);
     const adminButtonRef = useRef<HTMLButtonElement>(null);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -115,42 +100,46 @@ export const NavRight = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const isDarkMode = mounted && (theme === "dark" || resolvedTheme === "dark");
+    const isDarkMode = resolvedTheme === "dark";
 
     // Form validity checks
-    const isStudentFormValid = useMemo(() => studentFormSchema.safeParse(studentFormData).success, [studentFormData]);
-    const isTeacherFormValid = useMemo(() => teacherFormSchema.safeParse(teacherFormData).success, [teacherFormData]);
-    const isPackageFormValid = useMemo(() => packageFormSchema.safeParse(packageFormData).success, [packageFormData]);
-    const isEquipmentFormValid = useMemo(() => equipmentFormSchema.safeParse(equipmentFormData).success, [equipmentFormData]);
+    const isStudentFormValid = useMemo(() => studentCreateSchema.safeParse(studentFormData).success, [studentFormData]);
+    const isTeacherFormValid = useMemo(() => teacherCreateSchema.safeParse(teacherFormData).success, [teacherFormData]);
+    const isPackageFormValid = useMemo(() => schoolPackageCreateSchema.safeParse(packageFormData).success, [packageFormData]);
+    const isEquipmentFormValid = useMemo(() => equipmentCreateSchema.safeParse(equipmentFormData).success, [equipmentFormData]);
 
     // Submit handlers
     const handleStudentSubmit = useCallback(async () => {
+        setIsLoadingSubmit(true);
         try {
             await createAndLinkStudent(
                 {
-                    firstName: studentFormData.firstName,
-                    lastName: studentFormData.lastName,
+                    first_name: studentFormData.first_name,
+                    last_name: studentFormData.last_name,
                     passport: studentFormData.passport,
                     country: studentFormData.country,
                     phone: studentFormData.phone,
                     languages: studentFormData.languages,
                 },
-                studentFormData.canRent,
+                studentFormData.rental,
                 studentFormData.description || undefined,
             );
             setStudentFormData(defaultStudentForm);
             setSelectedCreateEntity(null);
         } catch (error) {
             console.error("Student creation error:", error);
+        } finally {
+            setIsLoadingSubmit(false);
         }
     }, [studentFormData]);
 
     const handleTeacherSubmit = useCallback(async () => {
+        setIsLoadingSubmit(true);
         try {
             await createAndLinkTeacher(
                 {
-                    firstName: teacherFormData.firstName,
-                    lastName: teacherFormData.lastName,
+                    first_name: teacherFormData.first_name,
+                    last_name: teacherFormData.last_name,
                     username: teacherFormData.username,
                     passport: teacherFormData.passport,
                     country: teacherFormData.country,
@@ -158,42 +147,49 @@ export const NavRight = () => {
                     languages: teacherFormData.languages,
                 },
                 teacherFormData.commissions.map((c) => ({
-                    commissionType: c.commissionType,
-                    commissionValue: c.commissionValue,
-                    commissionDescription: c.commissionDescription,
+                    commission_type: c.commission_type,
+                    cph: c.cph.toString(),
+                    description: c.description || undefined,
                 })),
             );
             setTeacherFormData(defaultTeacherForm);
             setSelectedCreateEntity(null);
         } catch (error) {
             console.error("Teacher creation error:", error);
+        } finally {
+            setIsLoadingSubmit(false);
         }
     }, [teacherFormData]);
 
     const handlePackageSubmit = useCallback(async () => {
+        setIsLoadingSubmit(true);
         try {
             await createSchoolPackage({
-                durationMinutes: packageFormData.durationMinutes,
+                duration_minutes: packageFormData.duration_minutes,
                 description: packageFormData.description,
-                pricePerStudent: packageFormData.pricePerStudent,
-                capacityStudents: packageFormData.capacityStudents,
-                capacityEquipment: packageFormData.capacityEquipment,
-                categoryEquipment: packageFormData.categoryEquipment,
-                packageType: packageFormData.packageType,
-                isPublic: packageFormData.isPublic,
+                price_per_student: packageFormData.price_per_student,
+                capacity_students: packageFormData.capacity_students,
+                capacity_equipment: packageFormData.capacity_equipment,
+                category_equipment: packageFormData.category_equipment,
+                package_type: packageFormData.package_type,
+                is_public: packageFormData.is_public,
             });
             setPackageFormData(defaultPackageForm);
             setSelectedCreateEntity(null);
         } catch (error) {
             console.error("Package creation error:", error);
+        } finally {
+            setIsLoadingSubmit(false);
         }
     }, [packageFormData]);
 
     const handleEquipmentSubmit = useCallback(async () => {
+        setIsLoadingSubmit(true);
         try {
             await createSchoolEquipment({
                 category: equipmentFormData.category,
                 sku: equipmentFormData.sku,
+                brand: equipmentFormData.brand,
                 model: equipmentFormData.model,
                 color: equipmentFormData.color || undefined,
                 size: equipmentFormData.size || undefined,
@@ -203,6 +199,8 @@ export const NavRight = () => {
             setSelectedCreateEntity(null);
         } catch (error) {
             console.error("Equipment creation error:", error);
+        } finally {
+            setIsLoadingSubmit(false);
         }
     }, [equipmentFormData]);
 
@@ -220,23 +218,23 @@ export const NavRight = () => {
 
     const adminDropdownItems: DropdownItemProps[] = credentials
         ? [
-              {
-                  id: "username",
-                  label: `Username: ${credentials.username}`,
-              },
-              {
-                  id: "currency",
-                  label: `Currency: ${credentials.currency}`,
-              },
-              {
-                  id: "status",
-                  label: `Status: ${credentials.status}`,
-              },
-              {
-                  id: "ownerId",
-                  label: `Owner ID: ${credentials.ownerId}`,
-              },
-          ]
+            {
+                id: "username",
+                label: `Username: ${credentials.username}`,
+            },
+            {
+                id: "currency",
+                label: `Currency: ${credentials.currency}`,
+            },
+            {
+                id: "status",
+                label: `Status: ${credentials.status}`,
+            },
+            {
+                id: "ownerId",
+                label: `Clerk ID: ${credentials.clerkId}`,
+            },
+        ]
         : [];
 
     const renderCredentialItem = (item: DropdownItemProps) => {
@@ -268,15 +266,11 @@ export const NavRight = () => {
                     />
                 </div>
                 <button
-                    onClick={mounted ? () => setTheme(isDarkMode ? "light" : "dark") : undefined}
+                    onClick={() => setTheme(isDarkMode ? "light" : "dark")}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
-                    title={mounted ? (isDarkMode ? "Switch to Light mode" : "Switch to Dark mode") : undefined}
+                    title={isDarkMode ? "Switch to Light mode" : "Switch to Dark mode"}
                 >
-                    {mounted && isDarkMode ? (
-                        <WindIcon className="h-5 w-5" />
-                    ) : (
-                        <NoWindIcon className="h-5 w-5" />
-                    )}
+                    {isDarkMode ? <WindIcon className="h-5 w-5" /> : <NoWindIcon className="h-5 w-5" />}
                 </button>
                 <div className="relative">
                     <ActionButton buttonRef={adminButtonRef} onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}>

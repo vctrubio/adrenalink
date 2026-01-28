@@ -2,21 +2,22 @@
 
 import { useMemo, useCallback, memo, ReactNode, useState } from "react";
 import { z } from "zod";
-import { Receipt } from "lucide-react";
 import { FormField, FormInput } from "@/src/components/ui/form";
 import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
-import { FORM_SUMMARY_COLORS } from "@/types/form-summary";
 import { ENTITY_DATA } from "@/config/entities";
 import ToggleSwitch from "@/src/components/ui/ToggleSwitch";
 import { MasterSchoolForm } from "./MasterSchoolForm";
-import { packageFormSchema, defaultPackageForm, type PackageFormData } from "@/types/form-entities";
+import { schoolPackageCreateSchema, defaultPackageForm, type SchoolPackageCreateForm } from "@/src/validation/school-package";
+import FormMultiSelect from "@/src/components/ui/form/form-multi-select";
+import FormTextarea from "@/src/components/ui/form/form-textarea";
+import FormIconSelect from "@/src/components/ui/form/form-icon-select";
 
 // Re-export for backward compatibility
-export { packageFormSchema, type PackageFormData };
+export { schoolPackageCreateSchema as packageFormSchema, type SchoolPackageCreateForm as PackageFormData };
 
 interface Package4SchoolFormProps {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
     isFormReady?: boolean;
     showSubmit?: boolean;
     onSubmit?: () => void;
@@ -24,68 +25,36 @@ interface Package4SchoolFormProps {
     onClose?: () => void;
 }
 
-// Sub-component: Package Type & Visibility Together
-const PackageTypeAndVisibilityFieldMemo = memo(function PackageTypeAndVisibilityField({
+// Sub-component: Description Field
+const DescriptionFieldMemo = memo(function DescriptionField({
     formData,
     onFormDataChange,
-    typeError,
-    typeIsValid,
+    error,
+    isValid,
     onFieldTouch,
 }: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    typeError?: string;
-    typeIsValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
+    error?: string;
+    isValid?: boolean;
+    onFieldTouch: (field: keyof SchoolPackageCreateForm) => void;
 }) {
-    const handleTypeChange = useCallback(
-        (value: "rental" | "lessons") => {
-            onFieldTouch("packageType");
-            onFormDataChange({ ...formData, packageType: value });
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            onFieldTouch("description");
+            onFormDataChange({ ...formData, description: e.target.value });
         },
         [formData, onFormDataChange, onFieldTouch],
     );
 
-    const handleVisibilityToggle = useCallback(() => {
-        onFormDataChange({ ...formData, isPublic: !formData.isPublic });
-    }, [formData, onFormDataChange]);
-
     return (
-        <div className="space-y-4">
-            <FormField label="Package Type" required error={typeError} isValid={typeIsValid}>
-                <div className="grid grid-cols-2 gap-4">
-                    <button
-                        type="button"
-                        onClick={() => handleTypeChange("lessons")}
-                        className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "lessons" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
-                    >
-                        <div className="font-medium">Lessons</div>
-                        <div className="text-sm text-muted-foreground">Teaching sessions</div>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleTypeChange("rental")}
-                        className={`p-4 border-2 rounded-lg transition-all ${formData.packageType === "rental" ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
-                    >
-                        <div className="font-medium">Rental</div>
-                        <div className="text-sm text-muted-foreground">Equipment rental only</div>
-                    </button>
-                </div>
-            </FormField>
-
-            {/* Visibility Toggle */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Visibility</label>
-                <ToggleSwitch
-                    value={formData.isPublic ? "public" : "private"}
-                    onChange={handleVisibilityToggle}
-                    values={{ left: "public", right: "private" }}
-                    counts={{ public: 0, private: 0 }}
-                    tintColor="#3b82f6"
-                    showLabels={true}
-                />
-            </div>
-        </div>
+        <FormField label="Description" required error={error} isValid={isValid}>
+            <FormTextarea
+                value={formData.description || ""}
+                onChange={handleChange}
+                placeholder="Beginner Discovery Pack / Zero to Hero / Advance Riding"
+            />
+        </FormField>
     );
 });
 
@@ -97,43 +66,53 @@ const CategoryEquipmentFieldMemo = memo(function CategoryEquipmentField({
     isValid,
     onFieldTouch,
 }: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
     error?: string;
     isValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
+    onFieldTouch: (field: keyof SchoolPackageCreateForm) => void;
 }) {
     const handleChange = useCallback(
-        (value: "kite" | "wing" | "windsurf") => {
-            onFieldTouch("categoryEquipment");
-            onFormDataChange({ ...formData, categoryEquipment: value });
+        (value: string) => {
+            onFieldTouch("category_equipment");
+            onFormDataChange({ ...formData, category_equipment: value });
         },
         [formData, onFormDataChange, onFieldTouch],
     );
 
     return (
         <FormField label="Equipment Category" required error={error} isValid={isValid}>
-            <div className="grid grid-cols-3 gap-4">
-                {EQUIPMENT_CATEGORIES.map((cat) => {
-                    const CategoryIcon = cat.icon;
-                    return (
-                        <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => handleChange(cat.id as "kite" | "wing" | "windsurf")}
-                            className={`p-4 border-2 rounded-lg transition-all flex flex-col items-center gap-2 ${formData.categoryEquipment === cat.id ? `${FORM_SUMMARY_COLORS.required.bg} border-green-300 dark:border-green-700` : "border-border bg-background hover:border-green-300/50"}`}
-                        >
-                            <div
-                                className="w-12 h-12 flex items-center justify-center"
-                                style={{ color: formData.categoryEquipment === cat.id ? cat.color : "#94a3b8" }}
-                            >
-                                <CategoryIcon className="w-12 h-12" />
-                            </div>
-                            <div className="font-medium">{cat.name}</div>
-                        </button>
-                    );
-                })}
-            </div>
+            <FormIconSelect options={EQUIPMENT_CATEGORIES} value={formData.category_equipment} onChange={handleChange} />
+        </FormField>
+    );
+});
+
+// Sub-component: Equipment Capacity Field
+const CapacityEquipmentFieldMemo = memo(function CapacityEquipmentField({
+    formData,
+    onFormDataChange,
+    error,
+    isValid,
+    onFieldTouch,
+}: {
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
+    error?: string;
+    isValid?: boolean;
+    onFieldTouch: (field: keyof SchoolPackageCreateForm) => void;
+}) {
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            onFieldTouch("capacity_equipment");
+            const value = parseInt(e.target.value) || 0;
+            onFormDataChange({ ...formData, capacity_equipment: value });
+        },
+        [formData, onFormDataChange, onFieldTouch],
+    );
+
+    return (
+        <FormField label="Equipment Units" required error={error} isValid={isValid}>
+            <FormInput type="number" value={formData.capacity_equipment || ""} onChange={handleChange} placeholder="Max eq." min={1} />
         </FormField>
     );
 });
@@ -146,30 +125,30 @@ const DurationFieldMemo = memo(function DurationField({
     isValid,
     onFieldTouch,
 }: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
     error?: string;
     isValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
+    onFieldTouch: (field: keyof SchoolPackageCreateForm) => void;
 }) {
-    const hours = useMemo(() => Math.floor(formData.durationMinutes / 60), [formData.durationMinutes]);
-    const minutes = useMemo(() => formData.durationMinutes % 60, [formData.durationMinutes]);
+    const hours = useMemo(() => Math.floor(formData.duration_minutes / 60), [formData.duration_minutes]);
+    const minutes = useMemo(() => formData.duration_minutes % 60, [formData.duration_minutes]);
 
     const handleHoursChange = useCallback(
         (newHours: number) => {
-            onFieldTouch("durationMinutes");
+            onFieldTouch("duration_minutes");
             const totalMinutes = Math.max(0, newHours) * 60 + minutes;
-            onFormDataChange({ ...formData, durationMinutes: totalMinutes });
+            onFormDataChange({ ...formData, duration_minutes: totalMinutes });
         },
         [formData, onFormDataChange, minutes, onFieldTouch],
     );
 
     const handleMinutesChange = useCallback(
         (newMinutes: number) => {
-            onFieldTouch("durationMinutes");
+            onFieldTouch("duration_minutes");
             const clampedMinutes = Math.max(0, Math.min(59, newMinutes));
             const totalMinutes = hours * 60 + clampedMinutes;
-            onFormDataChange({ ...formData, durationMinutes: totalMinutes });
+            onFormDataChange({ ...formData, duration_minutes: totalMinutes });
         },
         [formData, onFormDataChange, hours, onFieldTouch],
     );
@@ -177,18 +156,23 @@ const DurationFieldMemo = memo(function DurationField({
     return (
         <FormField label="Duration" required error={error} isValid={isValid}>
             <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="text-sm text-muted-foreground mb-2 block">Hours</label>
+                <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-muted-foreground">
+                        h
+                    </span>
                     <FormInput
                         type="number"
                         value={hours || ""}
                         onChange={(e) => handleHoursChange(parseInt(e.target.value) || 0)}
                         placeholder="0"
                         min={0}
+                        className="pr-8"
                     />
                 </div>
-                <div>
-                    <label className="text-sm text-muted-foreground mb-2 block">Minutes</label>
+                <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-muted-foreground">
+                        m
+                    </span>
                     <FormInput
                         type="number"
                         value={minutes || ""}
@@ -196,20 +180,10 @@ const DurationFieldMemo = memo(function DurationField({
                         placeholder="0"
                         min={0}
                         max={59}
+                        className="pr-8"
                     />
                 </div>
             </div>
-            {/* Display Total */}
-            {formData.durationMinutes > 0 && (
-                <div className="text-sm text-muted-foreground mt-2">
-                    Total:{" "}
-                    <span className="font-medium text-foreground">
-                        {hours > 0 && `${hours}h `}
-                        {minutes > 0 && `${minutes}m`}
-                        {hours === 0 && minutes === 0 && "0m"}
-                    </span>
-                </div>
-            )}
         </FormField>
     );
 });
@@ -224,45 +198,45 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
     capacityIsValid,
     onFieldTouch,
 }: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
     priceError?: string;
     capacityError?: string;
     priceIsValid?: boolean;
     capacityIsValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
+    onFieldTouch: (field: keyof SchoolPackageCreateForm) => void;
 }) {
     const handlePriceChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            onFieldTouch("pricePerStudent");
+            onFieldTouch("price_per_student");
             const value = parseInt(e.target.value) || 0;
-            onFormDataChange({ ...formData, pricePerStudent: value });
+            onFormDataChange({ ...formData, price_per_student: value });
         },
         [formData, onFormDataChange, onFieldTouch],
     );
 
     const handleCapacityChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            onFieldTouch("capacityStudents");
+            onFieldTouch("capacity_students");
             const value = parseInt(e.target.value) || 0;
-            onFormDataChange({ ...formData, capacityStudents: value });
+            onFormDataChange({ ...formData, capacity_students: value });
         },
         [formData, onFormDataChange, onFieldTouch],
     );
 
     const revenue = useMemo(
-        () => formData.pricePerStudent * formData.capacityStudents,
-        [formData.pricePerStudent, formData.capacityStudents],
+        () => formData.price_per_student * formData.capacity_students,
+        [formData.price_per_student, formData.capacity_students],
     );
 
     return (
         <div className="grid grid-cols-3 gap-4">
-            <FormField label="Price per Student" required error={priceError} isValid={priceIsValid}>
+            <FormField label="Price / Student" required error={priceError} isValid={priceIsValid}>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     <FormInput
                         type="number"
-                        value={formData.pricePerStudent || ""}
+                        value={formData.price_per_student || ""}
                         onChange={handlePriceChange}
                         placeholder="0"
                         min={0}
@@ -271,14 +245,16 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
                 </div>
             </FormField>
 
-            <FormField label="Student Capacity" required error={capacityError} isValid={capacityIsValid}>
-                <FormInput
-                    type="number"
-                    value={formData.capacityStudents || ""}
-                    onChange={handleCapacityChange}
-                    placeholder="Max students"
-                    min={1}
-                />
+            <FormField label="Capacity / Student" required error={capacityError} isValid={capacityIsValid}>
+                <div className="relative">
+                    <FormInput
+                        type="number"
+                        value={formData.capacity_students || ""}
+                        onChange={handleCapacityChange}
+                        placeholder="Max students"
+                        min={1}
+                    />
+                </div>
             </FormField>
 
             <FormField label="Revenue">
@@ -289,7 +265,7 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
                         value={revenue > 0 ? revenue.toFixed(0) : ""}
                         placeholder="0"
                         disabled
-                        className="pl-8 bg-muted/50 cursor-not-allowed"
+                        className="pl-8 bg-muted/50 cursor-not-allowed font-medium text-foreground"
                     />
                 </div>
             </FormField>
@@ -297,72 +273,29 @@ const PricingRevenueFieldMemo = memo(function PricingRevenueField({
     );
 });
 
-// Sub-component: Equipment Capacity Field
-const CapacityEquipmentFieldMemo = memo(function CapacityEquipmentField({
+// Sub-component: Visibility Field
+const VisibilityFieldMemo = memo(function VisibilityField({
     formData,
     onFormDataChange,
-    error,
-    isValid,
-    onFieldTouch,
 }: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
+    formData: SchoolPackageCreateForm;
+    onFormDataChange: (data: SchoolPackageCreateForm) => void;
 }) {
-    const handleChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            onFieldTouch("capacityEquipment");
-            const value = parseInt(e.target.value) || 0;
-            onFormDataChange({ ...formData, capacityEquipment: value });
-        },
-        [formData, onFormDataChange, onFieldTouch],
-    );
+    const handleVisibilityToggle = useCallback(() => {
+        onFormDataChange({ ...formData, is_public: !formData.is_public });
+    }, [formData, onFormDataChange]);
 
     return (
-        <FormField label="Equipment Capacity" required error={error} isValid={isValid}>
-            <FormInput
-                type="number"
-                value={formData.capacityEquipment || ""}
-                onChange={handleChange}
-                placeholder="Max equipment"
-                min={1}
-            />
-        </FormField>
-    );
-});
-
-// Sub-component: Description Field
-const DescriptionFieldMemo = memo(function DescriptionField({
-    formData,
-    onFormDataChange,
-    error,
-    isValid,
-    onFieldTouch,
-}: {
-    formData: PackageFormData;
-    onFormDataChange: (data: PackageFormData) => void;
-    error?: string;
-    isValid?: boolean;
-    onFieldTouch: (field: keyof PackageFormData) => void;
-}) {
-    const handleChange = useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            onFieldTouch("description");
-            onFormDataChange({ ...formData, description: e.target.value });
-        },
-        [formData, onFormDataChange, onFieldTouch],
-    );
-
-    return (
-        <FormField label="Description" required error={error} isValid={isValid}>
-            <textarea
-                value={formData.description || ""}
-                onChange={handleChange}
-                placeholder="Beginner Discovery Pack / Zero to Hero / Advance Riding"
-                className="w-full px-3 py-2 border border-border rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px] resize-none"
-            />
+        <FormField label="Public Visibility">
+            <div className="flex items-center h-10">
+                <ToggleSwitch
+                    value={formData.is_public ? "public" : "private"}
+                    onChange={handleVisibilityToggle}
+                    values={{ left: "public", right: "private" }}
+                    counts={{ public: 0, private: 0 }}
+                    showLabels={true}
+                />
+            </div>
         </FormField>
     );
 });
@@ -378,13 +311,10 @@ export default function Package4SchoolForm({
     onClose,
 }: Package4SchoolFormProps) {
     const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
-    
-    // Track which fields have been touched/interacted with
-    const [touchedFields, setTouchedFields] = useState<Set<keyof PackageFormData>>(new Set());
-    // Track if form has been submitted (attempted)
+
+    const [touchedFields, setTouchedFields] = useState<Set<keyof SchoolPackageCreateForm>>(new Set());
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    // Memoize entity title to prevent re-renders on keystroke
     const entityTitle = useMemo(() => {
         return formData.description || "New Package";
     }, [formData.description]);
@@ -395,24 +325,26 @@ export default function Package4SchoolForm({
         onFormDataChange(defaultPackageForm);
     }, [onFormDataChange]);
 
-    const handleFieldTouch = useCallback((field: keyof PackageFormData) => {
+    const handleFieldTouch = useCallback((field: keyof SchoolPackageCreateForm) => {
         setTouchedFields((prev) => new Set(prev).add(field));
     }, []);
 
+    const handleTypeChange = useCallback(
+        (value: string) => {
+            handleFieldTouch("package_type");
+            onFormDataChange({ ...formData, package_type: value as "rental" | "lessons" });
+        },
+        [formData, onFormDataChange, handleFieldTouch],
+    );
+
     const getFieldError = useCallback(
-        (field: keyof PackageFormData): string | undefined => {
-            // Only show error if field has been touched or form has been submitted
-            if (!touchedFields.has(field) && !hasSubmitted) {
-                return undefined;
-            }
-            
+        (field: keyof SchoolPackageCreateForm): string | undefined => {
+            if (!touchedFields.has(field) && !hasSubmitted) return undefined;
             try {
-                packageFormSchema.shape[field].parse(formData[field]);
+                schoolPackageCreateSchema.shape[field].parse(formData[field]);
                 return undefined;
             } catch (error) {
-                if (error instanceof z.ZodError) {
-                    return error.issues[0]?.message;
-                }
+                if (error instanceof z.ZodError) return error.issues[0]?.message;
                 return undefined;
             }
         },
@@ -420,29 +352,25 @@ export default function Package4SchoolForm({
     );
 
     const isFieldValid = useCallback(
-        (field: keyof PackageFormData): boolean => {
+        (field: keyof SchoolPackageCreateForm): boolean => {
             return getFieldError(field) === undefined && !!formData[field];
         },
-        [getFieldError],
+        [getFieldError, formData],
     );
 
     const handleSubmit = useCallback(async () => {
         setHasSubmitted(true);
-        // Mark all fields as touched when submitting
-        const allFields: (keyof PackageFormData)[] = [
+        const allFields: (keyof SchoolPackageCreateForm)[] = [
             "description",
-            "packageType",
-            "categoryEquipment",
-            "capacityEquipment",
-            "durationMinutes",
-            "pricePerStudent",
-            "capacityStudents",
+            "package_type",
+            "category_equipment",
+            "capacity_equipment",
+            "duration_minutes",
+            "price_per_student",
+            "capacity_students",
         ];
         setTouchedFields(new Set(allFields));
-        
-        if (onSubmit) {
-            await onSubmit();
-        }
+        if (onSubmit) await onSubmit();
     }, [onSubmit]);
 
     const formContent = (
@@ -455,47 +383,60 @@ export default function Package4SchoolForm({
                 onFieldTouch={handleFieldTouch}
             />
 
-            <PackageTypeAndVisibilityFieldMemo
-                formData={formData}
-                onFormDataChange={onFormDataChange}
-                typeError={getFieldError("packageType")}
-                typeIsValid={isFieldValid("packageType")}
-                onFieldTouch={handleFieldTouch}
-            />
-
-            <CategoryEquipmentFieldMemo
-                formData={formData}
-                onFormDataChange={onFormDataChange}
-                error={getFieldError("categoryEquipment")}
-                isValid={isFieldValid("categoryEquipment")}
-                onFieldTouch={handleFieldTouch}
-            />
-
-            <CapacityEquipmentFieldMemo
-                formData={formData}
-                onFormDataChange={onFormDataChange}
-                error={getFieldError("capacityEquipment")}
-                isValid={isFieldValid("capacityEquipment")}
-                onFieldTouch={handleFieldTouch}
-            />
+            <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                    <CategoryEquipmentFieldMemo
+                        formData={formData}
+                        onFormDataChange={onFormDataChange}
+                        error={getFieldError("category_equipment")}
+                        isValid={isFieldValid("category_equipment")}
+                        onFieldTouch={handleFieldTouch}
+                    />
+                </div>
+                <div className="flex flex-col justify-between pt-1">
+                    <CapacityEquipmentFieldMemo
+                        formData={formData}
+                        onFormDataChange={onFormDataChange}
+                        error={getFieldError("capacity_equipment")}
+                        isValid={isFieldValid("capacity_equipment")}
+                        onFieldTouch={handleFieldTouch}
+                    />
+                    <div className="pt-2">
+                        <FormMultiSelect
+                            options={[
+                                { value: "lessons", label: "Lessons" },
+                                { value: "rental", label: "Rental" },
+                            ]}
+                            value={formData.package_type}
+                            onChange={handleTypeChange}
+                            multi={false}
+                            allowCustom={false}
+                        />
+                    </div>
+                </div>
+            </div>
 
             <DurationFieldMemo
                 formData={formData}
                 onFormDataChange={onFormDataChange}
-                error={getFieldError("durationMinutes")}
-                isValid={isFieldValid("durationMinutes")}
+                error={getFieldError("duration_minutes")}
+                isValid={isFieldValid("duration_minutes")}
                 onFieldTouch={handleFieldTouch}
             />
 
             <PricingRevenueFieldMemo
                 formData={formData}
                 onFormDataChange={onFormDataChange}
-                priceError={getFieldError("pricePerStudent")}
-                capacityError={getFieldError("capacityStudents")}
-                priceIsValid={isFieldValid("pricePerStudent")}
-                capacityIsValid={isFieldValid("capacityStudents")}
+                priceError={getFieldError("price_per_student")}
+                capacityError={getFieldError("capacity_students")}
+                priceIsValid={isFieldValid("price_per_student")}
+                capacityIsValid={isFieldValid("capacity_students")}
                 onFieldTouch={handleFieldTouch}
             />
+
+            <VisibilityFieldMemo formData={formData} onFormDataChange={onFormDataChange} />
+
+            <PackageRevenueSummary formData={formData} />
         </>
     );
 
@@ -506,7 +447,7 @@ export default function Package4SchoolForm({
             entityTitle={entityTitle}
             isFormReady={isFormReady}
             onSubmit={handleSubmit}
-            onCancel={onClose || (() => {})}
+            onCancel={onClose || (() => { })}
             onClear={handleClear}
             isLoading={isLoading}
             submitLabel="Add Package"
@@ -515,66 +456,27 @@ export default function Package4SchoolForm({
         </MasterSchoolForm>
     );
 }
-function PackageRevenueSummary({ formData }: { formData: PackageFormData }) {
-    const packageEntity = ENTITY_DATA.find((e) => e.id === "schoolPackage");
-    const packageColor = packageEntity?.color;
 
-    // Calculate values
-    const durationHours = formData.durationMinutes / 60;
-    const revenue = formData.pricePerStudent * formData.capacityStudents;
-    const pricePerHour = durationHours > 0 ? revenue / durationHours : 0;
-    const pricePerHourPerStudent = durationHours > 0 ? formData.pricePerStudent / durationHours : 0;
+function PackageRevenueSummary({ formData }: { formData: SchoolPackageCreateForm }) {
+    const durationHours = formData.duration_minutes / 60;
+    const revenue = formData.price_per_student * formData.capacity_students;
 
-    // Only show if we have meaningful data
-    if (!formData.pricePerStudent || !formData.capacityStudents || !formData.durationMinutes) {
-        return null;
-    }
+    if (!formData.price_per_student || !formData.capacity_students || !formData.duration_minutes) return null;
 
     return (
-        <div className="space-y-3 border-t-2 pt-6" style={{ borderColor: packageColor }}>
-            <h3 className="text-lg font-semibold">Revenue Summary</h3>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-                {/* Duration */}
+        <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 space-y-2">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <span>Revenue Summary</span>
+                <span className="text-foreground">€{revenue.toFixed(0)} Total</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-xs">
                 <div>
-                    <span className="text-muted-foreground">Duration:</span>
-                    <p className="font-medium">
-                        {Math.floor(durationHours)}h {formData.durationMinutes % 60 > 0 && `${formData.durationMinutes % 60}m`}
-                    </p>
+                    <span className="text-muted-foreground">Rate:</span>
+                    <span className="ml-2 font-bold">€{(revenue / (durationHours || 1)).toFixed(0)}/hr</span>
                 </div>
-
-                {/* Price per Hour */}
-                <div>
-                    <span className="text-muted-foreground">Revenue per Hour:</span>
-                    <p className="font-medium">€{pricePerHour.toFixed(2)}/hr</p>
-                </div>
-
-                {/* Only show price per student if capacity > 1 */}
-                {formData.capacityStudents > 1 && (
-                    <>
-                        <div>
-                            <span className="text-muted-foreground">Price per Student:</span>
-                            <p className="font-medium">€{formData.pricePerStudent}</p>
-                        </div>
-                        <div>
-                            <span className="text-muted-foreground">Price per Hour/Student:</span>
-                            <p className="font-medium">€{pricePerHourPerStudent.toFixed(2)}/hr</p>
-                        </div>
-                    </>
-                )}
-
-                {/* Capacity */}
-                <div>
-                    <span className="text-muted-foreground">Capacity:</span>
-                    <p className="font-medium">
-                        {formData.capacityEquipment} equipment / {formData.capacityStudents} students
-                    </p>
-                </div>
-
-                {/* Total Revenue */}
-                <div>
-                    <span className="text-muted-foreground">Expected Revenue:</span>
-                    <p className="font-medium text-green-600">€{revenue.toFixed(2)}</p>
+                <div className="text-right">
+                    <span className="text-muted-foreground">Per Student:</span>
+                    <span className="ml-2 font-bold">€{(formData.price_per_student / (durationHours || 1)).toFixed(0)}/hr</span>
                 </div>
             </div>
         </div>

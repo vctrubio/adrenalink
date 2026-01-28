@@ -7,6 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { MemoStudentTable as StudentTable } from "@/src/components/tables/StudentTable";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import StudentForm, { studentFormSchema, type StudentFormData } from "@/src/components/forms/school/Student4SchoolForm";
+import { defaultStudentForm, studentCreateSchema, type StudentCreateForm } from "@/src/validation/student";
 import { createAndLinkStudent } from "@/supabase/server/register";
 import { useStudentFormState, useFormRegistration, useRegisterActions } from "../RegisterContext";
 
@@ -54,17 +55,6 @@ interface StudentsSectionProps {
     selectedPackage?: Package | null;
 }
 
-const defaultStudentForm: StudentFormData = {
-    firstName: "",
-    lastName: "",
-    passport: "",
-    country: "",
-    phone: "",
-    languages: [],
-    description: "",
-    canRent: false,
-};
-
 export function StudentsSection({
     students,
     selectedStudentIds,
@@ -84,7 +74,7 @@ export function StudentsSection({
     // Dialog state
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
-    const [formData, setFormData] = useState<StudentFormData>(contextForm || defaultStudentForm);
+    const [formData, setFormData] = useState<StudentCreateForm>(contextForm || defaultStudentForm);
 
     // Update context when form data changes
     useEffect(() => {
@@ -92,7 +82,7 @@ export function StudentsSection({
     }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
-        const result = studentFormSchema.safeParse(formData);
+        const result = studentCreateSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
@@ -109,7 +99,10 @@ export function StudentsSection({
     }, [isDialogOpen]);
 
     const selectedStudentNames = selectedStudentIds
-        .map((id) => students.find((s) => s.student.id === id)?.student.firstName)
+        .map((id) => {
+            const s = students.find((s) => s.student.id === id);
+            return s ? `${s.student.firstName} ${s.student.lastName}` : null;
+        })
         .filter(Boolean)
         .join(", ");
 
@@ -130,14 +123,14 @@ export function StudentsSection({
             createFn: () =>
                 createAndLinkStudent(
                     {
-                        first_name: formData.firstName,
-                        last_name: formData.lastName,
+                        first_name: formData.first_name,
+                        last_name: formData.last_name,
                         passport: formData.passport,
                         country: formData.country,
                         phone: formData.phone,
                         languages: formData.languages,
                     },
-                    formData.canRent,
+                    formData.rental,
                     formData.description || undefined,
                 ),
             onSuccess: async (data) => {
@@ -150,7 +143,7 @@ export function StudentsSection({
                         const { student } = data;
                         addToQueue("students", {
                             id: student.id,
-                            name: `${student.firstName} ${student.lastName}`,
+                            name: `${student.first_name} ${student.last_name}`,
                             timestamp: Date.now(),
                             type: "student",
                             metadata: data, // contains student and schoolStudent
@@ -160,7 +153,7 @@ export function StudentsSection({
                     defaultForm: defaultStudentForm,
                 });
             },
-            successMessage: `Student created: ${formData.firstName} ${formData.lastName}`,
+            successMessage: `Student created: ${formData.first_name} ${formData.last_name}`,
         });
         setSubmitLoading(false);
     }, [isFormValid, formData, onToggle, refreshData, handleEntityCreation, handlePostCreation, addToQueue]);

@@ -37,7 +37,6 @@ export default function StatsExplainer() {
                         <TableIcon size={16} className="text-primary" />
                         <p className="text-sm font-black uppercase tracking-widest">Our Five Pillars</p>
                     </div>
-       
                 </div>
 
                 <AnimatePresence>
@@ -113,64 +112,5 @@ export default function StatsExplainer() {
                 <div className="border-t border-border" />
             </div>
         </motion.div>
-    );
-}
-
-function FlowStep({ icon: Icon, label, color }: { icon: any; label: string; color: string }) {
-    return (
-        <div className="flex flex-col items-center gap-3 group/step">
-            <div
-                className="w-12 h-12 flex items-center justify-center rounded-xl shadow-sm border border-border/50 group-hover/step:scale-110 transition-transform"
-                style={{ backgroundColor: `${color}15`, color }}
-            >
-                <Icon size={20} />
-            </div>
-            <span className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">{label}</span>
-        </div>
-    );
-}
-
-function FlowArrow() {
-    return (
-        <div className="pb-6">
-            <ArrowRight size={16} className="text-muted-foreground/30" strokeWidth={3} />
-        </div>
-    );
-}
-
-function EquipmentDisplay({ 
-    equipment, 
-    iconSize = 16, 
-    showSku = true 
-}: { 
-    equipment: { id: string; brand: string; model: string; size: string | number; category: string; sku: string; color: string };
-    iconSize?: number;
-    showSku?: boolean;
-}) {
-    const config = EQUIPMENT_CATEGORIES.find((c) => c.id === equipment.category);
-    const Icon = config?.icon || Activity;
-    const color = config?.color || "#a855f7";
-
-    return (
-        <div className="flex flex-col gap-1 items-start">
-            <div className="flex items-center gap-2">
-                <div style={{ color }}>
-                    <Icon size={iconSize} />
-                </div>
-                <span className="font-bold text-foreground text-sm">
-                    {equipment.brand} {equipment.model}
-                </span>
-                {equipment.size && (
-                    <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-black text-[10px]">
-                        {equipment.size}
-                    </span>
-                )}
-            </div>
-            {showSku && equipment.sku && (
-                <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-6">
-                    SKU: {equipment.sku} {equipment.color && `• ${equipment.color}`}
-                </div>
-            )}
-        </div>
     );
 }

@@ -36,9 +36,32 @@ export function PackagesTable({ packages = [] }: { packages: PackageTableData[] 
         data: packages,
         filterSearch: filterPackages,
         filterStatus: (pkg, status) => {
-            if (status === "Lesson") return pkg.packageType === "lessons";
-            if (status === "Rental") return pkg.packageType === "rental";
-            return true; // "All"
+            if (status === "All") return true;
+            
+            const selectedOptions = status.split(",").filter(s => s);
+            
+            // Check package type filter
+            const packageTypeFilters = selectedOptions.filter(s => s === "Lesson" || s === "Rental");
+            if (packageTypeFilters.length > 0) {
+                const matchesPackageType = packageTypeFilters.some(type => 
+                    (type === "Lesson" && pkg.packageType === "lessons") ||
+                    (type === "Rental" && pkg.packageType === "rental")
+                );
+                if (!matchesPackageType) return false;
+            }
+            
+            // Check equipment category filter
+            const equipmentFilters = selectedOptions.filter(s => ["Kite", "Wing", "Windsurf"].includes(s));
+            if (equipmentFilters.length > 0) {
+                const categoryMap = { "Kite": "kite", "Wing": "wing", "Windsurf": "windsurf" };
+                const matchesEquipment = equipmentFilters.some(cat => 
+                    pkg.categoryEquipment === categoryMap[cat as keyof typeof categoryMap]
+                );
+                if (!matchesEquipment) return false;
+            }
+            
+            // If no specific filters, show all
+            return true;
         },
         dateField: "createdAt",
     });

@@ -7,7 +7,7 @@ import { ENTITY_DATA } from "@/config/entities";
 import { PackageTable } from "@/src/components/tables/PackageTable";
 import { EntityAddDialog } from "@/src/components/ui/EntityAddDialog";
 import Package4SchoolForm, { packageFormSchema, type PackageFormData } from "@/src/components/forms/school/Package4SchoolForm";
-import { defaultPackageForm } from "@/types/form-entities";
+import { defaultPackageForm, SchoolPackageCreateForm, schoolPackageCreateSchema } from "@/src/validation/school-package";
 import { createSchoolPackage } from "@/supabase/server/register";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
 
@@ -56,7 +56,7 @@ export function PackageSection({
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
-    const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
+    const [formData, setFormData] = useState<SchoolPackageCreateForm>(contextForm || defaultPackageForm);
 
     // Update context when form data changes
     useEffect(() => {
@@ -64,7 +64,7 @@ export function PackageSection({
     }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
-        const result = packageFormSchema.safeParse(formData);
+        const result = schoolPackageCreateSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
@@ -89,14 +89,14 @@ export function PackageSection({
             entityName: "Package",
             createFn: () =>
                 createSchoolPackage({
-                    duration_minutes: formData.durationMinutes,
+                    duration_minutes: formData.duration_minutes,
                     description: formData.description,
-                    price_per_student: formData.pricePerStudent,
-                    capacity_students: formData.capacityStudents,
-                    capacity_equipment: formData.capacityEquipment,
-                    category_equipment: formData.categoryEquipment,
-                    package_type: formData.packageType,
-                    is_public: formData.isPublic,
+                    price_per_student: formData.price_per_student,
+                    capacity_students: formData.capacity_students,
+                    capacity_equipment: formData.capacity_equipment,
+                    category_equipment: formData.category_equipment,
+                    package_type: formData.package_type,
+                    is_public: formData.is_public,
                 }),
             onSuccess: async (data) => {
                 const newPackage: Package = {

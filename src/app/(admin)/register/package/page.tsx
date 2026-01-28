@@ -2,26 +2,16 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, usePackageFormState, useFormRegistration } from "../RegisterContext";
-import Package4SchoolForm, { PackageFormData, packageFormSchema } from "@/src/components/forms/school/Package4SchoolForm";
+import { SchoolPackageCreateForm, schoolPackageCreateSchema, defaultPackageForm } from "@/src/validation/school-package";
+import Package4SchoolForm from "@/src/components/forms/school/Package4SchoolForm";
 import { createSchoolPackage } from "@/supabase/server/register";
 import toast from "react-hot-toast";
-
-const defaultPackageForm: PackageFormData = {
-    durationMinutes: 60,
-    description: "",
-    pricePerStudent: 0,
-    capacityStudents: 1,
-    capacityEquipment: 1,
-    categoryEquipment: "" as any,
-    packageType: "" as any,
-    isPublic: true,
-};
 
 export default function PackagePage() {
     const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = usePackageFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
-    const [formData, setFormData] = useState<PackageFormData>(contextForm || defaultPackageForm);
+    const [formData, setFormData] = useState<SchoolPackageCreateForm>(contextForm || defaultPackageForm);
     const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
@@ -30,7 +20,7 @@ export default function PackagePage() {
     }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
-        const result = packageFormSchema.safeParse(formData);
+        const result = schoolPackageCreateSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
@@ -47,14 +37,14 @@ export default function PackagePage() {
             entityName: "Package",
             createFn: () =>
                 createSchoolPackage({
-                    duration_minutes: formData.durationMinutes,
+                    duration_minutes: formData.duration_minutes,
                     description: formData.description || null,
-                    price_per_student: formData.pricePerStudent,
-                    capacity_students: formData.capacityStudents,
-                    capacity_equipment: formData.capacityEquipment,
-                    category_equipment: formData.categoryEquipment,
-                    package_type: formData.packageType,
-                    is_public: formData.isPublic,
+                    price_per_student: formData.price_per_student,
+                    capacity_students: formData.capacity_students,
+                    capacity_equipment: formData.capacity_equipment,
+                    category_equipment: formData.category_equipment,
+                    package_type: formData.package_type,
+                    is_public: formData.is_public,
                 }),
             onSuccess: async (data) => {
                 await handlePostCreation({

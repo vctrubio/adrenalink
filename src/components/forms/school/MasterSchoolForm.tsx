@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, ReactNode } from "react";
-import toast from "react-hot-toast";
+import { useCallback, ReactNode } from "react";
 import { EntityHeader4SchoolForm } from "./EntityHeader4SchoolForm";
-import { EntityActionBtns4SchoolForm } from "./EntityActionBtns4SchoolForm";
+import { SubmitCancelReset } from "@/src/components/ui/SubmitCancelReset";
 
 export interface MasterSchoolFormProps {
     icon?: React.ComponentType<{ className?: string }>;
@@ -15,7 +14,7 @@ export interface MasterSchoolFormProps {
     onClear?: () => void;
     isLoading?: boolean;
     showActionButtons?: boolean;
-    submitLabel?: React.ReactNode;
+    submitLabel?: ReactNode;
     children: ReactNode;
 }
 
@@ -29,7 +28,7 @@ export function MasterSchoolForm({
     onClear,
     isLoading = false,
     showActionButtons = true,
-    submitLabel = "Submit",
+    submitLabel,
     children,
 }: MasterSchoolFormProps) {
     const handleSubmit = useCallback(async () => {
@@ -46,15 +45,18 @@ export function MasterSchoolForm({
 
             {/* Action Buttons */}
             {showActionButtons && (
-                <EntityActionBtns4SchoolForm
-                    onSubmit={handleSubmit}
-                    onCancel={onCancel}
-                    onClear={onClear}
-                    isLoading={isLoading}
-                    isFormValid={isFormReady}
-                    entityColor={color}
-                    submitLabel={submitLabel}
-                />
+                <div className="pt-2">
+                    <SubmitCancelReset
+                        onSubmit={handleSubmit}
+                        onCancel={onCancel}
+                        onReset={onClear || (() => {})}
+                        isSubmitting={isLoading}
+                        hasChanges={true}
+                        disableSubmit={!isFormReady}
+                        submitLabel={typeof submitLabel === "string" ? submitLabel : undefined}
+                        color={color}
+                    />
+                </div>
             )}
         </div>
     );

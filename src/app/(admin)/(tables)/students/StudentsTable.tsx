@@ -355,7 +355,6 @@ export function StudentsTable({ students = [] }: { students: StudentTableData[] 
             calculateStats={calculateStats}
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
-            showGroupToggle={false}
         />
     );
 }

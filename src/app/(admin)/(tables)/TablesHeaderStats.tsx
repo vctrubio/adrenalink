@@ -45,7 +45,7 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                             <StatItemUI
                                 type={stat.type}
                                 value={
-                                    canAnimate ? (
+                                    canAnimate && !isMoney ? (
                                         <AnimatedCounter
                                             value={rawValue as number}
                                             formatter={(num) => {
@@ -55,7 +55,7 @@ export function TablesHeaderStats({ stats }: { stats: TableStat[] }) {
                                             }}
                                         />
                                     ) : (
-                                        stat.value
+                                        isMoney ? getCompactNumber(rawValue as number) : isDuration ? getHMDuration(rawValue as number) : Math.round(rawValue as number).toLocaleString()
                                     )
                                 }
                                 labelOverride={stat.label}

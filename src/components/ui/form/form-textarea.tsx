@@ -1,22 +1,23 @@
 "use client";
 
-import { forwardRef, InputHTMLAttributes } from "react";
+import { forwardRef, TextareaHTMLAttributes } from "react";
 
-interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface FormTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     error?: boolean;
 }
 
-const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({ className = "", error = false, ...props }, ref) => {
+const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(({ className = "", error = false, ...props }, ref) => {
     return (
-        <input
+        <textarea
             ref={ref}
             className={`
-          w-full h-10 px-3 rounded-lg border transition-all text-sm
+          w-full px-3 py-2 rounded-lg border transition-all text-sm
           bg-background text-foreground
           ${error ? "border-destructive/50 focus:border-destructive" : "border-input focus:border-foreground dark:focus:border-white"}
           focus:outline-none focus:ring-0 focus:ring-offset-0
           placeholder:text-muted-foreground
           disabled:opacity-50 disabled:cursor-not-allowed
+          min-h-[80px] resize-none
           ${className}
         `}
             {...props}
@@ -24,6 +25,6 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({ className = ""
     );
 });
 
-FormInput.displayName = "FormInput";
+FormTextarea.displayName = "FormTextarea";
 
-export default FormInput;
+export default FormTextarea;

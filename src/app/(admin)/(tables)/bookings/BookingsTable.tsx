@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MasterTable, type ColumnDef, type MobileColumnDef, type GroupingType, type GroupStats } from "../MasterTable";
 import { TeacherLessonStatsBadge } from "@/src/components/ui/badge/teacher-lesson-stats";
 import { EquipmentStudentPackagePriceBadge } from "@/src/components/ui/badge/equipment-student-package-price";
@@ -20,6 +20,7 @@ import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 import { filterBookings } from "@/types/searching-entities";
 import { useTableLogic } from "@/src/hooks/useTableLogic";
+import { useTablesController } from "../layout";
 
 const HEADER_CLASSES = {
     yellow: "px-4 py-3 font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10",
@@ -30,8 +31,9 @@ const HEADER_CLASSES = {
     zincRight: "px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10 text-right",
 } as const;
 
-export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] }) {
+export function BookingsTable({ bookings = [], showActions = false }: { bookings: BookingTableData[]; showActions?: boolean }) {
     const bookingEntity = ENTITY_DATA.find((e) => e.id === "booking")!;
+    const { sort } = useTablesController();
 
     const {
         filteredRows: filteredBookings,
@@ -47,6 +49,48 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
         },
         dateField: (row) => row.booking.dateStart,
     });
+
+    // Sort the filtered bookings
+    const sortedBookings = useMemo(() => {
+        if (!sort.field) return filteredBookings;
+        
+        return [...filteredBookings].sort((a, b) => {
+            let aValue: any, bValue: any;
+            
+            switch (sort.field) {
+                case "createdAt":
+                    aValue = new Date(a.booking.dateStart).getTime(); // Assuming dateStart is creation date
+                    bValue = new Date(b.booking.dateStart).getTime();
+                    break;
+                case "updatedAt":
+                    aValue = new Date(a.booking.dateEnd).getTime(); // Assuming dateEnd is update date
+                    bValue = new Date(b.booking.dateEnd).getTime();
+                    break;
+                case "eventCount":
+                    aValue = a.lessons.reduce((sum, l) => sum + l.events.totalCount, 0);
+                    bValue = b.lessons.reduce((sum, l) => sum + l.events.totalCount, 0);
+                    break;
+                case "date":
+                    aValue = new Date(a.booking.dateStart).getTime();
+                    bValue = new Date(b.booking.dateStart).getTime();
+                    break;
+                case "status":
+                    aValue = a.booking.status;
+                    bValue = b.booking.status;
+                    break;
+                case "name":
+                    aValue = a.booking.leaderStudentName;
+                    bValue = b.booking.leaderStudentName;
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (aValue < bValue) return sort.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sort.direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [filteredBookings, sort]);
 
     const calculateStats = (groupRows: BookingTableData[]): GroupStats => {
         return groupRows.reduce(
@@ -348,7 +392,7 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
 
     return (
         <MasterTable
-            rows={filteredBookings}
+            rows={sortedBookings}
             columns={desktopColumns}
             mobileColumns={mobileColumns}
             getGroupKey={getGroupKey}
@@ -356,7 +400,6 @@ export function BookingsTable({ bookings = [] }: { bookings: BookingTableData[] 
             renderGroupHeader={renderGroupHeader}
             renderMobileGroupHeader={renderMobileGroupHeader}
             groupBy={masterTableGroupBy}
-            showGroupToggle={false}
         />
     );
 }

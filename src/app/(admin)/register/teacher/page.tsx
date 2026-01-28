@@ -2,26 +2,16 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRegisterActions, useTeacherFormState, useFormRegistration } from "../RegisterContext";
-import TeacherForm, { TeacherFormData, teacherFormSchema } from "@/src/components/forms/school/Teacher4SchoolForm";
+import { TeacherCreateForm, teacherCreateSchema, defaultTeacherForm } from "@/src/validation/teacher";
+import TeacherForm from "@/src/components/forms/school/Teacher4SchoolForm";
 import { createAndLinkTeacher } from "@/supabase/server/register";
 import toast from "react-hot-toast";
-
-const defaultTeacherForm: TeacherFormData = {
-    firstName: "",
-    lastName: "",
-    username: "",
-    passport: "",
-    country: "",
-    phone: "",
-    languages: ["English"],
-    commissions: [],
-};
 
 export default function TeacherPage() {
     const { addToQueue, handleEntityCreation, handlePostCreation } = useRegisterActions();
     const { form: contextForm, setForm: setContextForm } = useTeacherFormState();
     const { registerSubmitHandler, setFormValidity } = useFormRegistration();
-    const [formData, setFormData] = useState<TeacherFormData>(contextForm || defaultTeacherForm);
+    const [formData, setFormData] = useState<TeacherCreateForm>(contextForm || defaultTeacherForm);
     const [loading, setLoading] = useState(false);
 
     // Update context when form data changes
@@ -30,7 +20,7 @@ export default function TeacherPage() {
     }, [formData, setContextForm]);
 
     const isFormValid = useMemo(() => {
-        const result = teacherFormSchema.safeParse(formData);
+        const result = teacherCreateSchema.safeParse(formData);
         return result.success;
     }, [formData]);
 
@@ -48,8 +38,8 @@ export default function TeacherPage() {
             createFn: () =>
                 createAndLinkTeacher(
                     {
-                        first_name: formData.firstName,
-                        last_name: formData.lastName,
+                        first_name: formData.first_name,
+                        last_name: formData.last_name,
                         username: formData.username,
                         passport: formData.passport,
                         country: formData.country,
@@ -57,9 +47,9 @@ export default function TeacherPage() {
                         languages: formData.languages,
                     },
                     formData.commissions.map((c) => ({
-                        commission_type: c.commissionType as "fixed" | "percentage",
-                        cph: c.commissionValue,
-                        description: c.commissionDescription,
+                        commission_type: c.commission_type as "fixed" | "percentage",
+                        cph: c.cph.toString(),
+                        description: c.description,
                     })),
                 ),
             onSuccess: async (data) => {
@@ -92,7 +82,7 @@ export default function TeacherPage() {
                     defaultForm: defaultTeacherForm,
                 });
             },
-            successMessage: `Teacher created: ${formData.firstName} ${formData.lastName}`,
+            successMessage: `Teacher created: ${formData.first_name} ${formData.last_name}`,
         });
         setLoading(false);
     }, [isFormValid, formData, addToQueue, handleEntityCreation, handlePostCreation]);

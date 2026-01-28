@@ -13,7 +13,10 @@ import type { SortConfig } from "@/types/sort";
 import { Settings2 } from "lucide-react";
 import type { GroupingType } from "./MasterTable";
 
-const GROUP_OPTIONS: TableGroupByDate[] = ["All", "Weekly", "Monthly"];
+const GROUP_OPTIONS: TableGroupByDate[] = ["All", "Daily", "Weekly", "Monthly"];
+
+// Entities that should NOT show the actions toggle
+const HIDDEN_ACTIONS_ENTITIES = ["event", "booking", "equipment"];
 
 // Determine status options based on entity
 const getStatusOptions = (entityId: string): string[] => {
@@ -33,7 +36,7 @@ const getStatusOptions = (entityId: string): string[] => {
         return ["All", "Kite", "Wing", "Windsurf"];
     }
     if (entityId === "schoolPackage") {
-        return ["All", "Lesson", "Rental"];
+        return ["All", "Lesson", "Rental", "Kite", "Wing", "Windsurf"];
     }
     return ["All", "Active", "Inactive"];
 };
@@ -127,7 +130,7 @@ export function TablesSearchHeader({ entityId, groupBy, onGroupByChange }: Table
                 )}
 
                 {/* Group FilterDropdown */}
-                {(entity.id === "event" || entity.id === "teacher" || entity.id === "student") && ( // Only show Group for time-relevant entities
+                {(entity.id === "event" || entity.id === "student" || entity.id === "booking") && ( // Only show Group for time-relevant entities
                     <FilterDropdown
                         label="Group"
                         value={controller.group}
@@ -149,11 +152,12 @@ export function TablesSearchHeader({ entityId, groupBy, onGroupByChange }: Table
                         value={controller.status}
                         onChange={(v) => controller.onStatusChange(v as TableActivityFilter)}
                         entityColor={entity.color}
+                        entityId={entity.id}
                     />
                 )}
 
                 {/* Actions Toggle */}
-                {entity.id !== "event" && ( // Example: Not showing actions toggle for events, adjust as needed
+                {!HIDDEN_ACTIONS_ENTITIES.includes(entity.id) && (
                     <button
                         type="button"
                         onClick={() => controller.onShowActionsChange(!controller.showActions)}

@@ -24,9 +24,16 @@ const colorMap = {
         text: "text-yellow-600 dark:text-yellow-400",
         bgHover: "bg-yellow-500/20",
     },
+    zinc: {
+        base: "#71717a",
+        bg: "bg-zinc-500",
+        ring: "focus:ring-zinc-500",
+        text: "text-zinc-600 dark:text-zinc-400",
+        bgHover: "bg-zinc-500/20",
+    },
 };
 
-const ToggleSwitch = ({ value, onChange, values, counts, color = "yellow", tintColor, showLabels = false }: ToggleSwitchProps) => {
+const ToggleSwitch = ({ value, onChange, values, counts, color = "zinc", tintColor, showLabels = false }: ToggleSwitchProps) => {
     const isRight = value === values.right;
     const colorClasses = colorMap[color];
     const baseColor = tintColor || colorClasses?.base || "#3b82f6";

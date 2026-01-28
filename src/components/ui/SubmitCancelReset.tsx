@@ -8,6 +8,7 @@ interface SubmitCancelResetProps {
     onReset: () => void;
     isSubmitting?: boolean;
     hasChanges: boolean;
+    disableSubmit?: boolean;
     submitLabel?: string;
     extraContent?: React.ReactNode;
     color?: string; // Custom color for submit button active state
@@ -20,11 +21,14 @@ export function SubmitCancelReset({
     onReset,
     isSubmitting = false,
     hasChanges,
+    disableSubmit = false,
     submitLabel,
     extraContent,
     color,
     className = "",
 }: SubmitCancelResetProps) {
+    const isSubmitDisabled = disableSubmit || (!hasChanges && !isSubmitting);
+
     return (
         <div className={`grid grid-cols-4 gap-2 w-full ${className}`}>
             <button
@@ -42,6 +46,8 @@ export function SubmitCancelReset({
                     e.stopPropagation();
                     onReset();
                 }}
+                // Reset is enabled if hasChanges is true. 
+                // If the parent wants to always enable reset, they should pass hasChanges={true}.
                 disabled={!hasChanges}
                 className={`
                     flex items-center justify-center p-3 rounded-xl transition-all duration-200 border-2
@@ -61,12 +67,12 @@ export function SubmitCancelReset({
                     e.stopPropagation();
                     onSubmit();
                 }}
-                disabled={!hasChanges && !isSubmitting}
-                style={{ backgroundColor: (hasChanges || isSubmitting) && color ? color : undefined }}
+                disabled={isSubmitDisabled}
+                style={{ backgroundColor: !isSubmitDisabled && color ? color : undefined }}
                 className={`
                     col-span-2 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all duration-200 active:scale-95
                     ${
-                        hasChanges || isSubmitting
+                        !isSubmitDisabled
                             ? "text-white shadow-lg hover:opacity-90 bg-cyan-600"
                             : "bg-muted/50 dark:bg-white/5 text-muted-foreground/50 dark:text-white/30 cursor-not-allowed"
                     }

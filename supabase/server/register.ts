@@ -100,6 +100,9 @@ export async function createAndLinkStudent(
 
         logger.info("Created and linked student", { studentId: createdStudent.id, schoolId });
 
+        revalidatePath("/students");
+        revalidatePath("/register");
+
         return {
             success: true,
             data: {
@@ -178,6 +181,9 @@ export async function createAndLinkTeacher(
 
         logger.info("Created teacher with commissions", { teacherId: createdTeacher.id, commissionCount: createdCommissions.length });
 
+        revalidatePath("/teachers");
+        revalidatePath("/register");
+
         return {
             success: true,
             data: {
@@ -218,6 +224,10 @@ export async function createSchoolPackage(packageData: PackagePayload): Promise<
         }
 
         logger.info("Created school package", { packageId: createdPackage.id });
+
+        revalidatePath("/packages");
+        revalidatePath("/register");
+
         return { success: true, data: createdPackage };
     } catch (error) {
         logger.error("Error creating package", error);
@@ -259,6 +269,10 @@ export async function createSchoolEquipment(equipmentData: {
         }
 
         logger.info("Created equipment", { equipmentId: createdEquipment.id });
+
+        revalidatePath("/equipments");
+        revalidatePath("/register");
+
         return { success: true, data: createdEquipment };
     } catch (error) {
         logger.error("Error creating equipment", error);
