@@ -430,65 +430,73 @@ function DrillDownChart({ title, subtitle, data, maxProfit, onBarClick, selected
                 )}
             </div>
 
-            <div className="flex items-end justify-between h-[325px] gap-2 sm:gap-4 relative z-10 px-2">
-                {data.map((d: any, i: number) => {
-                    const strength = (d.profit / maxProfit) * 100;
-                    const isSelected = selectedDate && isSameDay(new Date(d.date), new Date(selectedDate));
-                    return (
-                        <div
-                            key={i}
-                            className="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer"
-                            onClick={() => onBarClick(d.date)}
-                        >
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 scale-95 group-hover:scale-100">
-                                <div className="bg-popover border border-border shadow-2xl rounded-2xl p-4 min-w-[200px] space-y-2">
-                                    <p className="text-[10px] font-black text-primary uppercase border-b border-border pb-1 mb-2">
-                                        {d.label}
-                                    </p>
-                                    <StatItemUI type="events" value={d.eventCount} hideLabel={false} />
-                                    <StatItemUI type="students" value={d.students} hideLabel={false} />
-                                    <StatItemUI type="teachers" value={d.teachers} hideLabel={false} />
-                                    <StatItemUI type="duration" value={d.duration} hideLabel={false} />
-                                    <StatItemUI type="revenue" value={d.revenue} hideLabel={false} />
-                                    <StatItemUI type="commission" value={d.commission} hideLabel={false} />
-                                    <StatItemUI type="profit" value={d.profit} variant="profit" hideLabel={false} />
+            <div className="flex items-end h-[350px] relative z-10">
+                {/* Y-axis */}
+                <div className="flex flex-col justify-between h-full pb-10 pr-4 text-right w-14 shrink-0">
+                    {[1, 0.75, 0.5, 0.25, 0].map((p, i) => (
+                        <span key={i} className="text-[10px] font-bold text-muted-foreground/60 tabular-nums">
+                            {getCompactNumber(p * maxProfit)}
+                        </span>
+                    ))}
+                </div>
 
-                                    <div className="flex items-center gap-2 pt-1.5 border-t border-border mt-1">
-                                        <Wind size={12} className="text-muted-foreground" />
-                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Wind:</span>
-                                        <span className="text-[10px] font-black text-foreground tabular-nums">
-                                            {d.activeDays}/{d.totalDays}d
-                                        </span>
+                {/* Bars Area */}
+                <div className="flex-1 flex items-end justify-between h-full gap-2 sm:gap-4 pb-10 relative">
+                    {data.map((d: any, i: number) => {
+                        const strength = (d.profit / maxProfit) * 100;
+                        const isSelected = selectedDate && isSameDay(new Date(d.date), new Date(selectedDate));
+                        return (
+                            <div
+                                key={i}
+                                className="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer"
+                                onClick={() => onBarClick(d.date)}
+                            >
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 scale-95 group-hover:scale-100">
+                                    <div className="bg-popover border border-border shadow-2xl rounded-2xl p-4 min-w-[200px] space-y-2">
+                                        <p className="text-[10px] font-black text-primary uppercase border-b border-border pb-1 mb-2">
+                                            {d.label}
+                                        </p>
+                                        <StatItemUI type="events" value={d.eventCount} hideLabel={false} />
+                                        <StatItemUI type="students" value={d.students} hideLabel={false} />
+                                        <StatItemUI type="teachers" value={d.teachers} hideLabel={false} />
+                                        <StatItemUI type="duration" value={d.duration} hideLabel={false} />
+                                        <StatItemUI type="revenue" value={d.revenue} hideLabel={false} />
+                                        <StatItemUI type="commission" value={d.commission} hideLabel={false} />
+                                        <StatItemUI type="profit" value={d.profit} variant="profit" hideLabel={false} />
+
+                                        <div className="flex items-center gap-2 pt-1.5 border-t border-border mt-1">
+                                            <Wind size={12} className="text-muted-foreground" />
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">Wind:</span>
+                                            <span className="text-[10px] font-black text-foreground tabular-nums">
+                                                {d.activeDays}/{d.totalDays}d
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${Math.max(strength, 4)}%` }}
-                                transition={{ duration: 0.8, delay: i * 0.05 }}
-                                className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${isSelected
-                                    ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
-                                    : strength > 0
-                                        ? "bg-primary/40 group-hover:bg-primary/60"
-                                        : "bg-muted/30"
-                                    }`}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </motion.div>
-                            <span
-                                className={`mt-4 text-[9px] font-black uppercase tracking-tighter transition-colors ${isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
-                            >
-                                {d.label}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="absolute inset-0 pt-32 pb-16 px-8 flex flex-col justify-between pointer-events-none opacity-10">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-full h-px bg-border border-dashed" />
-                ))}
+                                <motion.div
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${Math.max(strength, 4)}%` }}
+                                    transition={{ duration: 0.8, delay: i * 0.05 }}
+                                    className={`w-full rounded-t-xl relative overflow-hidden transition-all duration-300 ${isSelected
+                                        ? "bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] scale-x-110"
+                                        : strength > 0
+                                            ? "bg-primary/40 group-hover:bg-primary/60"
+                                            : "bg-muted/30"
+                                        }`}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </motion.div>
+                                <span
+                                    className={`mt-4 text-[9px] font-black uppercase tracking-tighter transition-colors ${isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                                >
+                                    {d.label}
+                                </span>
+                            </div>
+                        );
+                    })}
+
+                </div>
             </div>
         </div>
     );
