@@ -188,10 +188,14 @@ function BookingLegend() {
                     icon: Calendar,
                     text: ["Capture dates", "Register students", "Secure deposit"],
                 },
-                {
-                    label: "Activity",
+                { 
+                    label: "Activity", 
                     icon: Activity,
-                    text: ["Log session hours", "Assign teachers", "Track equipment"],
+                    text: [
+                        "Assign teachers",
+                        "Log session hours",
+                        "Track equipment"
+                    ] 
                 },
                 {
                     label: "Check-Out",
