@@ -5,12 +5,13 @@ import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { CSV_DATA } from "./data";
 
-import { Questionnaire } from "./Questionnaire";
+// import { Questionnaire } from "./Questionnaire"; // Commented out as per request
+import { AdCampaign } from "../design/page";
 
 import { useState, useEffect } from "react";
 
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, Calendar, Users, Coins, Activity, Calculator, Send } from "lucide-react";
 
 // --- Header Nav Component ---
 
@@ -23,7 +24,7 @@ function HeaderNav() {
             const groups = {
                 "setting-up": ["schools", "packages", "equipments"],
                 users: ["students", "teachers"],
-                questionnaire: ["questionnaire"],
+                bookings: ["bookings"],
             };
 
             for (const [group, ids] of Object.entries(groups)) {
@@ -62,8 +63,8 @@ function HeaderNav() {
                 Users
             </button>
             <div className="w-1 h-1 rounded-full bg-slate-200" />
-            <button onClick={() => scrollToId("questionnaire")} className={getLinkClass("questionnaire")}>
-                Questionnaire
+            <button onClick={() => scrollToId("bookings")} className={getLinkClass("bookings")}>
+                Bookings
             </button>
         </nav>
     );
@@ -105,29 +106,99 @@ function DataTable({ headers, rows }: { headers: (string | React.ReactNode)[]; r
     );
 }
 
-// --- Indice Table Component ---
+// --- Reusable Legend Component ---
+
+function InfoLegend({
+    title,
+    items,
+    bgColor = "bg-slate-100",
+    borderColor = "border-slate-200",
+    labelColor = "text-secondary",
+}: {
+    title: string;
+    items: { label: string; text: string | string[]; icon?: React.ElementType }[];
+    bgColor?: string;
+    borderColor?: string;
+    labelColor?: string;
+}) {
+    return (
+        <div className={`w-full mt-8 px-8 py-8 rounded-[2rem] border text-center flex flex-col gap-8 ${bgColor} ${borderColor}`}>
+            <h3 className="text-xl font-black uppercase tracking-[0.5em] text-slate-400 opacity-50">{title}</h3>
+            <div className="flex flex-col md:flex-row items-start justify-around gap-8 md:gap-0">
+                {items.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                        <div key={index} className="contents">
+                            <div className="flex-1 flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    {Icon && <Icon size={20} className={labelColor.replace("text-", "text-opacity-80 text-")} />}
+                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${labelColor}`}>
+                                        {item.label}
+                                    </span>
+                                </div>
+
+                                {Array.isArray(item.text) ? (
+                                    <div className="text-[11px] text-slate-600 font-bold font-mono text-left inline-block space-y-1 tracking-tight">
+                                        {item.text.map((step, i) => (
+                                            <div key={i} className="whitespace-nowrap flex gap-2">
+                                                <span className="opacity-50">{i + 1}.</span>
+                                                <span>{step}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-600 font-medium font-mono px-4">{item.text}</p>
+                                )}
+                            </div>
+                            {index < items.length - 1 && (
+                                <div className={`hidden md:block w-px h-24 ${borderColor.replace("border", "bg")}`} />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 function DataTypeLegend() {
     return (
-        <div className="w-full mt-8 px-8 py-6 bg-slate-100 rounded-[2rem] border border-slate-200 text-center flex flex-col gap-6">
-            <h3 className="text-xl font-black uppercase tracking-[0.5em] text-slate-400 opacity-50">Data Types</h3>
-            <div className="flex flex-col md:flex-row items-center justify-around gap-8 md:gap-0">
-                <div className="flex-1 space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">String</span>
-                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Alphanumeric text, names, and letters.</p>
-                </div>
-                <div className="hidden md:block w-px h-12 bg-slate-200" />
-                <div className="flex-1 space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">Integer / Float</span>
-                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Numbers (e.g., 4) or Decimals (e.g., 4.5).</p>
-                </div>
-                <div className="hidden md:block w-px h-12 bg-slate-200" />
-                <div className="flex-1 space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">Enum</span>
-                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Predefined fixed values from a list.</p>
-                </div>
-            </div>
-        </div>
+        <InfoLegend
+            title="Data Types"
+            items={[
+                { label: "String", text: "Alphanumeric text, names, and letters." },
+                { label: "Integer / Float", text: "Numbers (e.g., 4) or Decimals (e.g., 4.5)." },
+                { label: "Enum", text: "Predefined fixed values from a list." },
+            ]}
+        />
+    );
+}
+
+function BookingLegend() {
+    return (
+        <InfoLegend
+            title="Booking Lifecycle"
+            bgColor="bg-blue-50"
+            borderColor="border-blue-100"
+            labelColor="text-blue-600"
+            items={[
+                {
+                    label: "Check-In",
+                    icon: Calendar,
+                    text: ["Capture dates", "Register students", "Secure deposit"],
+                },
+                {
+                    label: "Activity",
+                    icon: Activity,
+                    text: ["Log session hours", "Assign teachers", "Track equipment"],
+                },
+                {
+                    label: "Check-Out",
+                    icon: Calculator,
+                    text: ["Calculate totals", "Deduct deposit", "Bill the client"],
+                },
+            ]}
+        />
     );
 }
 
@@ -178,6 +249,7 @@ function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: t
                 <DataTable headers={data.headers} rows={data.rows} />
                 <IndiceTable data={data.indexData} />
                 {id === "schools" && <DataTypeLegend />}
+                {id === "bookings" && <BookingLegend />}
             </div>
         </section>
     );
@@ -212,12 +284,20 @@ export default function CsvPage() {
 
             {/* Content Sections */}
             <div className="flex flex-col">
+                {/* Setting Up */}
                 <CsvSection id="schools" data={CSV_DATA.school} bgColor="bg-slate-50" />
                 <CsvSection id="packages" data={CSV_DATA.packages} bgColor="bg-white" />
                 <CsvSection id="equipments" data={CSV_DATA.equipments} bgColor="bg-slate-50" />
+
+                {/* Users */}
                 <CsvSection id="students" data={CSV_DATA.students} bgColor="bg-white" />
                 <CsvSection id="teachers" data={CSV_DATA.teachers} bgColor="bg-slate-50" />
-                <Questionnaire />
+
+                {/* Bookings */}
+                <CsvSection id="bookings" data={CSV_DATA.bookings} bgColor="bg-white" />
+
+                {/* Ad Campaign */}
+                <AdCampaign />
             </div>
         </main>
     );

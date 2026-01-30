@@ -45,7 +45,7 @@ function PdfSection({ data }: { data: typeof CSV_DATA.school }) {
     return (
         <div className="mb-6 break-inside-avoid">
             <div className="flex items-center gap-4 mb-2 pb-2">
-                <div className={`p-2 rounded-full ${data.colorClass} ${data.iconColorClass} print:bg-transparent print:text-black`}>
+                <div className={`p-2 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
                     <Icon size={32} className="w-8 h-8" />
                 </div>
                 <div>
@@ -56,28 +56,31 @@ function PdfSection({ data }: { data: typeof CSV_DATA.school }) {
 
             <PdfTable headers={data.headers} rows={singleRow} />
 
-            {/* Simplified Index for PDF - 2 Columns */}
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[9px] font-mono text-slate-400 px-2">
-                {data.indexData.map((item) => (
-                    <div key={item.col} className="flex gap-2 border-b border-dashed border-black/5 pb-0.5">
-                        <span className="font-bold text-slate-600 min-w-[80px]">{item.col}:</span>
-
-                        <span>
-                            {item.type === "Enum" ? (
-                                <>
-                                    <span className="text-slate-500 font-bold">[{item.allowed}]</span>
-
-                                    <span className="mx-1">//</span>
-
-                                    {item.desc}
-                                </>
-                            ) : (
-                                <>
-                                    {item.type} <span className="mx-1">//</span> {item.desc}
-                                </>
-                            )}
-                        </span>
+            {/* Simplified Index for PDF - 2 Columns (Column-first flow) */}
+            <div className="flex gap-8 text-[9px] font-mono text-slate-400 mt-4 px-2">
+                {[
+                    data.indexData.slice(0, Math.ceil(data.indexData.length / 2)),
+                    data.indexData.slice(Math.ceil(data.indexData.length / 2))
+                ].map((column, colIdx) => (
+                    <div key={colIdx} className="flex-1 flex flex-col gap-y-1">
+                        {column.map((item) => (
+                            <div key={item.col} className="flex gap-2 border-b border-dashed border-black/5 pb-0.5">
+                                <span className="font-bold text-slate-600 min-w-[80px]">{item.col}:</span>
+                                <span>
+                                    {item.type === "Enum" ? (
+                                        <>
+                                            <span className="text-slate-500 font-bold">[{item.allowed}]</span>
+                                            <span className="mx-1">//</span>
+                                            {item.desc}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {item.type} <span className="mx-1">//</span> {item.desc}
+                                        </>
+                                    )}
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 ))}
             </div>

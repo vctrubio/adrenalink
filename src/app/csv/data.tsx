@@ -8,7 +8,38 @@ import KiteIcon from "@/public/appSvgs/Equipments/KiteIcon";
 import WingIcon from "@/public/appSvgs/Equipments/WingIcon";
 import WindsurfIcon from "@/public/appSvgs/Equipments/WindsurfIcon";
 
+import BookingIcon from "@/public/appSvgs/BookingIcon";
+
 export const CSV_DATA = {
+    bookings: {
+        title: "Bookings",
+        icon: BookingIcon,
+        description: "Core operational records. Tracks student activity, payments, and scheduling.",
+        colorClass: "bg-blue-100",
+        iconColorClass: "text-blue-600",
+        headers: [
+            "Start Date", 
+            "End Date", 
+            "Students", 
+            "Package ID", 
+            <span key="dep">Deposit <span className="font-normal text-slate-400 normal-case">(Currency)</span></span>, 
+            <span key="dur_book">Session Duration <span className="font-normal text-slate-400 normal-case">(Minutes)</span></span>, 
+            <span key="final">Total to Pay <span className="font-normal text-slate-400 normal-case">(Currency)</span></span>
+        ],
+        rows: [
+            ["2024-06-15", "2024-06-15", "John Doe, Alice Smith", "PKG-084", 50.00, 180, 250.00],
+            ["2024-06-16", "2024-06-16", "Max Mustermann", "PKG-001", 30.00, 120, 120.00],
+        ],
+        indexData: [
+            { col: "Start Date", type: "Date", desc: "First day of session", allowed: "YYYY-MM-DD" },
+            { col: "End Date", type: "Date", desc: "Last day of session", allowed: "YYYY-MM-DD" },
+            { col: "Students", type: "Array", desc: "Participating students", allowed: "Comma separated Names or IDs" },
+            { col: "Package ID", type: "String", desc: "Linked Service Package", allowed: "Valid Package UUID/SKU" },
+            { col: "Deposit", type: "Currency", desc: "Initial payment received", allowed: "Numeric value" },
+            { col: "Session Duration", type: "Integer", desc: "Total time logged", allowed: "Minutes (e.g. 120, 180)" },
+            { col: "Total to Pay", type: "Currency", desc: "Final calculated cost", allowed: "Numeric value" },
+        ]
+    },
     school: {
         title: "Schools",
         icon: AdminIcon,

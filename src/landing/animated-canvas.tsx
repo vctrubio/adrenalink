@@ -4,9 +4,15 @@ import { useEffect, useRef } from "react";
 
 interface AnimatedCanvasProps {
     className?: string;
+    mode?: "default" | "campaign";
+    color?: string; // Expects rgba or hex
 }
 
-export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
+export function AnimatedCanvas({ 
+    className = "", 
+    mode = "default",
+    color = "rgba(37, 99, 235, 1)" // Darker blue (blue-600)
+}: AnimatedCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -48,7 +54,17 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
             // Multiple wave layers with different frequencies
             for (let layer = 0; layer < 3; layer++) {
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 - layer * 0.03})`;
+                
+                // Helper to apply opacity to the color prop
+                let strokeColor = color;
+                if (color.startsWith("rgba")) {
+                    strokeColor = color.replace(/[\d\.]+\)$/, `${0.1 - layer * 0.03})`);
+                } else if (color.startsWith("#")) {
+                    // Very simple hex to rgba conversion if needed, but assuming rgba for now as per default
+                    strokeColor = color + "1a"; // fixed low opacity hex
+                }
+
+                ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 3;
 
                 for (let x = 0; x < canvas.width; x += 2) {
@@ -66,8 +82,10 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
                 ctx.stroke();
             }
 
-            // Floating particles appearing after 10s
-            if (extraProgress > 0) {
+            // Default mode extras (Particles & Pulses)
+            if (mode === "default" && extraProgress > 0) {
+                const particleColor = color.startsWith("rgba") ? color.replace(/[\d\.]+\)$/, "") : "rgba(59, 130, 246, ";
+                
                 for (let i = 0; i < 50; i++) {
                     const angle = (i / 50) * Math.PI * 2 + time;
                     const radius = 100 + Math.sin(time * 2 + i) * 50;
@@ -76,7 +94,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
 
                     ctx.beginPath();
                     ctx.arc(x, y, 2, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(59, 130, 246, ${(0.6 + Math.sin(time + i) * 0.4) * extraProgress})`;
+                    ctx.fillStyle = `${particleColor}${(0.6 + Math.sin(time + i) * 0.4) * extraProgress})`;
                     ctx.fill();
                 }
 
@@ -89,7 +107,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
 
                     ctx.beginPath();
                     ctx.arc(x, y, size, 0, Math.PI * 2);
-                    ctx.strokeStyle = `rgba(59, 130, 246, ${pulse * 0.1 * extraProgress})`;
+                    ctx.strokeStyle = `${particleColor}${pulse * 0.1 * extraProgress})`;
                     ctx.lineWidth = 2;
                     ctx.stroke();
                 }
@@ -107,7 +125,7 @@ export function AnimatedCanvas({ className = "" }: AnimatedCanvasProps) {
             cancelAnimationFrame(animationId);
             window.removeEventListener("resize", resizeCanvas);
         };
-    }, []);
+    }, [mode, color]);
 
     return <canvas ref={canvasRef} className={className} />;
 }

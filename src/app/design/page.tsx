@@ -446,23 +446,32 @@ function SamuraiPreview({ roles }: { roles: typeof ROLES_CONFIG }) {
     );
 }
 
+import { AnimatedCanvas } from "../../landing/animated-canvas";
+
 // --- Ad Campaign Component ---
 
-function AdCampaign() {
+export function AdCampaign() {
     return (
-        <div className="w-full max-w-7xl px-8 mt-60 mb-80 flex flex-col items-center">
-            <div className="relative flex flex-col items-end">
-                {/* Main Branding with Dot as Full Stop */}
-                <h1 className="text-[12vw] md:text-[14rem] font-serif font-black tracking-tight text-[#1a202c] leading-[0.8] flex items-end">
-                    Adrenalink
-                    <div className="w-[2vw] h-[2vw] md:w-8 md:h-8 rounded-full bg-blue-500 ml-1 translate-y-[-1vw] md:translate-y-[-1rem]" />
-                </h1>
+        <div className="w-full relative overflow-hidden bg-white py-60">
+            {/* Background Animation */}
+            <div className="absolute inset-0 z-0 opacity-30">
+                <AnimatedCanvas mode="campaign" className="w-full h-full" />
+            </div>
 
-                {/* Tech Subtitle - Uppercase */}
-                <div className="flex items-center -mt-[2vw] md:-mt-8 mr-[2vw] md:mr-8">
-                    <span className="text-[6vw] md:text-[7rem] font-serif font-black tracking-tighter text-[#1a202c] uppercase">
-                        tech
-                    </span>
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-8 flex flex-col items-center">
+                <div className="relative flex flex-col items-end">
+                    {/* Main Branding with Dot as Full Stop */}
+                    <h1 className="text-[12vw] md:text-[14rem] font-serif font-black tracking-tight text-[#1a202c] leading-[0.8] flex items-end">
+                        Adrenalink
+                        <div className="w-[2vw] h-[2vw] md:w-8 md:h-8 rounded-full bg-blue-500 ml-1 translate-y-[-1vw] md:translate-y-[-1rem]" />
+                    </h1>
+
+                    {/* Tech Subtitle - Uppercase */}
+                    <div className="flex items-center -mt-[2vw] md:-mt-8 mr-[2vw] md:mr-8">
+                        <span className="text-[6vw] md:text-[7rem] font-serif font-black tracking-tighter text-[#1a202c] uppercase">
+                            tech
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
