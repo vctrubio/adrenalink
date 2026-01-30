@@ -12,6 +12,42 @@ import KiteIcon from "@/public/appSvgs/Equipments/KiteIcon";
 import WingIcon from "@/public/appSvgs/Equipments/WingIcon";
 import WindsurfIcon from "@/public/appSvgs/Equipments/WindsurfIcon";
 
+// --- Nav Stepper Component ---
+
+function NavStepper() {
+    const sections = [
+        { id: "schools", label: "Schools" },
+        { id: "packages", label: "Packages" },
+        { id: "equipments", label: "Equipments" },
+        { id: "students", label: "Students" },
+        { id: "teachers", label: "Teachers" },
+    ];
+
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
+    return (
+        <div className="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4">
+            {sections.map((section) => (
+                <button
+                    key={section.id}
+                    onClick={() => scrollToSection(section.id)}
+                    className="group flex items-center justify-end gap-3"
+                >
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">
+                        {section.label}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-slate-800 group-hover:scale-125 transition-all duration-300" />
+                </button>
+            ))}
+        </div>
+    );
+}
+
 // --- Data Table Component ---
 
 function DataTable({ headers, rows }: { headers: (string | React.ReactNode)[]; rows: (string | number | React.ReactNode)[][] }) {
@@ -59,7 +95,7 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
                 </thead>
                 <tbody>
                     {data.map((row, i) => (
-                        <tr key={i} className="border-b border-slate-100 last:border-b-0 hover:bg-white/80 transition-colors">
+                        <tr key={i} className="border-b border-slate-100 last:border-b-0">
                             <td className="px-3 py-3 text-center font-black text-secondary uppercase">{row.col}</td>
                             <td className="px-3 py-3 text-center text-slate-500 font-bold italic uppercase">{row.type}</td>
                             <td className="px-3 py-3 text-center text-slate-500 font-bold">{row.desc}</td>
@@ -73,24 +109,24 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
 }
 
 function SchoolSection() {
-    const headers = ["Name", "Currency", "Country", "Website", "Contact", "Instagram"];
+    const headers = ["Name", "Currency", "Country", "Website", "Phone", "Instagram"];
     const rows = [
-        ["Feelviana", "EUR", "Portugal", "feelviana.com", "+351 258 000 000", <span key="1"><span className="text-secondary">@</span>feelviana</span>],
-        ["Tarifa Kite", "EUR", "Spain", "tarifakite.es", "+34 611 111 111", <span key="2"><span className="text-secondary">@</span>tarifakite</span>],
-        ["Windy City", "ZAR", "South Africa", "windycity.sa", "+27 21 000 0000", <span key="3"><span className="text-secondary">@</span>windy_city</span>],
+        ["Feelviana", "EUR", "Portugal", "feelviana.com", "+351258000000", <span key="1"><span className="text-secondary">@</span>feelviana</span>],
+        ["Tarifa Kite", "EUR", "Spain", "tarifakite.es", "+34611111111", <span key="2"><span className="text-secondary">@</span>tarifakite</span>],
+        ["Windy City", "ZAR", "South Africa", "windycity.sa", "+27210000000", <span key="3"><span className="text-secondary">@</span>windy_city</span>],
     ];
     
     const indexData = [
         { col: "Name", type: "String", desc: "Legal entity name", allowed: "Max 255 chars" },
         { col: "Currency", type: "Enum", desc: "Operational currency", allowed: "USD, EUR, CHF" },
-        { col: "Country", type: "String", desc: "Physical location", allowed: "ISO 3166 Country Name" },
+        { col: "Country", type: "String", desc: "Physical location", allowed: "Full Country Name" },
         { col: "Website", type: "String", desc: "Online presence", allowed: "URL format (e.g. school.com)" },
-        { col: "Contact", type: "String", desc: "Phone number", allowed: "+[Country Code] [Number]" },
+        { col: "Phone", type: "String", desc: "Contact number", allowed: "+[CountryCode][Number] (No spaces)" },
         { col: "Instagram", type: "String", desc: "Social handle", allowed: "@username" },
     ];
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200">
+        <section id="schools" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
             <div className="max-w-5xl w-full flex flex-col items-center text-center gap-8">
                 <div className="p-8 rounded-full bg-indigo-100 text-indigo-600">
                     <AdminIcon size={80} className="w-20 h-20" />
@@ -98,7 +134,7 @@ function SchoolSection() {
                 <div>
                     <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Schools</h2>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Manage your institution with precision. Example data structure for school registry.
+                        Manage your administration with precision. Example data structure for school registry.
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
@@ -136,7 +172,7 @@ function PackagesSection() {
     ];
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200">
+        <section id="packages" className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200 scroll-mt-24">
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className="p-8 rounded-full bg-orange-100 text-orange-600">
                     <PackageIcon size={80} className="w-20 h-20" />
@@ -165,7 +201,7 @@ function EquipmentsSection() {
         ],
         [
             <div key="k2" className="flex items-center gap-2"><KiteIcon size={20} className="text-purple-600" /> Kite</div>, 
-            "Reach", 12, "Green", "NTH-RCH-12"
+            "North", 12, "Green", "NTH-RCH-12"
         ],
         // Wings
         [
@@ -192,7 +228,7 @@ function EquipmentsSection() {
     ];
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200">
+        <section id="equipments" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className="p-8 rounded-full bg-purple-100 text-purple-600">
                     <EquipmentIcon size={80} className="w-20 h-20" />
@@ -211,30 +247,32 @@ function EquipmentsSection() {
 }
 
 function StudentSection() {
-    const headers = ["First Name", "Last Name", "Email", "Country", "Phone"];
+    const headers = ["First Name", "Last Name", "Passport", "Country", "Phone", "Languages", "Email"];
     const rows = [
-        ["John", "Doe", "john.doe@example.com", "Germany", "+49 123 456 7890"],
-        ["Alice", "Smith", "alice.smith@example.com", "UK", "+44 20 1234 5678"],
+        ["John", "Doe", "A12345678", "Germany", "+49 123 456 7890", "DE, EN", "john.doe@example.com"],
+        ["Alice", "Smith", "987654321", "UK", "+44 20 1234 5678", "EN, FR", "alice.smith@example.com"],
     ];
     
     const indexData = [
         { col: "First Name", type: "String", desc: "Student given name", allowed: "Max 255 chars" },
         { col: "Last Name", type: "String", desc: "Student family name", allowed: "Max 255 chars" },
-        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
+        { col: "Passport", type: "String", desc: "ID / Passport Number", allowed: "Alphanumeric" },
         { col: "Country", type: "String", desc: "Nationality/Residence", allowed: "ISO 3166 Country Name" },
         { col: "Phone", type: "String", desc: "Contact number", allowed: "+[Country Code] [Number]" },
+        { col: "Languages", type: "Array", desc: "Spoken languages", allowed: "Comma separated (e.g. EN, DE)" },
+        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
     ];
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200">
-            <div className="max-w-5xl w-full flex flex-col items-center text-center gap-8">
+        <section id="students" className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200 scroll-mt-24">
+            <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className="p-8 rounded-full bg-yellow-100 text-yellow-600">
                     <HelmetIcon size={80} className="w-20 h-20" />
                 </div>
                 <div>
                     <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Students</h2>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Client database management. Links to global user accounts via email.
+                        Client database management. Full profile for diverse international operations.
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
@@ -245,30 +283,33 @@ function StudentSection() {
 }
 
 function TeacherSection() {
-    const headers = ["First Name", "Last Name", "Username", "Email", "Country"];
+    const headers = ["Username", "First Name", "Last Name", "Passport", "Country", "Phone", "Languages", "Email"];
     const rows = [
-        ["Max", "Mustermann", "max_teach", "max@instructor.com", "Austria"],
-        ["Sarah", "Connor", "sarah_c", "sarah@instructor.com", "USA"],
+        ["max_teach", "Max", "Mustermann", "AT9876543", "Austria", "+43 1 2345678", "DE, EN", "max@instructor.com"],
+        ["sarah_c", "Sarah", "Connor", "US1234567", "USA", "+1 555 0199", "EN", "sarah@instructor.com"],
     ];
     
     const indexData = [
+        { col: "Username", type: "String", desc: "System handle", allowed: "Unique identifier" },
         { col: "First Name", type: "String", desc: "Teacher given name", allowed: "Max 255 chars" },
         { col: "Last Name", type: "String", desc: "Teacher family name", allowed: "Max 255 chars" },
-        { col: "Username", type: "String", desc: "System handle", allowed: "Unique identifier" },
-        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
+        { col: "Passport", type: "String", desc: "ID / Passport Number", allowed: "Alphanumeric" },
         { col: "Country", type: "String", desc: "Nationality/Residence", allowed: "ISO 3166 Country Name" },
+        { col: "Phone", type: "String", desc: "Contact number", allowed: "+[Country Code] [Number]" },
+        { col: "Languages", type: "Array", desc: "Spoken languages", allowed: "Comma separated (e.g. EN, DE)" },
+        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
     ];
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200">
-            <div className="max-w-5xl w-full flex flex-col items-center text-center gap-8">
+        <section id="teachers" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
+            <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className="p-8 rounded-full bg-green-100 text-green-600">
                     <HeadsetIcon size={80} className="w-20 h-20" />
                 </div>
                 <div>
                     <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Teachers</h2>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Instructor profiles and credentials. Links to global user accounts.
+                        Instructor profiles and credentials. Comprehensive data for payroll and scheduling.
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
@@ -281,6 +322,7 @@ function TeacherSection() {
 // --- Main Page Component ---
 
 export default function CsvPage() {
+    const containerRef = useRef<HTMLDivElement>(null);
     const { scrollY } = useScroll();
 
     // Animation thresholds (in pixels)
@@ -294,23 +336,10 @@ export default function CsvPage() {
     const opacityAdmin = useTransform(scrollY, [0, SCROLL_THRESHOLD], [0, 1]);
     const yAdmin = useTransform(scrollY, [0, SCROLL_THRESHOLD], [50, 0]);
 
-    const SETTING_UP = (
-        <>
-            <SchoolSection />
-            <PackagesSection />
-            <EquipmentsSection />
-        </>
-    );
-
-    const USERS = (
-        <>
-            <StudentSection />
-            <TeacherSection />
-        </>
-    );
-
     return (
         <main className="bg-background relative">
+            <NavStepper />
+            
             {/* Sticky Header */}
             <div className="fixed top-0 left-0 right-0 h-24 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md border-b border-border/50">
                 <div className="relative w-full max-w-7xl px-8 h-full flex items-center gap-4">
@@ -350,20 +379,13 @@ export default function CsvPage() {
             {/* Spacer for fixed header */}
             <div className="h-24" />
 
-            {/* Setting Up Group */}
+            {/* Content Sections */}
             <div className="flex flex-col">
-                <div className="bg-slate-100 py-12 text-center border-b border-slate-200">
-                    <h3 className="text-xl font-mono font-bold tracking-[0.5em] text-slate-400 uppercase">Step 1: Setting Up</h3>
-                </div>
-                {SETTING_UP}
-            </div>
-
-            {/* Users Group */}
-            <div className="flex flex-col">
-                <div className="bg-slate-100 py-12 text-center border-y border-slate-200">
-                    <h3 className="text-xl font-mono font-bold tracking-[0.5em] text-slate-400 uppercase">Step 2: Users</h3>
-                </div>
-                {USERS}
+                <SchoolSection />
+                <PackagesSection />
+                <EquipmentsSection />
+                <StudentSection />
+                <TeacherSection />
             </div>
         </main>
     );
