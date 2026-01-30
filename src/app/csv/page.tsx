@@ -105,6 +105,32 @@ function DataTable({ headers, rows }: { headers: (string | React.ReactNode)[]; r
     );
 }
 
+// --- Indice Table Component ---
+
+function DataTypeLegend() {
+    return (
+        <div className="w-full mt-8 px-8 py-6 bg-slate-100 rounded-[2rem] border border-slate-200 text-center flex flex-col gap-6">
+            <h3 className="text-xl font-black uppercase tracking-[0.5em] text-slate-400 opacity-50">Data Types</h3>
+            <div className="flex flex-col md:flex-row items-center justify-around gap-8 md:gap-0">
+                <div className="flex-1 space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">String</span>
+                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Alphanumeric text, names, and letters.</p>
+                </div>
+                <div className="hidden md:block w-px h-12 bg-slate-200" />
+                <div className="flex-1 space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">Integer / Float</span>
+                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Numbers (e.g., 4) or Decimals (e.g., 4.5).</p>
+                </div>
+                <div className="hidden md:block w-px h-12 bg-slate-200" />
+                <div className="flex-1 space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">Enum</span>
+                    <p className="text-sm text-slate-600 font-medium font-mono px-4">Predefined fixed values from a list.</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function IndiceTable({ data }: { data: { col: string; type: string; desc: string; allowed: string }[] }) {
     return (
         <div className="w-full mt-12 border-t border-slate-200 bg-transparent overflow-hidden">
@@ -151,6 +177,7 @@ function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: t
                 </div>
                 <DataTable headers={data.headers} rows={data.rows} />
                 <IndiceTable data={data.indexData} />
+                {id === "schools" && <DataTypeLegend />}
             </div>
         </section>
     );
