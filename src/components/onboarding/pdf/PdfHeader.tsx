@@ -6,7 +6,15 @@ import { Printer, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PDF_DESCRIPTION_TEXT_CLASS, PDF_DESCRIPTION_LABEL_WIDTH } from "@/src/app/onboarding/pdf/page";
 
-export function AdrenalinkBranding({ logoSize = "w-16 h-16", gap = "gap-2" }: { logoSize?: string; gap?: string }) {
+export function AdrenalinkBranding({ 
+  logoSize = "w-16 h-16", 
+  gap = "gap-2",
+  subtitle = "Connecting Students"
+}: { 
+  logoSize?: string; 
+  gap?: string;
+  subtitle?: string;
+}) {
   return (
     <div className={`flex items-center ${gap}`}>
       <div className={`relative ${logoSize} transition-transform duration-300`}>
@@ -23,14 +31,14 @@ export function AdrenalinkBranding({ logoSize = "w-16 h-16", gap = "gap-2" }: { 
           Adrenalink
         </h1>
         <span className="text-sm text-muted-foreground font-mono tracking-wide uppercase">
-          Connecting Students
+          {subtitle}
         </span>
       </div>
     </div>
   );
 }
 
-export function PdfHeader() {
+export function PdfHeader({ subtitle = "Connecting Students" }: { subtitle?: string }) {
   const handlePrint = () => {
     window.print();
   };
@@ -40,7 +48,7 @@ export function PdfHeader() {
       try {
         await navigator.share({
           title: "Adrenalink Onboarding",
-          text: "Adrenalink: Administration Guide for Schools looking to get started",
+          text: `Adrenalink: ${subtitle} for Schools looking to get started`,
           url: window.location.href,
         });
       } catch (err) {
@@ -56,7 +64,7 @@ export function PdfHeader() {
   return (
     <div className="flex items-center justify-between my-8 w-full px-[10mm]">
       <Link href="https://adrenalink.tech/onboarding" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-        <AdrenalinkBranding />
+        <AdrenalinkBranding subtitle={subtitle} />
       </Link>
 
       {/* Right side: Actions */}
@@ -114,11 +122,11 @@ export function PdfDescription() {
   );
 }
 
-export function FindOutMoreFooter() {
+export function FindOutMoreFooter({ path = "/onboarding" }: { path?: string }) {
   return (
     <div className="py-6 px-[10mm] bg-muted/60">
       <p className="text-base text-muted-foreground text-center">
-        Visit <Link href="https://adrenalink.tech/onboarding" className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech/onboarding</Link> to find out more, or <Link href="https://adrenalink.tech/welcome" className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech/welcome</Link> to register your school.
+        Visit <Link href={`https://adrenalink.tech${path}`} className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech{path}</Link> to find out more, or <Link href="https://adrenalink.tech/welcome" className="text-foreground font-medium hover:underline" target="_blank" rel="noopener noreferrer">adrenalink.tech/welcome</Link> to register your school.
       </p>
     </div>
   );

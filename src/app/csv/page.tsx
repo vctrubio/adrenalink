@@ -3,48 +3,69 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import AdminIcon from "@/public/appSvgs/AdminIcon";
-import PackageIcon from "@/public/appSvgs/PackageIcon";
-import EquipmentIcon from "@/public/appSvgs/EquipmentIcon";
-import HelmetIcon from "@/public/appSvgs/HelmetIcon";
-import HeadsetIcon from "@/public/appSvgs/HeadsetIcon";
-import KiteIcon from "@/public/appSvgs/Equipments/KiteIcon";
-import WingIcon from "@/public/appSvgs/Equipments/WingIcon";
-import WindsurfIcon from "@/public/appSvgs/Equipments/WindsurfIcon";
+import { CSV_DATA } from "./data";
 
-// --- Nav Stepper Component ---
+import { Questionnaire } from "./Questionnaire";
 
-function NavStepper() {
-    const sections = [
-        { id: "schools", label: "Schools" },
-        { id: "packages", label: "Packages" },
-        { id: "equipments", label: "Equipments" },
-        { id: "students", label: "Students" },
-        { id: "teachers", label: "Teachers" },
-    ];
+import { useState, useEffect } from "react";
 
-    const scrollToSection = (id: string) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: "smooth" });
-        }
+import Link from "next/link";
+import { FileText } from "lucide-react";
+
+// --- Header Nav Component ---
+
+function HeaderNav() {
+    const [activeGroup, setActiveSection] = useState<string>("setting-up");
+
+    useEffect(() => {
+        const handleScroll = () => {
+            // Group mappings
+            const groups = {
+                "setting-up": ["schools", "packages", "equipments"],
+                users: ["students", "teachers"],
+                questionnaire: ["questionnaire"],
+            };
+
+            for (const [group, ids] of Object.entries(groups)) {
+                for (const id of ids) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const rect = el.getBoundingClientRect();
+                        // Check if section is roughly in the middle of viewport or top part
+                        if (rect.top <= 300 && rect.bottom >= 300) {
+                            setActiveSection(group);
+                            return;
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const scrollToId = (id: string) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const getLinkClass = (group: string) =>
+        `text-sm font-bold uppercase tracking-widest transition-colors ${activeGroup === group ? "text-foreground underline decoration-2 underline-offset-4" : "text-slate-400 hover:text-slate-600"}`;
+
     return (
-        <div className="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4">
-            {sections.map((section) => (
-                <button
-                    key={section.id}
-                    onClick={() => scrollToSection(section.id)}
-                    className="group flex items-center justify-end gap-3"
-                >
-                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">
-                        {section.label}
-                    </span>
-                    <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-slate-800 group-hover:scale-125 transition-all duration-300" />
-                </button>
-            ))}
-        </div>
+        <nav className="flex items-center gap-8 ml-8">
+            <button onClick={() => scrollToId("schools")} className={getLinkClass("setting-up")}>
+                Setting Up
+            </button>
+            <div className="w-1 h-1 rounded-full bg-slate-200" />
+            <button onClick={() => scrollToId("students")} className={getLinkClass("users")}>
+                Users
+            </button>
+            <div className="w-1 h-1 rounded-full bg-slate-200" />
+            <button onClick={() => scrollToId("questionnaire")} className={getLinkClass("questionnaire")}>
+                Questionnaire
+            </button>
+        </nav>
     );
 }
 
@@ -66,7 +87,10 @@ function DataTable({ headers, rows }: { headers: (string | React.ReactNode)[]; r
                     </thead>
                     <tbody>
                         {rows.map((row, rowIndex) => (
-                            <tr key={rowIndex} className="bg-white border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
+                            <tr
+                                key={rowIndex}
+                                className="bg-white border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors"
+                            >
                                 {row.map((cell, cellIndex) => (
                                     <td key={cellIndex} className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
                                         {cell}
@@ -108,212 +132,25 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
     );
 }
 
-function SchoolSection() {
-    const headers = ["Name", "Currency", "Country", "Website", "Phone", "Instagram"];
-    const rows = [
-        ["Feelviana", "EUR", "Portugal", "feelviana.com", "+351258000000", <span key="1"><span className="text-secondary">@</span>feelviana</span>],
-        ["Tarifa Kite", "EUR", "Spain", "tarifakite.es", "+34611111111", <span key="2"><span className="text-secondary">@</span>tarifakite</span>],
-        ["Windy City", "ZAR", "South Africa", "windycity.sa", "+27210000000", <span key="3"><span className="text-secondary">@</span>windy_city</span>],
-    ];
-    
-    const indexData = [
-        { col: "Name", type: "String", desc: "Legal entity name", allowed: "Max 255 chars" },
-        { col: "Currency", type: "Enum", desc: "Operational currency", allowed: "USD, EUR, CHF" },
-        { col: "Country", type: "String", desc: "Physical location", allowed: "Full Country Name" },
-        { col: "Website", type: "String", desc: "Online presence", allowed: "URL format (e.g. school.com)" },
-        { col: "Phone", type: "String", desc: "Contact number", allowed: "+[CountryCode][Number] (No spaces)" },
-        { col: "Instagram", type: "String", desc: "Social handle", allowed: "@username" },
-    ];
+// --- Generic Section Component ---
 
+function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: typeof CSV_DATA.school; bgColor?: string }) {
+    const Icon = data.icon;
     return (
-        <section id="schools" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
-            <div className="max-w-5xl w-full flex flex-col items-center text-center gap-8">
-                <div className="p-8 rounded-full bg-indigo-100 text-indigo-600">
-                    <AdminIcon size={80} className="w-20 h-20" />
-                </div>
-                <div>
-                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Schools</h2>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Manage your administration with precision. Example data structure for school registry.
-                    </p>
-                </div>
-                <DataTable headers={headers} rows={rows} />
-                <IndiceTable data={indexData} />
-            </div>
-        </section>
-    );
-}
-
-function PackagesSection() {
-    const headers = [
-        "Type", 
-        "Name", 
-        "Equipment", 
-        "Cap. Equip", 
-        "Cap. Student", 
-        <span key="dur">Duration <span className="font-normal text-slate-400 normal-case">(Minutes)</span></span>, 
-        <span key="price">Price <span className="font-normal text-slate-400 normal-case">(Currency)</span></span>
-    ];
-    
-    const rows = [
-        ["Lessons", "Kite Beginner", "Kite", 1, 2, 120, 150],
-        ["Lessons", "Wing Intro", "Wing", 1, 1, 60, 90],
-        ["Lessons", "Pro Session", "Kite", 2, 4, 180, 200],
-    ];
-
-    const indexData = [
-        { col: "Type", type: "Enum", desc: "Service classification", allowed: "lessons, rental" },
-        { col: "Name", type: "String", desc: "Public marketing title", allowed: "Max 255 chars" },
-        { col: "Equipment", type: "Enum", desc: "Category of gear provided", allowed: "kite, wing, windsurf" },
-        { col: "Cap. Equip", type: "Integer", desc: "Required inventory units", allowed: ">= 1" },
-        { col: "Cap. Student", type: "Integer", desc: "Max students per session", allowed: ">= 1" },
-        { col: "Duration", type: "Integer", desc: "Session length", allowed: "Minutes (e.g. 60, 120)" },
-        { col: "Price", type: "Integer", desc: "Cost per student", allowed: "Numeric value (no symbol)" },
-    ];
-
-    return (
-        <section id="packages" className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200 scroll-mt-24">
+        <section
+            id={id}
+            className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 ${bgColor}`}
+        >
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
-                <div className="p-8 rounded-full bg-orange-100 text-orange-600">
-                    <PackageIcon size={80} className="w-20 h-20" />
+                <div className={`p-8 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
+                    <Icon size={80} className="w-20 h-20" />
                 </div>
                 <div>
-                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Packages</h2>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Flexible pricing and lesson bundles. Structure for service offerings.
-                    </p>
+                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">{data.title}</h2>
+                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">{data.description}</p>
                 </div>
-                <DataTable headers={headers} rows={rows} />
-                <IndiceTable data={indexData} />
-            </div>
-        </section>
-    );
-}
-
-function EquipmentsSection() {
-    const headers = ["Type", "Brand", "Model", "Size", "Color", "SKU"];
-    
-    const rows = [
-        // Kites
-        [
-            <div key="k1" className="flex items-center gap-2"><KiteIcon size={20} className="text-purple-600" /> Kite</div>, 
-            "North", "Orbit", 9, "Red", "NTH-ORB-09"
-        ],
-        [
-            <div key="k2" className="flex items-center gap-2"><KiteIcon size={20} className="text-purple-600" /> Kite</div>, 
-            "North", 12, "Green", "NTH-RCH-12"
-        ],
-        // Wings
-        [
-            <div key="w1" className="flex items-center gap-2"><WingIcon size={20} className="text-purple-600" /> Wing</div>, 
-            "North", "Nova", 4.7, "Blue", "NTH-NOV-47"
-        ],
-        [
-            <div key="w2" className="flex items-center gap-2"><WingIcon size={20} className="text-purple-600" /> Wing</div>, 
-            "North", "Mode", 5.3, "Black", "NTH-MOD-53"
-        ],
-        [
-            <div key="ws1" className="flex items-center gap-2"><WindsurfIcon size={20} className="text-purple-600" /> Windsurf</div>, 
-            "North", "Wave", 3.7, "Red", "NTH-WAV-37"
-        ],
-    ];
-
-    const indexData = [
-        { col: "Type", type: "Enum", desc: "Equipment Category", allowed: "kite, wing, windsurf" },
-        { col: "Brand", type: "String", desc: "Manufacturer", allowed: "Max 100 chars" },
-        { col: "Model", type: "String", desc: "Product line", allowed: "Max 255 chars" },
-        { col: "Size", type: "Float", desc: "Dimensions", allowed: "Meters (Kites/Wings) or CM (Boards)" },
-        { col: "Color", type: "String", desc: "Visual identifier", allowed: "Max 100 chars" },
-        { col: "SKU", type: "String", desc: "Stock Keeping Unit", allowed: "Unique Identifier" },
-    ];
-
-    return (
-        <section id="equipments" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
-            <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
-                <div className="p-8 rounded-full bg-purple-100 text-purple-600">
-                    <EquipmentIcon size={80} className="w-20 h-20" />
-                </div>
-                <div>
-                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Equipments</h2>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Track inventory and assets. Standardized equipment data format.
-                    </p>
-                </div>
-                <DataTable headers={headers} rows={rows} />
-                <IndiceTable data={indexData} />
-            </div>
-        </section>
-    );
-}
-
-function StudentSection() {
-    const headers = ["First Name", "Last Name", "Passport", "Country", "Phone", "Languages", "Email"];
-    const rows = [
-        ["John", "Doe", "A12345678", "Germany", "+49 123 456 7890", "DE, EN", "john.doe@example.com"],
-        ["Alice", "Smith", "987654321", "UK", "+44 20 1234 5678", "EN, FR", "alice.smith@example.com"],
-    ];
-    
-    const indexData = [
-        { col: "First Name", type: "String", desc: "Student given name", allowed: "Max 255 chars" },
-        { col: "Last Name", type: "String", desc: "Student family name", allowed: "Max 255 chars" },
-        { col: "Passport", type: "String", desc: "ID / Passport Number", allowed: "Alphanumeric" },
-        { col: "Country", type: "String", desc: "Nationality/Residence", allowed: "ISO 3166 Country Name" },
-        { col: "Phone", type: "String", desc: "Contact number", allowed: "+[Country Code] [Number]" },
-        { col: "Languages", type: "Array", desc: "Spoken languages", allowed: "Comma separated (e.g. EN, DE)" },
-        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
-    ];
-
-    return (
-        <section id="students" className="min-h-screen flex flex-col items-center justify-center p-8 bg-white border-t border-slate-200 scroll-mt-24">
-            <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
-                <div className="p-8 rounded-full bg-yellow-100 text-yellow-600">
-                    <HelmetIcon size={80} className="w-20 h-20" />
-                </div>
-                <div>
-                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Students</h2>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Client database management. Full profile for diverse international operations.
-                    </p>
-                </div>
-                <DataTable headers={headers} rows={rows} />
-                <IndiceTable data={indexData} />
-            </div>
-        </section>
-    );
-}
-
-function TeacherSection() {
-    const headers = ["Username", "First Name", "Last Name", "Passport", "Country", "Phone", "Languages", "Email"];
-    const rows = [
-        ["max_teach", "Max", "Mustermann", "AT9876543", "Austria", "+43 1 2345678", "DE, EN", "max@instructor.com"],
-        ["sarah_c", "Sarah", "Connor", "US1234567", "USA", "+1 555 0199", "EN", "sarah@instructor.com"],
-    ];
-    
-    const indexData = [
-        { col: "Username", type: "String", desc: "System handle", allowed: "Unique identifier" },
-        { col: "First Name", type: "String", desc: "Teacher given name", allowed: "Max 255 chars" },
-        { col: "Last Name", type: "String", desc: "Teacher family name", allowed: "Max 255 chars" },
-        { col: "Passport", type: "String", desc: "ID / Passport Number", allowed: "Alphanumeric" },
-        { col: "Country", type: "String", desc: "Nationality/Residence", allowed: "ISO 3166 Country Name" },
-        { col: "Phone", type: "String", desc: "Contact number", allowed: "+[Country Code] [Number]" },
-        { col: "Languages", type: "Array", desc: "Spoken languages", allowed: "Comma separated (e.g. EN, DE)" },
-        { col: "Email", type: "String", desc: "Links to User Account", allowed: "Valid Email Address" },
-    ];
-
-    return (
-        <section id="teachers" className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 border-t border-slate-200 scroll-mt-24">
-            <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
-                <div className="p-8 rounded-full bg-green-100 text-green-600">
-                    <HeadsetIcon size={80} className="w-20 h-20" />
-                </div>
-                <div>
-                    <h2 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Teachers</h2>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                        Instructor profiles and credentials. Comprehensive data for payroll and scheduling.
-                    </p>
-                </div>
-                <DataTable headers={headers} rows={rows} />
-                <IndiceTable data={indexData} />
+                <DataTable headers={data.headers} rows={data.rows} />
+                <IndiceTable data={data.indexData} />
             </div>
         </section>
     );
@@ -322,57 +159,24 @@ function TeacherSection() {
 // --- Main Page Component ---
 
 export default function CsvPage() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollY } = useScroll();
-
-    // Animation thresholds (in pixels)
-    const SCROLL_THRESHOLD = 150;
-
-    // Logo & Adrenalink (Exit)
-    const opacityLogo = useTransform(scrollY, [0, SCROLL_THRESHOLD], [1, 0]);
-    const yLogo = useTransform(scrollY, [0, SCROLL_THRESHOLD], [0, -50]);
-
-    // Administration (Enter)
-    const opacityAdmin = useTransform(scrollY, [0, SCROLL_THRESHOLD], [0, 1]);
-    const yAdmin = useTransform(scrollY, [0, SCROLL_THRESHOLD], [50, 0]);
-
     return (
         <main className="bg-background relative">
-            <NavStepper />
-            
             {/* Sticky Header */}
             <div className="fixed top-0 left-0 right-0 h-24 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md border-b border-border/50">
-                <div className="relative w-full max-w-7xl px-8 h-full flex items-center gap-4">
-                    
-                    {/* Stationary Logo */}
-                    <Image
-                        src="/ADR.webp"
-                        alt="Adrenalink Logo"
-                        width={48}
-                        height={48}
-                        className="object-contain"
-                        priority
-                    />
-
-                    {/* Text Container for Transition */}
-                    <div className="relative h-10 w-full flex items-center">
-                        {/* Text 1: Adrenalink (Exit) */}
-                        <motion.span 
-                            style={{ opacity: opacityLogo, y: yLogo }}
-                            className="absolute left-0 text-3xl font-black tracking-tighter text-foreground origin-left"
-                        >
-                            Adrenalink
-                        </motion.span>
-
-                        {/* Text 2: Administration (Enter) */}
-                        <motion.span 
-                            style={{ opacity: opacityAdmin, y: yAdmin }}
-                            className="absolute left-0 text-3xl font-black tracking-tighter text-secondary origin-left"
-                        >
-                            Administration
-                        </motion.span>
+                <div className="relative w-full max-w-7xl px-8 h-full flex items-center justify-between">
+                    {/* Left: Logo & Nav */}
+                    <div className="flex items-center gap-4">
+                        <Image src="/ADR.webp" alt="Adrenalink Logo" width={48} height={48} className="object-contain" priority />
+                        <HeaderNav />
                     </div>
 
+                    {/* Right: Title (Static) */}
+                    <Link href="/csv/pdf" className="flex items-center gap-2 group transition-opacity hover:opacity-80">
+                        <FileText size={18} className="text-secondary opacity-40 group-hover:opacity-100 transition-opacity" />
+                        <span className="text-xl font-black tracking-tighter text-foreground/20 group-hover:text-foreground/40 transition-colors hidden md:block">
+                            PDF
+                        </span>
+                    </Link>
                 </div>
             </div>
 
@@ -381,11 +185,12 @@ export default function CsvPage() {
 
             {/* Content Sections */}
             <div className="flex flex-col">
-                <SchoolSection />
-                <PackagesSection />
-                <EquipmentsSection />
-                <StudentSection />
-                <TeacherSection />
+                <CsvSection id="schools" data={CSV_DATA.school} bgColor="bg-slate-50" />
+                <CsvSection id="packages" data={CSV_DATA.packages} bgColor="bg-white" />
+                <CsvSection id="equipments" data={CSV_DATA.equipments} bgColor="bg-slate-50" />
+                <CsvSection id="students" data={CSV_DATA.students} bgColor="bg-white" />
+                <CsvSection id="teachers" data={CSV_DATA.teachers} bgColor="bg-slate-50" />
+                <Questionnaire />
             </div>
         </main>
     );
