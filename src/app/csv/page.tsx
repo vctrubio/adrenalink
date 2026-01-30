@@ -234,10 +234,7 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
 function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: typeof CSV_DATA.school; bgColor?: string }) {
     const Icon = data.icon;
     return (
-        <section
-            id={id}
-            className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 ${bgColor}`}
-        >
+        <section id={id} className={`min-h-screen flex flex-col items-center justify-center p-8 scroll-mt-24 ${bgColor}`}>
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className={`p-8 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
                     <Icon size={80} className="w-20 h-20" />
