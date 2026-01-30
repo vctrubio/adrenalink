@@ -11,7 +11,7 @@ import { AdCampaign } from "../design/page";
 import { useState, useEffect } from "react";
 
 import Link from "next/link";
-import { FileText, Calendar, Users, Coins, Activity, Calculator, Send } from "lucide-react";
+import { FileText, Calendar, Users, Coins, Activity, Calculator, Send, Upload, Download } from "lucide-react";
 
 // --- Header Nav Component ---
 
@@ -66,6 +66,10 @@ function HeaderNav() {
             <button onClick={() => scrollToId("bookings")} className={getLinkClass("bookings")}>
                 Bookings
             </button>
+            <div className="w-1 h-1 rounded-full bg-slate-200" />
+            <Link href="/csv/import" className="text-sm font-black uppercase tracking-widest text-secondary hover:underline underline-offset-4 decoration-2">
+                Import Data
+            </Link>
         </nav>
     );
 }
@@ -231,10 +235,34 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
 
 // --- Generic Section Component ---
 
-function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: typeof CSV_DATA.school; bgColor?: string }) {
+function CsvSection({ 
+    id, 
+    data, 
+    bgColor = "bg-slate-50" 
+}: { 
+    id: string; 
+    data: typeof CSV_DATA.school; 
+    bgColor?: string; 
+}) {
     const Icon = data.icon;
     return (
-        <section id={id} className={`min-h-screen flex flex-col items-center justify-center p-8 scroll-mt-24 ${bgColor}`}>
+        <section id={id} className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}>
+            {/* Local Section Actions */}
+            <div className="absolute top-8 right-8 flex items-center gap-3">
+                <Link 
+                    href={`/csv/import?type=${id}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-secondary hover:border-secondary transition-all shadow-sm"
+                >
+                    <Upload size={14} /> Import
+                </Link>
+                <button 
+                    onClick={() => console.log(`Exporting ${id}...`)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm"
+                >
+                    <Download size={14} /> Export
+                </button>
+            </div>
+
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className={`p-8 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
                     <Icon size={80} className="w-20 h-20" />
