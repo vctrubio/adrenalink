@@ -43,12 +43,48 @@ function DataTable({ headers, rows }: { headers: (string | React.ReactNode)[]; r
     );
 }
 
+function IndiceTable({ data }: { data: { col: string; type: string; desc: string; allowed: string }[] }) {
+    return (
+        <div className="w-full mt-12 border-t border-slate-200 bg-transparent overflow-hidden">
+            <table className="w-full border-collapse font-mono text-[10px]">
+                <thead>
+                    <tr className="text-slate-400">
+                        <th className="px-3 py-4 text-center uppercase tracking-widest font-medium w-[15%]">Col. Name</th>
+                        <th className="px-3 py-4 text-center uppercase tracking-widest font-medium w-[10%]">Data Type</th>
+                        <th className="px-3 py-4 text-center uppercase tracking-widest font-medium w-[40%]">Description</th>
+                        <th className="px-3 py-4 text-center uppercase tracking-widest font-medium w-[35%]">Allowed / Format</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((row, i) => (
+                        <tr key={i} className="border-b border-slate-100 last:border-b-0">
+                            <td className="px-3 py-3 text-center font-black text-secondary uppercase">{row.col}</td>
+                            <td className="px-3 py-3 text-center text-slate-500 font-bold italic uppercase">{row.type}</td>
+                            <td className="px-3 py-3 text-center text-slate-500 font-bold">{row.desc}</td>
+                            <td className="px-3 py-3 text-center text-slate-500 font-bold italic break-words">{row.allowed}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
 function SchoolSection() {
-    const headers = ["Name", "Currency", "Country"];
+    const headers = ["Name", "Currency", "Country", "Website", "Contact", "Instagram"];
     const rows = [
-        ["Fellviana", "EUR", "Spain"],
-        ["Tarifa Kite", "EUR", "Spain"],
-        ["Windy City", "EUR", "Portugal"],
+        ["Feelviana", "EUR", "Portugal", "feelviana.com", "+351 258 000 000", <span key="1"><span className="text-secondary">@</span>feelviana</span>],
+        ["Tarifa Kite", "EUR", "Spain", "tarifakite.es", "+34 611 111 111", <span key="2"><span className="text-secondary">@</span>tarifakite</span>],
+        ["Windy City", "ZAR", "South Africa", "windycity.sa", "+27 21 000 0000", <span key="3"><span className="text-secondary">@</span>windy_city</span>],
+    ];
+    
+    const indexData = [
+        { col: "Name", type: "String", desc: "Legal entity name", allowed: "Max 255 chars" },
+        { col: "Currency", type: "Enum", desc: "Operational currency", allowed: "USD, EUR, CHF" },
+        { col: "Country", type: "String", desc: "Physical location", allowed: "ISO 3166 Country Name" },
+        { col: "Website", type: "String", desc: "Online presence", allowed: "URL format (e.g. school.com)" },
+        { col: "Contact", type: "String", desc: "Phone number", allowed: "+[Country Code] [Number]" },
+        { col: "Instagram", type: "String", desc: "Social handle", allowed: "@username" },
     ];
 
     return (
@@ -64,6 +100,7 @@ function SchoolSection() {
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
+                <IndiceTable data={indexData} />
             </div>
         </section>
     );
@@ -81,9 +118,19 @@ function PackagesSection() {
     ];
     
     const rows = [
-        ["Lessons", "Kite Beginner", "Kite + Board", 1, 2, 120, 150],
-        ["Lessons", "Private Advance", "Full Gear", 1, 1, 60, 90],
-        ["Lessons", "Group Lesson", "Kite Only", 2, 4, 180, 200],
+        ["Lessons", "Kite Beginner", "Kite", 1, 2, 120, 150],
+        ["Lessons", "Wing Intro", "Wing", 1, 1, 60, 90],
+        ["Lessons", "Pro Session", "Kite", 2, 4, 180, 200],
+    ];
+
+    const indexData = [
+        { col: "Type", type: "Enum", desc: "Service classification", allowed: "lessons, rental" },
+        { col: "Name", type: "String", desc: "Public marketing title", allowed: "Max 255 chars" },
+        { col: "Equipment", type: "Enum", desc: "Category of gear provided", allowed: "kite, wing, windsurf" },
+        { col: "Cap. Equip", type: "Integer", desc: "Required inventory units", allowed: ">= 1" },
+        { col: "Cap. Student", type: "Integer", desc: "Max students per session", allowed: ">= 1" },
+        { col: "Duration", type: "Integer", desc: "Session length", allowed: "Minutes (e.g. 60, 120)" },
+        { col: "Price", type: "Integer", desc: "Cost per student", allowed: "Numeric value (no symbol)" },
     ];
 
     return (
@@ -99,6 +146,7 @@ function PackagesSection() {
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
+                <IndiceTable data={indexData} />
             </div>
         </section>
     );
@@ -126,11 +174,19 @@ function EquipmentsSection() {
             <div key="w2" className="flex items-center gap-2"><WingIcon size={20} className="text-purple-600" /> Wing</div>, 
             "North", "Mode", 5.3, "Black", "NTH-MOD-53"
         ],
-        // Board
         [
-            <div key="b1" className="flex items-center gap-2"><WindsurfIcon size={20} className="text-purple-600" /> Board</div>, 
-            "North", "Atmos Carbon", 138, "Black", "NTH-ATM-138"
+            <div key="ws1" className="flex items-center gap-2"><WindsurfIcon size={20} className="text-purple-600" /> Windsurf</div>, 
+            "North", "Wave", 3.7, "Red", "NTH-WAV-37"
         ],
+    ];
+
+    const indexData = [
+        { col: "Type", type: "Enum", desc: "Equipment Category", allowed: "kite, wing, windsurf" },
+        { col: "Brand", type: "String", desc: "Manufacturer", allowed: "Max 100 chars" },
+        { col: "Model", type: "String", desc: "Product line", allowed: "Max 255 chars" },
+        { col: "Size", type: "Float", desc: "Dimensions", allowed: "Meters (Kites/Wings) or CM (Boards)" },
+        { col: "Color", type: "String", desc: "Visual identifier", allowed: "Max 100 chars" },
+        { col: "SKU", type: "String", desc: "Stock Keeping Unit", allowed: "Unique Identifier" },
     ];
 
     return (
@@ -146,6 +202,7 @@ function EquipmentsSection() {
                     </p>
                 </div>
                 <DataTable headers={headers} rows={rows} />
+                <IndiceTable data={indexData} />
             </div>
         </section>
     );
