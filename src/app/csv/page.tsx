@@ -259,7 +259,7 @@ function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: t
     return (
         <section
             id={id}
-            className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}
+            className={`min-h-screen flex flex-col items-center justify-center py-40 px-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}
         >
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className={`p-8 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
