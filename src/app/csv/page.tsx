@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { CSV_DATA } from "./data";
+import { EQUIPMENT_CATEGORIES } from "@/config/equipment";
 
 // import { Questionnaire } from "./Questionnaire"; // Commented out as per request
 import { AdCampaign } from "../design/page";
@@ -233,29 +234,55 @@ function IndiceTable({ data }: { data: { col: string; type: string; desc: string
     );
 }
 
+function EquipmentLegend() {
+    return (
+        <div className="w-full mt-8 px-8 py-12 rounded-[2rem] border border-purple-100 bg-purple-50 text-center flex flex-col gap-10">
+            <h3 className="text-xl font-black uppercase tracking-[0.5em] text-slate-400 opacity-50">Equipment Categories</h3>
+            <div className="flex flex-col md:flex-row items-center justify-around gap-12 md:gap-0">
+                {EQUIPMENT_CATEGORIES.map((cat, index) => {
+                    const Icon = cat.icon;
+                    return (
+                        <div key={cat.id} className="contents">
+                            <div className="flex-1 flex flex-col items-center gap-6">
+                                <Icon size={64} className="text-purple-600 opacity-80" />
+                                <span className="text-xs font-black uppercase tracking-[0.3em] text-purple-600">
+                                    {cat.name}
+                                </span>
+                            </div>
+                            {index < EQUIPMENT_CATEGORIES.length - 1 && (
+                                <div className="hidden md:block w-px h-20 bg-purple-100" />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 // --- Generic Section Component ---
 
-function CsvSection({ 
-    id, 
-    data, 
-    bgColor = "bg-slate-50" 
-}: { 
-    id: string; 
-    data: typeof CSV_DATA.school; 
-    bgColor?: string; 
+function CsvSection({
+    id,
+    data,
+    bgColor = "bg-slate-50"
+}: {
+    id: string;
+    data: typeof CSV_DATA.school;
+    bgColor?: string;
 }) {
     const Icon = data.icon;
     return (
         <section id={id} className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}>
             {/* Local Section Actions */}
             <div className="absolute top-8 right-8 flex items-center gap-3">
-                <Link 
+                <Link
                     href={`/csv/import?type=${id}`}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-secondary hover:border-secondary transition-all shadow-sm"
                 >
                     <Upload size={14} /> Import
                 </Link>
-                <button 
+                <button
                     onClick={() => console.log(`Exporting ${id}...`)}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm"
                 >
@@ -275,11 +302,11 @@ function CsvSection({
                 <IndiceTable data={data.indexData} />
                 {id === "schools" && <DataTypeLegend />}
                 {id === "bookings" && <BookingLegend />}
+                {id === "equipments" && <EquipmentLegend />}
             </div>
         </section>
     );
 }
-
 // --- Main Page Component ---
 
 export default function CsvPage() {
