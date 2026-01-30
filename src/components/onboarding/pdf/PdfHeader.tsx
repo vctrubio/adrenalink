@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Printer, Share2, Upload } from "lucide-react";
+import { Printer, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PDF_DESCRIPTION_TEXT_CLASS, PDF_DESCRIPTION_LABEL_WIDTH } from "@/src/app/onboarding/pdf/page";
 
@@ -68,7 +68,7 @@ export function PdfHeader({ subtitle = "Connecting Students" }: { subtitle?: str
       </Link>
 
       {/* Right side: Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 print:hidden">
         <button 
           onClick={handlePrint}
           className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-full hover:bg-foreground/90 transition-all shadow-sm group"
@@ -84,14 +84,6 @@ export function PdfHeader({ subtitle = "Connecting Students" }: { subtitle?: str
           <Share2 size={16} className="group-active:scale-90 transition-transform" />
           <span className="text-xs font-bold uppercase tracking-wider">Share</span>
         </button>
-
-        <Link 
-          href="/csv/import"
-          className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-full hover:bg-secondary/90 transition-all shadow-sm group"
-        >
-          <Upload size={16} className="group-active:scale-90 transition-transform" />
-          <span className="text-xs font-bold uppercase tracking-wider">Import</span>
-        </Link>
       </div>
     </div>
   );

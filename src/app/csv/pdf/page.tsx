@@ -60,7 +60,7 @@ function PdfSection({ data }: { data: typeof CSV_DATA.school }) {
             <div className="flex gap-8 text-[9px] font-mono text-slate-400 mt-4 px-2">
                 {[
                     data.indexData.slice(0, Math.ceil(data.indexData.length / 2)),
-                    data.indexData.slice(Math.ceil(data.indexData.length / 2))
+                    data.indexData.slice(Math.ceil(data.indexData.length / 2)),
                 ].map((column, colIdx) => (
                     <div key={colIdx} className="flex-1 flex flex-col gap-y-1">
                         {column.map((item) => (
@@ -123,7 +123,7 @@ export default function PdfCsvPage() {
                 <div className="px-[10mm] flex-1">
                     {/* Setting Up Group */}
                     <div className="">
-                        <h3 className="text-xs font-mono font-bold tracking-[0.5em] text-slate-400 uppercase mb-4 border-b border-black/20">
+                        <h3 className="text-xs font-mono font-bold tracking-[0.5em] text-slate-400 uppercase mb-6 border-b border-black/20">
                             Step 1: Setting Up
                         </h3>
                         <PdfSection data={CSV_DATA.school} />
@@ -133,7 +133,7 @@ export default function PdfCsvPage() {
 
                     {/* Users Group */}
                     <div>
-                        <h3 className="text-xs font-mono font-bold tracking-[0.5em] text-slate-400 uppercase mb-4 border-b border-black/20">
+                        <h3 className="text-xs font-mono font-bold tracking-[0.5em] text-slate-400 uppercase mb-6 border-b border-black/20">
                             Step 2: Users
                         </h3>
                         <PdfSection data={CSV_DATA.students} />

@@ -131,9 +131,7 @@ export const CSV_DATA = {
         headers: ["Type", "Brand", "Model", "Size", "Color", "SKU"],
         rows: [
             [
-                <div key="k1" className="flex items-center gap-2">
-                    <KiteIcon size={20} className="text-purple-600" /> Kite
-                </div>,
+                "Kite",
                 "North",
                 "Orbit",
                 9,
@@ -141,9 +139,7 @@ export const CSV_DATA = {
                 "NTH-ORB-09",
             ],
             [
-                <div key="k2" className="flex items-center gap-2">
-                    <KiteIcon size={20} className="text-purple-600" /> Kite
-                </div>,
+                "Kite",
                 "North",
                 "Reach",
                 12,
@@ -151,9 +147,7 @@ export const CSV_DATA = {
                 "NTH-RCH-12",
             ],
             [
-                <div key="w1" className="flex items-center gap-2">
-                    <WingIcon size={20} className="text-purple-600" /> Wing
-                </div>,
+                "Wing",
                 "North",
                 "Nova",
                 4.7,
@@ -161,9 +155,7 @@ export const CSV_DATA = {
                 "NTH-NOV-47",
             ],
             [
-                <div key="w2" className="flex items-center gap-2">
-                    <WingIcon size={20} className="text-purple-600" /> Wing
-                </div>,
+                "Wing",
                 "North",
                 "Mode",
                 5.3,
@@ -171,9 +163,7 @@ export const CSV_DATA = {
                 "NTH-MOD-53",
             ],
             [
-                <div key="ws1" className="flex items-center gap-2">
-                    <WindsurfIcon size={20} className="text-purple-600" /> Windsurf
-                </div>,
+                "Windsurf",
                 "North",
                 "Wave",
                 3.7,
