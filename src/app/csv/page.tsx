@@ -67,10 +67,6 @@ function HeaderNav() {
             <button onClick={() => scrollToId("bookings")} className={getLinkClass("bookings")}>
                 Bookings
             </button>
-            <div className="w-1 h-1 rounded-full bg-slate-200" />
-            <Link href="/csv/import" className="text-sm font-black uppercase tracking-widest text-secondary hover:underline underline-offset-4 decoration-2">
-                Import Data
-            </Link>
         </nav>
     );
 }
@@ -245,13 +241,9 @@ function EquipmentLegend() {
                         <div key={cat.id} className="contents">
                             <div className="flex-1 flex flex-col items-center gap-6">
                                 <Icon size={64} className="text-purple-600 opacity-80" />
-                                <span className="text-xs font-black uppercase tracking-[0.3em] text-purple-600">
-                                    {cat.name}
-                                </span>
+                                <span className="text-xs font-black uppercase tracking-[0.3em] text-purple-600">{cat.name}</span>
                             </div>
-                            {index < EQUIPMENT_CATEGORIES.length - 1 && (
-                                <div className="hidden md:block w-px h-20 bg-purple-100" />
-                            )}
+                            {index < EQUIPMENT_CATEGORIES.length - 1 && <div className="hidden md:block w-px h-20 bg-purple-100" />}
                         </div>
                     );
                 })}
@@ -262,34 +254,13 @@ function EquipmentLegend() {
 
 // --- Generic Section Component ---
 
-function CsvSection({
-    id,
-    data,
-    bgColor = "bg-slate-50"
-}: {
-    id: string;
-    data: typeof CSV_DATA.school;
-    bgColor?: string;
-}) {
+function CsvSection({ id, data, bgColor = "bg-slate-50" }: { id: string; data: typeof CSV_DATA.school; bgColor?: string }) {
     const Icon = data.icon;
     return (
-        <section id={id} className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}>
-            {/* Local Section Actions */}
-            <div className="absolute top-8 right-8 flex items-center gap-3">
-                <Link
-                    href={`/csv/import?type=${id}`}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-secondary hover:border-secondary transition-all shadow-sm"
-                >
-                    <Upload size={14} /> Import
-                </Link>
-                <button
-                    onClick={() => console.log(`Exporting ${id}...`)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm"
-                >
-                    <Download size={14} /> Export
-                </button>
-            </div>
-
+        <section
+            id={id}
+            className={`min-h-screen flex flex-col items-center justify-center p-8 border-t border-slate-200 scroll-mt-24 relative ${bgColor}`}
+        >
             <div className="max-w-6xl w-full flex flex-col items-center text-center gap-8">
                 <div className={`p-8 rounded-full ${data.colorClass} ${data.iconColorClass}`}>
                     <Icon size={80} className="w-20 h-20" />
@@ -321,13 +292,22 @@ export default function CsvPage() {
                         <HeaderNav />
                     </div>
 
-                    {/* Right: Title (Static) */}
-                    <Link href="/csv/pdf" className="flex items-center gap-2 group transition-opacity hover:opacity-80">
-                        <FileText size={18} className="text-secondary opacity-40 group-hover:opacity-100 transition-opacity" />
-                        <span className="text-xl font-black tracking-tighter text-foreground/20 group-hover:text-foreground/40 transition-colors hidden md:block">
-                            PDF
-                        </span>
-                    </Link>
+                    {/* Right: Actions (Static) */}
+                    <div className="flex items-center gap-6">
+                        {/* <Link href="/csv/import" className="flex items-center gap-2 group transition-opacity hover:opacity-80"> */}
+                        {/*     <Upload size={18} className="text-secondary opacity-40 group-hover:opacity-100 transition-opacity" /> */}
+                        {/*     <span className="text-xl font-black tracking-tighter text-foreground/20 group-hover:text-foreground/40 transition-colors hidden md:block"> */}
+                        {/*         IMPORT */}
+                        {/*     </span> */}
+                        {/* </Link> */}
+
+                        <Link href="/csv/pdf" className="flex items-center gap-2 group transition-opacity hover:opacity-80">
+                            <FileText size={18} className="text-secondary opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <span className="text-xl font-black tracking-tighter text-foreground/20 group-hover:text-foreground/40 transition-colors hidden md:block">
+                                PDF
+                            </span>
+                        </Link>
+                    </div>
                 </div>
             </div>
 
